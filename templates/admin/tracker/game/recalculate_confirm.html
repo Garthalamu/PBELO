@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width:540px;">
+  <h1>Recalculate ELO Ratings</h1>
+
+  <div class="help" style="padding:1em;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;margin:1.5em 0;">
+    <strong>Warning:</strong> This will reset all {{ player_count }} player ELO rating(s) to 1000 and
+    replay all {{ game_count }} game(s) in chronological order. Existing ELO history will be rebuilt
+    from scratch. This cannot be undone.
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="submit" value="Yes, recalculate" class="button default">
+    &nbsp;
+    <a href="{% url 'admin:tracker_game_changelist' %}" class="button">Cancel</a>
+  </form>
+</div>
+{% endblock %}

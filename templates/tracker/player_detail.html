@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.name }} — PBELO{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+  {% if singles_chart != "null" %}
+    Plotly.newPlot('plot-singles', {{ singles_chart|safe }}.data, {{ singles_chart|safe }}.layout, {responsive: true, displayModeBar: false});
+  {% endif %}
+  {% if doubles_chart != "null" %}
+    Plotly.newPlot('plot-doubles', {{ doubles_chart|safe }}.data, {{ doubles_chart|safe }}.layout, {responsive: true, displayModeBar: false});
+  {% endif %}
+
+  // Plotly needs a resize trigger when a hidden tab becomes visible.
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+      const targetId = e.target.getAttribute('data-bs-target');
+      const plot = document.querySelector(targetId + ' .js-plotly-plot');
+      if (plot) Plotly.Plots.resize(plot);
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">{{ player.name }}</h2>
+  <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">← Leaderboard</a>
+</div>
+
+{# Stat cards #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Singles ELO</div>
+        <div class="fs-3 fw-bold">{{ player.singles_elo|floatformat:1 }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Singles Record</div>
+        <div class="fs-3 fw-bold">{{ singles_wins }}–{{ singles_losses }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Doubles ELO</div>
+        <div class="fs-3 fw-bold">{{ player.doubles_elo|floatformat:1 }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Doubles Record</div>
+        <div class="fs-3 fw-bold">{{ doubles_wins }}–{{ doubles_losses }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ELO history charts #}
+<div class="card mb-4">
+  <div class="card-header fw-semibold">ELO History</div>
+  <div class="card-body">
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#chart-singles" type="button" role="tab">
+          Singles
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#chart-doubles" type="button" role="tab">
+          Doubles
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="chart-singles" role="tabpanel">
+        {% if singles_chart != "null" %}
+          <div id="plot-singles" style="height:320px;"></div>
+        {% else %}
+          <p class="text-muted mb-0">No singles games recorded yet.</p>
+        {% endif %}
+      </div>
+      <div class="tab-pane fade" id="chart-doubles" role="tabpanel">
+        {% if doubles_chart != "null" %}
+          <div id="plot-doubles" style="height:320px;"></div>
+        {% else %}
+          <p class="text-muted mb-0">No doubles games recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Game history — singles and doubles side by side #}
+<h5 class="mb-3">Game History</h5>
+<div class="row g-4">
+
+  {# Singles #}
+  <div class="col-lg-6">
+    <h6 class="text-muted mb-2">Singles</h6>
+    {% if singles_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Date</th>
+              <th>Opponent</th>
+              <th class="text-center">Score</th>
+              <th class="text-center">Result</th>
+              <th class="text-end">ELO</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in singles_rows %}
+              <tr>
+                <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
+                <td>
+                  {% for opp in row.opponents %}
+                    <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>
+                  {% endfor %}
+                </td>
+                <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
+                <td class="text-center">
+                  {% if row.won %}<span class="badge bg-success">W</span>
+                  {% else %}<span class="badge bg-danger">L</span>{% endif %}
+                </td>
+                <td class="text-end fw-semibold {% if row.elo_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  {% if row.elo_delta is not None %}
+                    {% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No singles games recorded yet.</p>
+    {% endif %}
+  </div>
+
+  {# Doubles #}
+  <div class="col-lg-6">
+    <h6 class="text-muted mb-2">Doubles</h6>
+    {% if doubles_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Date</th>
+              <th>Opponent(s)</th>
+              <th>Teammate</th>
+              <th class="text-center">Score</th>
+              <th class="text-center">Result</th>
+              <th class="text-end">ELO</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in doubles_rows %}
+              <tr>
+                <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
+                <td>
+                  {% for opp in row.opponents %}
+                    <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </td>
+                <td>
+                  {% for tm in row.teammates %}
+                    <a href="{% url 'player_detail' tm.pk %}">{{ tm.name }}</a>
+                  {% empty %}—{% endfor %}
+                </td>
+                <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
+                <td class="text-center">
+                  {% if row.won %}<span class="badge bg-success">W</span>
+                  {% else %}<span class="badge bg-danger">L</span>{% endif %}
+                </td>
+                <td class="text-end fw-semibold {% if row.elo_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  {% if row.elo_delta is not None %}
+                    {% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No doubles games recorded yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
