@@ -15,7 +15,7 @@ The same multiplier is applied to both sides, preserving zero-sum.
 
 import math
 
-K = 32
+K = 24
 
 
 def expected_score(rating_a: float, rating_b: float) -> float:

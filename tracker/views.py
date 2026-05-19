@@ -1,79 +1,45 @@
 import json
+from collections import Counter
 
 import plotly.graph_objects as go
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .elo import process_game
 from .forms import RecordGameForm
-from .models import Game, Player
+from .models import EloChange, Game, Player
 
 
 def _build_elo_chart(elo_changes):
-    """Return Plotly candlestick figure JSON for ELO history, or None if no data.
+    """Return a line chart figure JSON showing closing ELO per day, or None if no data.
 
-    Each bar represents one calendar day:
-      open  = ELO before the first game that day
-      close = ELO after the last game that day
-      high  = highest ELO value touched during the day
-      low   = lowest  ELO value touched during the day
-    Green when the day ended higher than it opened, red when lower.
     elo_changes must be ordered by game__played_at ascending.
     """
     if not elo_changes:
         return None
 
-    # Group into per-day buckets preserving chronological order.
-    # daily_values holds every ELO value touched: the opening value (elo_before
-    # of the first game) plus every elo_after across all games that day.
-    daily_open: dict = {}
     daily_close: dict = {}
-    daily_values: dict = {}  # all ELO values seen that day, for true high/low
-
     for ec in elo_changes:
         day = ec["game__played_at"].date()
-        if day not in daily_open:
-            daily_open[day] = round(ec["elo_before"], 1)
-            daily_values[day] = [round(ec["elo_before"], 1)]
         daily_close[day] = round(ec["elo_after"], 1)
-        daily_values[day].append(round(ec["elo_after"], 1))
 
-    dates = list(daily_open.keys())
-    opens = [daily_open[d] for d in dates]
-    closes = [daily_close[d] for d in dates]
-    highs = [max(daily_values[d]) for d in dates]
-    lows = [min(daily_values[d]) for d in dates]
+    dates = list(daily_close.keys())
+    closes = list(daily_close.values())
 
-    fig = go.Figure(data=[
-        go.Scatter(
-            x=dates,
-            y=closes,
-            mode="lines",
-            line=dict(color="#495057", width=1.5, dash="dash"),
-            hoverinfo="skip",
-            name="Closing ELO",
-        ),
-        go.Candlestick(
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
         x=dates,
-        open=opens,
-        high=highs,
-        low=lows,
-        close=closes,
-        increasing=dict(line=dict(color="#198754"), fillcolor="#198754"),
-        decreasing=dict(line=dict(color="#dc3545"), fillcolor="#dc3545"),
-        hovertext=[
-            f"{d.strftime('%b %d, %Y')}<br>Open: {o}<br>High: {h}<br>Low: {l}<br>Close: {c}<br>Change: {c - o:+.1f}"
-            for d, o, h, l, c in zip(dates, opens, highs, lows, closes)
-        ],
-        hoverinfo="text",
-        name="Daily Range",
-    )])
-
+        y=closes,
+        mode="lines+markers",
+        line=dict(color="#0d6efd", width=2),
+        marker=dict(size=7, color="#0d6efd"),
+        hovertemplate="%{x|%b %d, %Y}<br>ELO: %{y}<extra></extra>",
+    ))
     fig.add_hline(
         y=1000,
-        line=dict(color="#adb5bd", width=1, dash="dot"),
+        line=dict(color="#6c757d", width=1, dash="dot"),
         annotation_text="Start (1000)",
         annotation_position="bottom right",
     )
@@ -82,19 +48,37 @@ def _build_elo_chart(elo_changes):
         paper_bgcolor="white",
         plot_bgcolor="white",
         yaxis=dict(title="ELO", gridcolor="#e9ecef", zeroline=False),
-        xaxis=dict(title="Date", gridcolor="#e9ecef", type="date", tickformat="%b %d, %Y", rangeslider=dict(visible=False)),
-        hovermode="x",
+        xaxis=dict(title="Date", gridcolor="#e9ecef", type="date", tickformat="%b %d, %Y"),
+        hovermode="closest",
+        showlegend=False,
     )
     return json.loads(fig.to_json())
 
 
 def home(request):
-    players = Player.objects.annotate(
-        singles_games=Count("elo_changes", filter=Q(elo_changes__game__game_type="singles")),
-        doubles_games=Count("elo_changes", filter=Q(elo_changes__game__game_type="doubles")),
+    changes_qs = EloChange.objects.select_related("game").order_by("game__played_at")
+    players = list(Player.objects.prefetch_related(
+        Prefetch("elo_changes", queryset=changes_qs)
+    ))
+
+    for player in players:
+        all_changes = list(player.elo_changes.all())
+        singles = [c for c in all_changes if c.game.game_type == Game.SINGLES]
+        doubles = [c for c in all_changes if c.game.game_type == Game.DOUBLES]
+
+        player.singles_games_count = len(singles)
+        player.doubles_games_count = len(doubles)
+        player.singles_wins = sum(1 for c in singles if c.delta > 0)
+        player.doubles_wins = sum(1 for c in doubles if c.delta > 0)
+
+    singles_board = sorted(
+        [p for p in players if p.singles_games_count > 0],
+        key=lambda p: p.singles_elo, reverse=True,
     )
-    singles_board = players.filter(singles_games__gt=0).order_by("-singles_elo")
-    doubles_board = players.filter(doubles_games__gt=0).order_by("-doubles_elo")
+    doubles_board = sorted(
+        [p for p in players if p.doubles_games_count > 0],
+        key=lambda p: p.doubles_elo, reverse=True,
+    )
     return render(request, "tracker/home.html", {
         "singles_board": singles_board,
         "doubles_board": doubles_board,
@@ -112,6 +96,7 @@ def record_game(request):
             game = Game.objects.create(
                 game_type=data["game_type"],
                 played_at=played_at,
+                location=data["location"],
                 team1_score=data["team1_score"],
                 team2_score=data["team2_score"],
             )
@@ -132,6 +117,32 @@ def record_game(request):
         form = RecordGameForm(initial={"played_at": timezone.now().date()})
 
     return render(request, "tracker/record_game.html", {"form": form})
+
+
+def matches(request):
+    games = (
+        Game.objects.select_related("location")
+        .prefetch_related("team1_players", "team2_players")
+        .order_by("-played_at")
+    )
+
+    game_rows = []
+    for game in games:
+        t1 = list(game.team1_players.all())
+        t2 = list(game.team2_players.all())
+        game_rows.append({
+            "game": game,
+            "team1": t1,
+            "team2": t2,
+        })
+
+    singles = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
+    doubles = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
+
+    return render(request, "tracker/matches.html", {
+        "singles": singles,
+        "doubles": doubles,
+    })
 
 
 def player_detail(request, player_id):
@@ -184,18 +195,47 @@ def player_detail(request, player_id):
             "elo_delta": elo_change.delta if elo_change else None,
         })
 
+    singles_ranked = list(
+        Player.objects.filter(elo_changes__game__game_type=Game.SINGLES)
+        .distinct().order_by("-singles_elo")
+    )
+    doubles_ranked = list(
+        Player.objects.filter(elo_changes__game__game_type=Game.DOUBLES)
+        .distinct().order_by("-doubles_elo")
+    )
+    singles_rank = next((i + 1 for i, p in enumerate(singles_ranked) if p.pk == player.pk), None)
+    doubles_rank = next((i + 1 for i, p in enumerate(doubles_ranked) if p.pk == player.pk), None)
+
     elo_history = list(
         player.elo_changes.select_related("game")
         .order_by("game__played_at")
-        .values("elo_before", "elo_after", "game__played_at", "game__game_type")
+        .values("elo_after", "game__played_at", "game__game_type")
     )
+
     singles_chart = _build_elo_chart([e for e in elo_history if e["game__game_type"] == Game.SINGLES])
     doubles_chart = _build_elo_chart([e for e in elo_history if e["game__game_type"] == Game.DOUBLES])
 
     singles_rows = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
     doubles_rows = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
 
+    teammate_wins = Counter()
+    nemesis_losses = Counter()
+    for row in doubles_rows:
+        if row["won"]:
+            for tm in row["teammates"]:
+                teammate_wins[tm] += 1
+    for row in game_rows:
+        if not row["won"]:
+            for opp in row["opponents"]:
+                nemesis_losses[opp] += 1
+    best_teammate, best_teammate_wins = teammate_wins.most_common(1)[0] if teammate_wins else (None, 0)
+    nemesis, nemesis_loss_count = nemesis_losses.most_common(1)[0] if nemesis_losses else (None, 0)
+
     return render(request, "tracker/player_detail.html", {
+        "best_teammate": best_teammate,
+        "best_teammate_wins": best_teammate_wins,
+        "nemesis": nemesis,
+        "nemesis_loss_count": nemesis_loss_count,
         "player": player,
         "singles_rows": singles_rows,
         "doubles_rows": doubles_rows,
@@ -205,4 +245,6 @@ def player_detail(request, player_id):
         "doubles_losses": doubles_losses,
         "singles_chart": json.dumps(singles_chart),
         "doubles_chart": json.dumps(doubles_chart),
+        "singles_rank": singles_rank,
+        "doubles_rank": doubles_rank,
     })

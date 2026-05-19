@@ -16,7 +16,8 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'matches' %}">Matches</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'record_game' %}">Record Game</a></li>
         </ul>
       </div>

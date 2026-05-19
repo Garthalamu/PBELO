@@ -8,6 +8,8 @@
   <a href="{% url 'record_game' %}" class="btn btn-primary">Record Game</a>
 </div>
 
+{% load leaderboard_tags %}
+
 <div class="row g-4">
   <div class="col-md-6">
     <h5 class="mb-3">Singles</h5>
@@ -18,16 +20,23 @@
             <th style="width:3rem">#</th>
             <th>Player</th>
             <th class="text-end">ELO</th>
-            <th class="text-end">Games</th>
+            <th class="text-end">W/L</th>
           </tr>
         </thead>
         <tbody>
           {% for player in singles_board %}
             <tr>
-              <td class="text-muted">{{ forloop.counter }}</td>
+              <td class="text-muted">
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}{% endif %}
+              </td>
               <td><a href="{% url 'player_detail' player.pk %}" class="text-decoration-none">{{ player.name }}</a></td>
               <td class="text-end fw-semibold">{{ player.singles_elo|floatformat:1 }}</td>
-              <td class="text-end text-muted">{{ player.singles_games }}</td>
+              <td class="text-end text-muted">
+                {{ player.singles_wins }}–{{ player.singles_games_count|subtract:player.singles_wins }}
+              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -46,16 +55,23 @@
             <th style="width:3rem">#</th>
             <th>Player</th>
             <th class="text-end">ELO</th>
-            <th class="text-end">Games</th>
+            <th class="text-end">W/L</th>
           </tr>
         </thead>
         <tbody>
           {% for player in doubles_board %}
             <tr>
-              <td class="text-muted">{{ forloop.counter }}</td>
+              <td class="text-muted">
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}{% endif %}
+              </td>
               <td><a href="{% url 'player_detail' player.pk %}" class="text-decoration-none">{{ player.name }}</a></td>
               <td class="text-end fw-semibold">{{ player.doubles_elo|floatformat:1 }}</td>
-              <td class="text-end text-muted">{{ player.doubles_games }}</td>
+              <td class="text-end text-muted">
+                {{ player.doubles_wins }}–{{ player.doubles_games_count|subtract:player.doubles_wins }}
+              </td>
             </tr>
           {% endfor %}
         </tbody>
