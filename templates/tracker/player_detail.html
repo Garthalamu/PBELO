@@ -157,7 +157,7 @@
             <tr>
               <th>Date</th>
               <th>Opponent</th>
-              <th>Location</th>
+              <th class="d-none d-sm-table-cell">Location</th>
               <th class="text-center">Score</th>
               <th class="text-center">Result</th>
               <th class="text-end">ELO</th>
@@ -172,7 +172,7 @@
                     <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>
                   {% endfor %}
                 </td>
-                <td class="text-muted small">{{ row.game.location|default:"—" }}</td>
+                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location|default:"—" }}</td>
                 <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
                 <td class="text-center">
                   {% if row.won %}<span class="badge bg-success">W</span>
@@ -203,8 +203,8 @@
             <tr>
               <th>Date</th>
               <th>Opponent(s)</th>
-              <th>Teammate</th>
-              <th>Location</th>
+              <th class="d-none d-md-table-cell">Teammate</th>
+              <th class="d-none d-sm-table-cell">Location</th>
               <th class="text-center">Score</th>
               <th class="text-center">Result</th>
               <th class="text-end">ELO</th>
@@ -219,12 +219,12 @@
                     <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>{% if not forloop.last %}, {% endif %}
                   {% endfor %}
                 </td>
-                <td>
+                <td class="d-none d-md-table-cell">
                   {% for tm in row.teammates %}
                     <a href="{% url 'player_detail' tm.pk %}">{{ tm.name }}</a>
                   {% empty %}—{% endfor %}
                 </td>
-                <td class="text-muted small">{{ row.game.location|default:"—" }}</td>
+                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location|default:"—" }}</td>
                 <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
                 <td class="text-center">
                   {% if row.won %}<span class="badge bg-success">W</span>

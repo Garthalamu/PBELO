@@ -22,7 +22,7 @@
               <th>Player 1</th>
               <th>Player 2</th>
               <th class="text-center">Score</th>
-              <th>Location</th>
+              <th class="d-none d-sm-table-cell">Location</th>
             </tr>
           </thead>
           <tbody>
@@ -42,7 +42,7 @@
                   {% if row.game.winning_team == 2 %}<span class="badge bg-success ms-1">W</span>{% endif %}
                 </td>
                 <td class="text-center text-muted small">{{ row.game.team1_score }}–{{ row.game.team2_score }}</td>
-                <td class="text-muted small">{{ row.game.location }}</td>
+                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -65,7 +65,7 @@
               <th>Team 1</th>
               <th>Team 2</th>
               <th class="text-center">Score</th>
-              <th>Location</th>
+              <th class="d-none d-sm-table-cell">Location</th>
             </tr>
           </thead>
           <tbody>
@@ -85,7 +85,7 @@
                   {% if row.game.winning_team == 2 %}<span class="badge bg-success ms-1">W</span>{% endif %}
                 </td>
                 <td class="text-center text-muted small">{{ row.game.team1_score }}–{{ row.game.team2_score }}</td>
-                <td class="text-muted small">{{ row.game.location }}</td>
+                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location }}</td>
               </tr>
             {% endfor %}
           </tbody>

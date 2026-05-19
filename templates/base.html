@@ -16,15 +16,15 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'matches' %}">Matches</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'record_game' %}">Record Game</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/matches/' %}active{% endif %}" href="{% url 'matches' %}">Matches</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.path == '/record/' %}active{% endif %}" href="{% url 'record_game' %}">Record Game</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <main class="container mt-4">
+  <main class="container mt-4 mb-5">
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
