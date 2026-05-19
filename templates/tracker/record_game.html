@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Record Game — PBELO{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <h2 class="mb-4">Record Game</h2>
+
+    <form method="post" id="game-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+
+      {# Game type #}
+      <div class="card mb-3">
+        <div class="card-body">
+          <label class="form-label fw-semibold">Game Type</label>
+          <div class="d-flex gap-4">
+            {% for radio in form.game_type %}
+              <div class="form-check">
+                {{ radio.tag }}
+                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+              </div>
+            {% endfor %}
+          </div>
+          {% if form.game_type.errors %}
+            <div class="text-danger small mt-1">{{ form.game_type.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Date #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="{{ form.played_at.id_for_label }}">Date Played</label>
+        <input type="date" name="{{ form.played_at.html_name }}" id="{{ form.played_at.id_for_label }}"
+               value="{{ form.played_at.value }}"
+               class="form-control {% if form.played_at.errors %}is-invalid{% endif %}">
+        {% if form.played_at.errors %}
+          <div class="invalid-feedback">{{ form.played_at.errors|join:", " }}</div>
+        {% endif %}
+      </div>
+
+      {# Teams #}
+      <div class="row g-3 mb-3">
+        {# Team 1 #}
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Team 1</div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label" for="{{ form.team1_player1.id_for_label }}">Player 1</label>
+                <select name="{{ form.team1_player1.html_name }}" id="{{ form.team1_player1.id_for_label }}"
+                        class="form-select {% if form.team1_player1.errors %}is-invalid{% endif %}">
+                  <option value="">---------</option>
+                  {% for pk, label in form.team1_player1.field.choices %}
+                    {% if pk %}
+                      <option value="{{ pk }}" {% if form.team1_player1.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if form.team1_player1.errors %}
+                  <div class="invalid-feedback">{{ form.team1_player1.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-2 doubles-field">
+                <label class="form-label" for="{{ form.team1_player2.id_for_label }}">Player 2</label>
+                <select name="{{ form.team1_player2.html_name }}" id="{{ form.team1_player2.id_for_label }}"
+                        class="form-select {% if form.team1_player2.errors %}is-invalid{% endif %}">
+                  <option value="">---------</option>
+                  {% for pk, label in form.team1_player2.field.choices %}
+                    {% if pk %}
+                      <option value="{{ pk }}" {% if form.team1_player2.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if form.team1_player2.errors %}
+                  <div class="invalid-feedback">{{ form.team1_player2.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div>
+                <label class="form-label" for="{{ form.team1_score.id_for_label }}">Score</label>
+                <input type="number" name="{{ form.team1_score.html_name }}" id="{{ form.team1_score.id_for_label }}"
+                       value="{{ form.team1_score.value|default:'' }}" min="0"
+                       class="form-control {% if form.team1_score.errors %}is-invalid{% endif %}">
+                {% if form.team1_score.errors %}
+                  <div class="invalid-feedback">{{ form.team1_score.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Team 2 #}
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Team 2</div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label" for="{{ form.team2_player1.id_for_label }}">Player 1</label>
+                <select name="{{ form.team2_player1.html_name }}" id="{{ form.team2_player1.id_for_label }}"
+                        class="form-select {% if form.team2_player1.errors %}is-invalid{% endif %}">
+                  <option value="">---------</option>
+                  {% for pk, label in form.team2_player1.field.choices %}
+                    {% if pk %}
+                      <option value="{{ pk }}" {% if form.team2_player1.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if form.team2_player1.errors %}
+                  <div class="invalid-feedback">{{ form.team2_player1.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-2 doubles-field">
+                <label class="form-label" for="{{ form.team2_player2.id_for_label }}">Player 2</label>
+                <select name="{{ form.team2_player2.html_name }}" id="{{ form.team2_player2.id_for_label }}"
+                        class="form-select {% if form.team2_player2.errors %}is-invalid{% endif %}">
+                  <option value="">---------</option>
+                  {% for pk, label in form.team2_player2.field.choices %}
+                    {% if pk %}
+                      <option value="{{ pk }}" {% if form.team2_player2.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if form.team2_player2.errors %}
+                  <div class="invalid-feedback">{{ form.team2_player2.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div>
+                <label class="form-label" for="{{ form.team2_score.id_for_label }}">Score</label>
+                <input type="number" name="{{ form.team2_score.html_name }}" id="{{ form.team2_score.id_for_label }}"
+                       value="{{ form.team2_score.value|default:'' }}" min="0"
+                       class="form-control {% if form.team2_score.errors %}is-invalid{% endif %}">
+                {% if form.team2_score.errors %}
+                  <div class="invalid-feedback">{{ form.team2_score.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Record Game</button>
+      <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // --- Doubles toggle ---
+  function toggleDoubles() {
+    const isDoubles = document.querySelector('input[name="game_type"]:checked')?.value === 'doubles';
+    document.querySelectorAll('.doubles-field').forEach(el => {
+      el.style.display = isDoubles ? '' : 'none';
+    });
+  }
+
+  document.querySelectorAll('input[name="game_type"]').forEach(el => {
+    el.addEventListener('change', toggleDoubles);
+  });
+
+  toggleDoubles();
+
+  // --- Player deduplication across dropdowns ---
+  const playerSelectIds = [
+    'id_team1_player1', 'id_team1_player2',
+    'id_team2_player1', 'id_team2_player2',
+  ];
+
+  // Snapshot the full option list before any filtering occurs.
+  const allOptions = {};
+  playerSelectIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      allOptions[id] = Array.from(el.options).map(o => ({ value: o.value, text: o.text }));
+    }
+  });
+
+  function syncPlayerSelects() {
+    // Collect every currently-selected value, keyed by select id.
+    const selected = {};
+    playerSelectIds.forEach(id => {
+      const el = document.getElementById(id);
+      selected[id] = el ? el.value : '';
+    });
+
+    playerSelectIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const takenElsewhere = new Set(
+        playerSelectIds
+          .filter(other => other !== id)
+          .map(other => selected[other])
+          .filter(v => v !== '')
+      );
+
+      const currentVal = selected[id];
+      el.innerHTML = '';
+      allOptions[id].forEach(({ value, text }) => {
+        if (!takenElsewhere.has(value)) {
+          const opt = new Option(text, value, false, value === currentVal);
+          el.appendChild(opt);
+        }
+      });
+    });
+  }
+
+  playerSelectIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', syncPlayerSelects);
+  });
+</script>
+{% endblock %}
