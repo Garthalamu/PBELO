@@ -1,5 +1,6 @@
 from django.test import TestCase
 from .elo import expected_score, updated_ratings, K
+import math
 
 
 class ExpectedScoreTests(TestCase):
@@ -20,23 +21,26 @@ class ExpectedScoreTests(TestCase):
 
 class UpdatedRatingsTests(TestCase):
     def test_winner_gains_loser_loses(self):
-        new_a, new_b = updated_ratings(1000, 1000, a_won=True)
+        new_a, new_b = updated_ratings(1000, 1000, 11, 9)
         self.assertGreater(new_a, 1000)
         self.assertLess(new_b, 1000)
 
     def test_ratings_are_zero_sum(self):
-        new_a, new_b = updated_ratings(1000, 1200, a_won=True)
+        new_a, new_b = updated_ratings(1000, 1200, 11, 9)
         self.assertAlmostEqual(new_a + new_b, 2200.0)
 
     def test_upset_gives_larger_gain(self):
-        # Underdog wins — should gain more than a favourite winning
-        new_underdog, _ = updated_ratings(1000, 1200, a_won=True)
-        new_favourite, _ = updated_ratings(1200, 1000, a_won=True)
-        underdog_gain = new_underdog - 1000
-        favourite_gain = new_favourite - 1200
-        self.assertGreater(underdog_gain, favourite_gain)
+        new_underdog, _ = updated_ratings(1000, 1200, 11, 9)
+        new_favourite, _ = updated_ratings(1200, 1000, 11, 9)
+        self.assertGreater(new_underdog - 1000, new_favourite - 1200)
 
-    def test_k_factor_caps_max_change(self):
-        # Maximum possible gain is K (when expected score ~0)
-        new_a, _ = updated_ratings(0, 10000, a_won=True)
-        self.assertLessEqual(new_a - 0, K)
+    def test_larger_margin_gives_larger_change(self):
+        _, new_b_close = updated_ratings(1000, 1000, 11, 9)   # 2-point win
+        _, new_b_wide = updated_ratings(1000, 1000, 11, 0)    # 11-point win
+        self.assertGreater(1000 - new_b_wide, 1000 - new_b_close)
+
+    def test_one_point_win_uses_baseline_k(self):
+        # log2(1 + 1) == 1.0, so MOV multiplier is exactly 1 — identical to plain ELO.
+        new_a, _ = updated_ratings(1000, 1000, 11, 10)
+        expected_gain = K * 1.0 * (1.0 - 0.5)
+        self.assertAlmostEqual(new_a - 1000, expected_gain)
