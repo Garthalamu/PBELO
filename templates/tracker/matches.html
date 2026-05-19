@@ -29,7 +29,7 @@
             {% for row in singles %}
               <tr>
                 <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
-                <td class="{% if row.game.winning_team == 1 %}fw-semibold{% endif %}">
+                <td class="text-nowrap {% if row.game.winning_team == 1 %}fw-semibold{% endif %}">
                   {% for p in row.team1 %}
                     <a href="{% url 'player_detail' p.pk %}" class="text-decoration-none">{{ p.name }}</a>
                   {% endfor %}
@@ -72,7 +72,7 @@
             {% for row in doubles %}
               <tr>
                 <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
-                <td class="{% if row.game.winning_team == 1 %}fw-semibold{% endif %}">
+                <td class="text-nowrap {% if row.game.winning_team == 1 %}fw-semibold{% endif %}">
                   {% for p in row.team1 %}
                     <a href="{% url 'player_detail' p.pk %}" class="text-decoration-none">{{ p.name }}</a>{% if not forloop.last %} &amp; {% endif %}
                   {% endfor %}
