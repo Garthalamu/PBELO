@@ -30,40 +30,40 @@
 
 {# Stat cards — row 1: ELO and records #}
 <div class="row g-3 mb-3">
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center text-white h-100 bg-primary border-0">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Singles ELO</div>
-        <div class="fs-3 fw-bold">
+  <div class="col-6 col-lg-3">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #0d6efd !important; background-color:#eef2ff;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Singles ELO</div>
+        <div class="fs-3 fw-bold text-primary">
           {{ player.singles_elo|floatformat:1 }}
           {% if singles_rank == 1 %}🥇{% elif singles_rank == 2 %}🥈{% elif singles_rank == 3 %}🥉{% endif %}
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center text-white h-100 border-0" style="background-color:#0dcaf0;">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Singles Record</div>
+  <div class="col-6 col-lg-3">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #0d6efd !important; background-color:#eef2ff;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Singles Record</div>
         <div class="fs-3 fw-bold">{{ singles_wins }}–{{ singles_losses }}</div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center text-white h-100 bg-success border-0">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Doubles ELO</div>
-        <div class="fs-3 fw-bold">
+  <div class="col-6 col-lg-3">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #198754 !important; background-color:#edf7f1;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Doubles ELO</div>
+        <div class="fs-3 fw-bold text-success">
           {{ player.doubles_elo|floatformat:1 }}
           {% if doubles_rank == 1 %}🥇{% elif doubles_rank == 2 %}🥈{% elif doubles_rank == 3 %}🥉{% endif %}
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center text-white h-100 border-0" style="background-color:#20c997;">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Doubles Record</div>
+  <div class="col-6 col-lg-3">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #198754 !important; background-color:#edf7f1;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Doubles Record</div>
         <div class="fs-3 fw-bold">{{ doubles_wins }}–{{ doubles_losses }}</div>
       </div>
     </div>
@@ -72,36 +72,36 @@
 
 {# Stat cards — row 2: social stats #}
 <div class="row g-3 mb-4">
-  <div class="col-sm-6">
-    <div class="card text-center text-white h-100 border-0" style="background-color:#6f42c1;">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Best Teammate</div>
+  <div class="col-12 col-sm-6">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #6f42c1 !important; background-color:#f3f0ff;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Best Teammate</div>
         {% if best_teammate %}
           <div class="fs-5 fw-bold">
-            <a href="{% url 'player_detail' best_teammate.pk %}" class="text-white text-decoration-none">
+            <a href="{% url 'player_detail' best_teammate.pk %}" class="text-decoration-none" style="color:#6f42c1;">
               {{ best_teammate.name }}
             </a>
           </div>
-          <div class="small opacity-75 mt-1">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
+          <div class="small text-muted mt-1">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
         {% else %}
-          <div class="fs-4 fw-bold">—</div>
+          <div class="fs-4 fw-bold text-muted">—</div>
         {% endif %}
       </div>
     </div>
   </div>
-  <div class="col-sm-6">
-    <div class="card text-center text-white h-100 border-0" style="background-color:#dc3545;">
-      <div class="card-body">
-        <div class="small mb-1 opacity-75">Nemesis</div>
+  <div class="col-12 col-sm-6">
+    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #dc3545 !important; background-color:#fff0f1;">
+      <div class="card-body py-3">
+        <div class="small text-muted mb-1">Nemesis</div>
         {% if nemesis %}
           <div class="fs-5 fw-bold">
-            <a href="{% url 'player_detail' nemesis.pk %}" class="text-white text-decoration-none">
+            <a href="{% url 'player_detail' nemesis.pk %}" class="text-danger text-decoration-none">
               {{ nemesis.name }}
             </a>
           </div>
-          <div class="small opacity-75 mt-1">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
+          <div class="small text-muted mt-1">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
         {% else %}
-          <div class="fs-4 fw-bold">—</div>
+          <div class="fs-4 fw-bold text-muted">—</div>
         {% endif %}
       </div>
     </div>

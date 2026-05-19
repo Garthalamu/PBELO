@@ -145,6 +145,13 @@ def matches(request):
     })
 
 
+def matchup_calculator(request):
+    players = list(Player.objects.values("id", "name", "singles_elo", "doubles_elo").order_by("name"))
+    return render(request, "tracker/matchup_calculator.html", {
+        "players_json": json.dumps(players),
+    })
+
+
 def player_detail(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
 

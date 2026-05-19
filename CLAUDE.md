@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Pickleball ELO Tracker — a Django web app for organizers to record pickleball game results and compute ELO ratings. ELO is calculated separately for singles and doubles with a margin-of-victory multiplier.
+Pickleball ELO Tracker — a Django web app for organizers to record pickleball game results and compute ELO ratings. ELO is calculated separately for singles and doubles with a margin-of-victory multiplier. App has good visibility for both desktop and mobile views.
 
 ## Setup & Commands
 
@@ -36,6 +36,7 @@ Django 6 + SQLite. Bootstrap 5 loaded via CDN. Plotly.js (v2.35.2) via CDN for c
 **`tracker/`** — the main app. All pickleball domain logic lives here.
 
 **`templates/`** — project-level templates.
+
 - `base.html` — Bootstrap 5 CDN, navbar (Home / Matches / Record Game), message alerts.
 - `tracker/` — app-specific templates that extend `base.html`.
 
@@ -82,9 +83,9 @@ Template blocks in `base.html`: `title`, `extra_css`, `content`, `extra_js`.
 
 ## URL Structure
 
-| URL | View | Name |
-|-----|------|------|
-| `/` | home | `home` |
-| `/matches/` | matches | `matches` |
-| `/record/` | record_game | `record_game` |
+| URL              | View          | Name            |
+| ---------------- | ------------- | --------------- |
+| `/`              | home          | `home`          |
+| `/matches/`      | matches       | `matches`       |
+| `/record/`       | record_game   | `record_game`   |
 | `/players/<id>/` | player_detail | `player_detail` |
