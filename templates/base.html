@@ -1,44 +1,443 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Pickleball ELO Tracker{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}PBELO{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:         #0b0f16;
+      --surface:    #161e2e;
+      --surface-hi: #1e2a3f;
+      --border:     #2c3d56;
+      --border-hi:  #3d5270;
+      --accent:     #c9f135;
+      --accent-dim: rgba(201,241,53,0.13);
+      --accent-glow:rgba(201,241,53,0.25);
+      --txt:        #f0f4ff;
+      --txt-2:      #90a8c8;
+      --txt-3:      #5a7296;
+      --win:        #4ade80;
+      --win-dim:    rgba(74,222,128,0.13);
+      --loss:       #fb7185;
+      --loss-dim:   rgba(251,113,133,0.13);
+      --gold:       #fbbf24;
+      --silver:     #94a3b8;
+      --bronze:     #c87941;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: 'Figtree', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* subtle court-line texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px),
+        repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ─────────────────────────────── */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 58px;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(11,15,22,0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.65rem;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      text-decoration: none;
+      margin-right: auto;
+      flex-shrink: 0;
+    }
+
+    .nav-brand span {
+      color: var(--txt-2);
+      font-size: 0.95rem;
+      letter-spacing: 0;
+      font-family: 'Figtree', sans-serif;
+      font-weight: 500;
+      margin-left: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 0.2rem;
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 0.38rem 0.85rem;
+      border-radius: 7px;
+      color: var(--txt-2);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover { color: var(--txt); background: var(--surface-hi); }
+    .nav-links a.active { color: var(--accent); background: var(--accent-dim); }
+
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--txt-2);
+      padding: 0.4rem 0.55rem;
+      cursor: pointer;
+      line-height: 0;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 680px) {
+      .nav-toggle { display: block; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 58px;
+        left: 0; right: 0;
+        flex-direction: column;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.5rem;
+        gap: 0.15rem;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 0.65rem 1rem; border-radius: 8px; }
+      .site-nav { position: relative; }
+    }
+
+    /* ── MAIN ────────────────────────────── */
+    .site-main {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 2.25rem 1.5rem 5rem;
+    }
+
+    @media (max-width: 640px) { .site-main { padding: 1.5rem 1rem 3.5rem; } }
+
+    /* ── ALERTS ──────────────────────────── */
+    .alert {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      border: 1px solid;
+      margin-bottom: 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .alert-success { background: var(--win-dim); border-color: rgba(52,211,153,0.28); color: var(--win); }
+    .alert-danger  { background: var(--loss-dim); border-color: rgba(248,113,113,0.28); color: var(--loss); }
+    .alert-warning { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+    .alert-info    { background: rgba(96,165,250,0.1); border-color: rgba(96,165,250,0.3); color: #60a5fa; }
+
+    /* ── TYPOGRAPHY ──────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: 0.04em;
+      color: var(--txt);
+      line-height: 1;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--txt-2);
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { opacity: 0.8; }
+
+    /* ── CARDS ───────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .card-hi {
+      background: var(--surface-hi);
+    }
+
+    /* ── BUTTONS ─────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.15rem;
+      border-radius: 8px;
+      font-family: 'Figtree', sans-serif;
+      font-weight: 700;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      border: 1px solid transparent;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #07090c;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background: #d9ff55;
+      color: #07090c;
+      opacity: 1;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--txt-2);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      color: var(--txt);
+      border-color: var(--border-hi);
+      background: var(--surface-hi);
+      opacity: 1;
+    }
+
+    .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.8rem; }
+
+    /* ── DATA TABLES ─────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--txt-3);
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .data-table td {
+      padding: 0.72rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    .data-table tbody tr:hover td { background: rgba(255,255,255,0.022); }
+
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+
+    .txt-2 { color: var(--txt-2); }
+    .txt-3 { color: var(--txt-3); }
+
+    /* ── FORM CONTROLS ───────────────────── */
+    .form-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--txt-2);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+      width: 100%;
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.6rem 0.9rem;
+      color: var(--txt);
+      font-family: 'Figtree', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235c7299' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      background-size: 14px 10px;
+      padding-right: 2.5rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .form-control.is-invalid,
+    .form-select.is-invalid { border-color: var(--loss); }
+
+    .invalid-feedback {
+      font-size: 0.78rem;
+      color: var(--loss);
+      margin-top: 0.3rem;
+    }
+
+    /* ── BADGES ──────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18rem 0.55rem;
+      border-radius: 5px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-win  { background: var(--win-dim);  color: var(--win); }
+    .badge-loss { background: var(--loss-dim); color: var(--loss); }
+
+    /* ── RANK ────────────────────────────── */
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .rank-gold   { background: rgba(251,191,36,0.15); color: var(--gold); }
+    .rank-silver { background: rgba(148,163,184,0.12); color: var(--silver); }
+    .rank-bronze { background: rgba(200,121,65,0.15); color: var(--bronze); }
+    .rank-num    { color: var(--txt-3); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 0 4px; }
+
+    /* ── WIN / LOSS COLORS ───────────────── */
+    .win-color  { color: var(--win); }
+    .loss-color { color: var(--loss); }
+
+    /* ── EMPTY STATE ─────────────────────── */
+    .empty-state {
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--txt-3);
+      font-size: 0.875rem;
+    }
+
+    /* ── ANIMATIONS ──────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up   { animation: fadeUp 0.35s ease both; }
+    .delay-1   { animation-delay: 0.05s; }
+    .delay-2   { animation-delay: 0.10s; }
+    .delay-3   { animation-delay: 0.15s; }
+    .delay-4   { animation-delay: 0.20s; }
+    .delay-5   { animation-delay: 0.25s; }
+  </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="/">PBELO</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path == '/matches/' %}active{% endif %}" href="{% url 'matches' %}">Matches</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path == '/matchup/' %}active{% endif %}" href="{% url 'matchup_calculator' %}">Matchup</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.path == '/record/' %}active{% endif %}" href="{% url 'record_game' %}">Record Game</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
 
-  <main class="container mt-4 mb-5">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
+<nav class="site-nav">
+  <a class="nav-brand" href="/">PBELO<span>Pickleball ELO</span></a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+      <rect width="18" height="2" rx="1" fill="currentColor"/>
+      <rect y="6" width="18" height="2" rx="1" fill="currentColor"/>
+      <rect y="12" width="18" height="2" rx="1" fill="currentColor"/>
+    </svg>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="{% url 'home' %}"               class="{% if request.path == '/' %}active{% endif %}">Leaderboard</a></li>
+    <li><a href="{% url 'matches' %}"             class="{% if request.path == '/matches/' %}active{% endif %}">Matches</a></li>
+    <li><a href="{% url 'matchup_calculator' %}"  class="{% if request.path == '/matchup/' %}active{% endif %}">Matchup</a></li>
+    <li><a href="{% url 'record_game' %}"         class="{% if request.path == '/record/' %}active{% endif %}">Record Game</a></li>
+  </ul>
+</nav>
 
-    {% block content %}{% endblock %}
-  </main>
+<main class="site-main">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} fade-up">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  {% block extra_js %}{% endblock %}
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const links  = document.getElementById('nav-links');
+  if (toggle) toggle.addEventListener('click', () => links.classList.toggle('open'));
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

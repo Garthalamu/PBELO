@@ -1,249 +1,546 @@
 {% extends "base.html" %}
-
 {% block title %}{{ player.name }} — PBELO{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── HERO ─────────────────────────── */
+  .player-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .player-hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--txt);
+  }
+
+  .player-hero-since {
+    font-size: 0.78rem;
+    color: var(--txt-3);
+    margin-top: 0.35rem;
+  }
+
+  /* ── STAT GRID ────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 680px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .player-hero-name { font-size: 2.6rem; }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.singles::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+  .stat-card.doubles::before { background: linear-gradient(90deg, #34d399, #10b981); }
+  .stat-card.ally::before    { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+  .stat-card.nemesis::before { background: linear-gradient(90deg, #f87171, #dc2626); }
+
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--txt-3);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--txt);
+  }
+
+  .stat-val.singles-color { color: #60a5fa; }
+  .stat-val.doubles-color { color: #34d399; }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--txt-3);
+    margin-top: 0.3rem;
+  }
+
+  .stat-rank {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 4px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  .stat-rank.gold   { background: rgba(251,191,36,0.15); color: var(--gold); }
+  .stat-rank.silver { background: rgba(148,163,184,0.12); color: var(--silver); }
+  .stat-rank.bronze { background: rgba(200,121,65,0.15); color: var(--bronze); }
+  .stat-rank.other  { background: var(--surface-hi); color: var(--txt-2); }
+
+  .social-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--txt);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+  }
+  .social-name:hover { color: var(--accent); opacity: 1; }
+
+  /* ── CHART SECTION ────────────────── */
+  .chart-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .chart-head {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .chart-head-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    color: var(--txt);
+    margin-right: auto;
+  }
+
+  /* Custom tabs */
+  .tab-btns {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .tab-btn {
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--txt-2);
+    transition: all 0.15s;
+  }
+
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .tab-pane { display: none; padding: 1.25rem; }
+  .tab-pane.active { display: block; }
+
+  /* ── GAME HISTORY FEED ───────────────*/
+  .history-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    color: var(--txt);
+    margin-bottom: 1.25rem;
+  }
+
+  .history-filter-bar {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-btn {
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--txt-2);
+    transition: all 0.15s;
+    font-family: 'Figtree', sans-serif;
+  }
+  .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .filter-btn:hover:not(.active) { border-color: var(--border-hi); color: var(--txt); background: var(--surface-hi); }
+
+  .hist-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 0.55rem;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .hist-card:hover { border-color: var(--border-hi); }
+
+  .hist-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.25);
+  }
+
+  .type-pill {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+  .type-pill.singles { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .type-pill.doubles { background: rgba(74,222,128,0.15); color: #4ade80; }
+
+  .hist-meta-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--txt-2);
+  }
+
+  .hist-team-row {
+    display: flex;
+    align-items: center;
+    padding: 0.68rem 1.1rem;
+    gap: 0.75rem;
+  }
+  .hist-team-row + .hist-team-row { border-top: 1px solid var(--border); }
+  .hist-team-row.winner { background: rgba(74,222,128,0.05); }
+  .hist-team-row.loser .hist-name { color: var(--txt-2); }
+  .hist-team-row.loser .hist-score { color: var(--txt-3); }
+
+  .hist-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .winner .hist-dot { background: var(--win); box-shadow: 0 0 6px rgba(74,222,128,0.45); }
+  .loser  .hist-dot { background: var(--border-hi); }
+
+  .hist-names {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.4rem;
+    min-width: 0;
+  }
+
+  .hist-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--txt);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.12s;
+  }
+  .hist-name:hover { color: var(--accent); opacity: 1; }
+  .hist-name-plain { font-size: 0.9rem; font-weight: 600; color: var(--txt); }
+
+  .partner-sep { font-size: 0.72rem; color: var(--txt-3); }
+
+  .win-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--win);
+    background: var(--win-dim);
+    padding: 0.12rem 0.45rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .hist-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    flex-shrink: 0;
+    min-width: 2.2rem;
+    text-align: right;
+  }
+  .winner .hist-score { color: var(--txt); }
+
+  .elo-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    min-width: 3.5rem;
+    text-align: right;
+  }
+  .elo-delta.pos { color: var(--win); }
+  .elo-delta.neg { color: var(--loss); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="player-hero fade-up">
+  <div>
+    <div class="player-hero-name">{{ player.name }}</div>
+    <div class="player-hero-since">Member since {{ player.created_at|date:"F Y" }}</div>
+  </div>
+  <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">← Leaderboard</a>
+</div>
+
+<!-- Stat Cards Row 1 -->
+<div class="stat-grid fade-up delay-1">
+
+  <div class="stat-card singles">
+    <div class="stat-label">Singles ELO</div>
+    <div class="stat-val singles-color">
+      {{ player.singles_elo|floatformat:1 }}
+      {% if singles_rank == 1 %}<span class="stat-rank gold">#1</span>
+      {% elif singles_rank == 2 %}<span class="stat-rank silver">#2</span>
+      {% elif singles_rank == 3 %}<span class="stat-rank bronze">#3</span>
+      {% elif singles_rank %}<span class="stat-rank other">#{{ singles_rank }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stat-card singles">
+    <div class="stat-label">Singles W/L</div>
+    <div class="stat-val">
+      <span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span>
+    </div>
+    {% if singles_wins or singles_losses %}
+      <div class="stat-sub">
+        {{ singles_wins }} win{{ singles_wins|pluralize }} · {{ singles_losses }} loss{{ singles_losses|pluralize:"es" }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="stat-card doubles">
+    <div class="stat-label">Doubles ELO</div>
+    <div class="stat-val doubles-color">
+      {{ player.doubles_elo|floatformat:1 }}
+      {% if doubles_rank == 1 %}<span class="stat-rank gold">#1</span>
+      {% elif doubles_rank == 2 %}<span class="stat-rank silver">#2</span>
+      {% elif doubles_rank == 3 %}<span class="stat-rank bronze">#3</span>
+      {% elif doubles_rank %}<span class="stat-rank other">#{{ doubles_rank }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stat-card doubles">
+    <div class="stat-label">Doubles W/L</div>
+    <div class="stat-val">
+      <span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span>
+    </div>
+    {% if doubles_wins or doubles_losses %}
+      <div class="stat-sub">
+        {{ doubles_wins }} win{{ doubles_wins|pluralize }} · {{ doubles_losses }} loss{{ doubles_losses|pluralize:"es" }}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Stat Cards Row 2 -->
+<div class="stat-grid-2 fade-up delay-2">
+
+  <div class="stat-card ally">
+    <div class="stat-label">Best Teammate</div>
+    {% if best_teammate %}
+      <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.name }}</a>
+      <div class="stat-sub">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No doubles games yet</div>
+    {% endif %}
+  </div>
+
+  <div class="stat-card nemesis">
+    <div class="stat-label">Nemesis</div>
+    {% if nemesis %}
+      <a href="{% url 'player_detail' nemesis.pk %}" class="social-name" style="color:var(--loss);">{{ nemesis.name }}</a>
+      <div class="stat-sub">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No losses yet</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ELO Chart -->
+<div class="chart-section fade-up delay-3">
+  <div class="chart-head">
+    <span class="chart-head-title">ELO History</span>
+    <div class="tab-btns">
+      <button class="tab-btn active" data-tab="chart-singles">Singles</button>
+      <button class="tab-btn" data-tab="chart-doubles">Doubles</button>
+    </div>
+  </div>
+  <div class="tab-pane active" id="chart-singles">
+    {% if singles_chart != "null" %}
+      <div id="plot-singles" style="height:300px;"></div>
+    {% else %}
+      <div class="empty-state">No singles games recorded yet.</div>
+    {% endif %}
+  </div>
+  <div class="tab-pane" id="chart-doubles">
+    {% if doubles_chart != "null" %}
+      <div id="plot-doubles" style="height:300px;"></div>
+    {% else %}
+      <div class="empty-state">No doubles games recorded yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Game History -->
+<div class="fade-up delay-4">
+  <h2 class="history-title">Game History</h2>
+
+  {% if game_rows %}
+    <div class="history-filter-bar">
+      <button class="filter-btn active" data-hfilter="all">All</button>
+      <button class="filter-btn" data-hfilter="singles">Singles</button>
+      <button class="filter-btn" data-hfilter="doubles">Doubles</button>
+    </div>
+
+    {% for row in game_rows %}
+    <div class="hist-card" data-gtype="{{ row.game.game_type }}">
+      <div class="hist-card-header">
+        <span class="type-pill {{ row.game.game_type }}">{{ row.game.game_type|title }}</span>
+        <span class="hist-meta-text">{{ row.game.played_at|date:"M j, Y" }}{% if row.game.location %} &middot; {{ row.game.location }}{% endif %}</span>
+      </div>
+      <!-- Player's team (always top) -->
+      <div class="hist-team-row {% if row.won %}winner{% else %}loser{% endif %}">
+        <span class="hist-dot"></span>
+        <div class="hist-names">
+          <span class="hist-name-plain">{{ player.name }}</span>
+          {% for tm in row.teammates %}
+            <span class="partner-sep">&amp;</span>
+            <a href="{% url 'player_detail' tm.pk %}" class="hist-name">{{ tm.name }}</a>
+          {% endfor %}
+        </div>
+        {% if row.won %}<span class="win-badge">Win</span>{% endif %}
+        <span class="hist-score">{{ row.player_score }}</span>
+        <span class="elo-delta {% if row.elo_delta is not None %}{% if row.elo_delta >= 0 %}pos{% else %}neg{% endif %}{% endif %}">
+          {% if row.elo_delta is not None %}{% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}{% else %}&nbsp;{% endif %}
+        </span>
+      </div>
+      <!-- Opponents (always bottom) -->
+      <div class="hist-team-row {% if not row.won %}winner{% else %}loser{% endif %}">
+        <span class="hist-dot"></span>
+        <div class="hist-names">
+          {% for opp in row.opponents %}
+            <a href="{% url 'player_detail' opp.pk %}" class="hist-name">{{ opp.name }}</a>
+            {% if not forloop.last %}<span class="partner-sep">&amp;</span>{% endif %}
+          {% endfor %}
+        </div>
+        {% if not row.won %}<span class="win-badge">Win</span>{% endif %}
+        <span class="hist-score">{{ row.opp_score }}</span>
+        <span class="elo-delta">&nbsp;</span>
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-state">No games recorded yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
+  const darkLayout = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#90a8c8', family: 'Figtree, sans-serif', size: 11 },
+    xaxis: { gridcolor: '#2c3d56', linecolor: '#2c3d56', tickfont: { color: '#5a7296' }, zerolinecolor: '#2c3d56' },
+    yaxis: { gridcolor: '#2c3d56', linecolor: '#2c3d56', tickfont: { color: '#5a7296' }, zerolinecolor: '#2c3d56' },
+    margin: { t: 16, r: 16, b: 44, l: 56 },
+  };
+
   {% if singles_chart != "null" %}
-    Plotly.newPlot('plot-singles', {{ singles_chart|safe }}.data, {{ singles_chart|safe }}.layout, {responsive: true, displayModeBar: false});
-  {% endif %}
-  {% if doubles_chart != "null" %}
-    Plotly.newPlot('plot-doubles', {{ doubles_chart|safe }}.data, {{ doubles_chart|safe }}.layout, {responsive: true, displayModeBar: false});
+    const sc = {{ singles_chart|safe }};
+    if (sc.data && sc.data[0]) {
+      sc.data[0].line = { color: '#60a5fa', width: 2 };
+      sc.data[0].marker = { color: '#60a5fa', size: 5 };
+      if (sc.data[1]) { sc.data[1].line = { color: '#2c3d56', width: 1, dash: 'dot' }; }
+    }
+    Plotly.newPlot('plot-singles', sc.data, Object.assign({}, sc.layout, darkLayout), { responsive: true, displayModeBar: false });
   {% endif %}
 
-  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-    tab.addEventListener('shown.bs.tab', e => {
-      const targetId = e.target.getAttribute('data-bs-target');
-      const plot = document.querySelector(targetId + ' .js-plotly-plot');
+  {% if doubles_chart != "null" %}
+    const dc = {{ doubles_chart|safe }};
+    if (dc.data && dc.data[0]) {
+      dc.data[0].line = { color: '#4ade80', width: 2 };
+      dc.data[0].marker = { color: '#4ade80', size: 5 };
+      if (dc.data[1]) { dc.data[1].line = { color: '#2c3d56', width: 1, dash: 'dot' }; }
+    }
+    Plotly.newPlot('plot-doubles', dc.data, Object.assign({}, dc.layout, darkLayout), { responsive: true, displayModeBar: false });
+  {% endif %}
+
+  // Chart tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      const plot = document.querySelector('#' + target + ' .js-plotly-plot');
       if (plot) Plotly.Plots.resize(plot);
     });
   });
+
+  // Game history filter
+  document.querySelectorAll('[data-hfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-hfilter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.hfilter;
+      document.querySelectorAll('.hist-card').forEach(card => {
+        card.style.display = (f === 'all' || card.dataset.gtype === f) ? '' : 'none';
+      });
+    });
+  });
 </script>
-{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="mb-0">{{ player.name }}</h2>
-  <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">← Leaderboard</a>
-</div>
-
-{# Stat cards — row 1: ELO and records #}
-<div class="row g-3 mb-3">
-  <div class="col-6 col-lg-3">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #0d6efd !important; background-color:#eef2ff;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Singles ELO</div>
-        <div class="fs-3 fw-bold text-primary">
-          {{ player.singles_elo|floatformat:1 }}
-          {% if singles_rank == 1 %}🥇{% elif singles_rank == 2 %}🥈{% elif singles_rank == 3 %}🥉{% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #0d6efd !important; background-color:#eef2ff;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Singles Record</div>
-        <div class="fs-3 fw-bold">{{ singles_wins }}–{{ singles_losses }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #198754 !important; background-color:#edf7f1;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Doubles ELO</div>
-        <div class="fs-3 fw-bold text-success">
-          {{ player.doubles_elo|floatformat:1 }}
-          {% if doubles_rank == 1 %}🥇{% elif doubles_rank == 2 %}🥈{% elif doubles_rank == 3 %}🥉{% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #198754 !important; background-color:#edf7f1;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Doubles Record</div>
-        <div class="fs-3 fw-bold">{{ doubles_wins }}–{{ doubles_losses }}</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-{# Stat cards — row 2: social stats #}
-<div class="row g-3 mb-4">
-  <div class="col-12 col-sm-6">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #6f42c1 !important; background-color:#f3f0ff;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Best Teammate</div>
-        {% if best_teammate %}
-          <div class="fs-5 fw-bold">
-            <a href="{% url 'player_detail' best_teammate.pk %}" class="text-decoration-none" style="color:#6f42c1;">
-              {{ best_teammate.name }}
-            </a>
-          </div>
-          <div class="small text-muted mt-1">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
-        {% else %}
-          <div class="fs-4 fw-bold text-muted">—</div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-12 col-sm-6">
-    <div class="card text-center h-100 border-0 shadow-sm" style="border-top:3px solid #dc3545 !important; background-color:#fff0f1;">
-      <div class="card-body py-3">
-        <div class="small text-muted mb-1">Nemesis</div>
-        {% if nemesis %}
-          <div class="fs-5 fw-bold">
-            <a href="{% url 'player_detail' nemesis.pk %}" class="text-danger text-decoration-none">
-              {{ nemesis.name }}
-            </a>
-          </div>
-          <div class="small text-muted mt-1">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
-        {% else %}
-          <div class="fs-4 fw-bold text-muted">—</div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-{# ELO history charts #}
-<div class="card mb-4">
-  <div class="card-header fw-semibold">ELO History</div>
-  <div class="card-body">
-    <ul class="nav nav-tabs mb-3" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#chart-singles" type="button" role="tab">
-          Singles
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#chart-doubles" type="button" role="tab">
-          Doubles
-        </button>
-      </li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane fade show active" id="chart-singles" role="tabpanel">
-        {% if singles_chart != "null" %}
-          <div id="plot-singles" style="height:320px;"></div>
-        {% else %}
-          <p class="text-muted mb-0">No singles games recorded yet.</p>
-        {% endif %}
-      </div>
-      <div class="tab-pane fade" id="chart-doubles" role="tabpanel">
-        {% if doubles_chart != "null" %}
-          <div id="plot-doubles" style="height:320px;"></div>
-        {% else %}
-          <p class="text-muted mb-0">No doubles games recorded yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-{# Game history — singles and doubles side by side #}
-<h5 class="mb-3">Game History</h5>
-<div class="row g-4">
-
-  {# Singles #}
-  <div class="col-lg-6">
-    <h6 class="text-muted mb-2">Singles</h6>
-    {% if singles_rows %}
-      <div class="table-responsive" style="max-height:480px;overflow-y:auto;">
-        <table class="table table-hover table-sm align-middle">
-          <thead class="table-dark sticky-top">
-            <tr>
-              <th>Date</th>
-              <th>Opponent</th>
-              <th class="d-none d-sm-table-cell">Location</th>
-              <th class="text-center">Score</th>
-              <th class="text-center">Result</th>
-              <th class="text-end">ELO</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in singles_rows %}
-              <tr>
-                <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
-                <td>
-                  {% for opp in row.opponents %}
-                    <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>
-                  {% endfor %}
-                </td>
-                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location|default:"—" }}</td>
-                <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
-                <td class="text-center">
-                  {% if row.won %}<span class="badge bg-success">W</span>
-                  {% else %}<span class="badge bg-danger">L</span>{% endif %}
-                </td>
-                <td class="text-end fw-semibold {% if row.elo_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
-                  {% if row.elo_delta is not None %}
-                    {% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}
-                  {% else %}—{% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <p class="text-muted">No singles games recorded yet.</p>
-    {% endif %}
-  </div>
-
-  {# Doubles #}
-  <div class="col-lg-6">
-    <h6 class="text-muted mb-2">Doubles</h6>
-    {% if doubles_rows %}
-      <div class="table-responsive" style="max-height:480px;overflow-y:auto;">
-        <table class="table table-hover table-sm align-middle">
-          <thead class="table-dark sticky-top">
-            <tr>
-              <th>Date</th>
-              <th>Opponent(s)</th>
-              <th class="d-none d-md-table-cell">Teammate</th>
-              <th class="d-none d-sm-table-cell">Location</th>
-              <th class="text-center">Score</th>
-              <th class="text-center">Result</th>
-              <th class="text-end">ELO</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in doubles_rows %}
-              <tr>
-                <td class="text-muted small">{{ row.game.played_at|date:"M j, Y" }}</td>
-                <td>
-                  {% for opp in row.opponents %}
-                    <a href="{% url 'player_detail' opp.pk %}">{{ opp.name }}</a>{% if not forloop.last %}, {% endif %}
-                  {% endfor %}
-                </td>
-                <td class="d-none d-md-table-cell">
-                  {% for tm in row.teammates %}
-                    <a href="{% url 'player_detail' tm.pk %}">{{ tm.name }}</a>
-                  {% empty %}—{% endfor %}
-                </td>
-                <td class="text-muted small d-none d-sm-table-cell">{{ row.game.location|default:"—" }}</td>
-                <td class="text-center fw-semibold">{{ row.player_score }}–{{ row.opp_score }}</td>
-                <td class="text-center">
-                  {% if row.won %}<span class="badge bg-success">W</span>
-                  {% else %}<span class="badge bg-danger">L</span>{% endif %}
-                </td>
-                <td class="text-end fw-semibold {% if row.elo_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
-                  {% if row.elo_delta is not None %}
-                    {% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}
-                  {% else %}—{% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <p class="text-muted">No doubles games recorded yet.</p>
-    {% endif %}
-  </div>
-
-</div>
 {% endblock %}

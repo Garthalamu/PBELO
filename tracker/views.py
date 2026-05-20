@@ -123,7 +123,7 @@ def matches(request):
     games = (
         Game.objects.select_related("location")
         .prefetch_related("team1_players", "team2_players")
-        .order_by("-played_at")
+        .order_by("played_at", "id")
     )
 
     game_rows = []
@@ -136,12 +136,8 @@ def matches(request):
             "team2": t2,
         })
 
-    singles = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
-    doubles = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
-
     return render(request, "tracker/matches.html", {
-        "singles": singles,
-        "doubles": doubles,
+        "matches": game_rows,
     })
 
 
@@ -159,7 +155,7 @@ def player_detail(request, player_id):
         Game.objects.filter(Q(team1_players=player) | Q(team2_players=player))
         .distinct()
         .prefetch_related("team1_players", "team2_players", "elo_changes")
-        .order_by("-played_at")
+        .order_by("played_at", "id")
     )
 
     elo_changes_by_game = {
@@ -244,8 +240,7 @@ def player_detail(request, player_id):
         "nemesis": nemesis,
         "nemesis_loss_count": nemesis_loss_count,
         "player": player,
-        "singles_rows": singles_rows,
-        "doubles_rows": doubles_rows,
+        "game_rows": game_rows,
         "singles_wins": singles_wins,
         "singles_losses": singles_losses,
         "doubles_wins": doubles_wins,
