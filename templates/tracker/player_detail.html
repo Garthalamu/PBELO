@@ -78,9 +78,36 @@
   .stat-card.ally::before    { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
   .stat-card.nemesis::before { background: linear-gradient(90deg, #f87171, #dc2626); }
 
-  .stat-card.rank-gold   { background: linear-gradient(135deg, var(--surface) 0%, rgba(251,191,36,0.55)); border-color: rgba(251,191,36,0.7); box-shadow: 0 0 18px rgba(251,191,36,0.25); }
-  .stat-card.rank-silver { background: linear-gradient(135deg, var(--surface) 0%, rgba(148,163,184,0.50)); border-color: rgba(148,163,184,0.65); box-shadow: 0 0 18px rgba(148,163,184,0.22); }
-  .stat-card.rank-bronze { background: linear-gradient(135deg, var(--surface) 0%, rgba(200,121,65,0.55)); border-color: rgba(200,121,65,0.7); box-shadow: 0 0 18px rgba(200,121,65,0.25); }
+  .stat-card.rank-gold {
+    background:
+      linear-gradient(rgba(251,191,36,0.07), rgba(251,191,36,0.07)),
+      linear-gradient(110deg, transparent 44%, rgba(251,191,36,0.05) 55%, rgba(251,191,36,0.11) 60%, rgba(251,191,36,0.05) 65%, transparent 74%),
+      linear-gradient(112deg, transparent 12%, rgba(251,191,36,0.03) 19%, rgba(251,191,36,0.06) 23%, rgba(251,191,36,0.03) 27%, transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+      var(--surface);
+    border-color: rgba(251,191,36,0.55);
+    box-shadow: 0 0 20px rgba(251,191,36,0.30), 0 0 6px rgba(251,191,36,0.15), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+  .stat-card.rank-silver {
+    background:
+      linear-gradient(rgba(148,163,184,0.07), rgba(148,163,184,0.07)),
+      linear-gradient(110deg, transparent 44%, rgba(148,163,184,0.05) 55%, rgba(148,163,184,0.11) 60%, rgba(148,163,184,0.05) 65%, transparent 74%),
+      linear-gradient(112deg, transparent 12%, rgba(148,163,184,0.03) 19%, rgba(148,163,184,0.06) 23%, rgba(148,163,184,0.03) 27%, transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+      var(--surface);
+    border-color: rgba(148,163,184,0.55);
+    box-shadow: 0 0 20px rgba(148,163,184,0.28), 0 0 6px rgba(148,163,184,0.12), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+  .stat-card.rank-bronze {
+    background:
+      linear-gradient(rgba(200,121,65,0.07), rgba(200,121,65,0.07)),
+      linear-gradient(110deg, transparent 44%, rgba(200,121,65,0.05) 55%, rgba(200,121,65,0.11) 60%, rgba(200,121,65,0.05) 65%, transparent 74%),
+      linear-gradient(112deg, transparent 12%, rgba(200,121,65,0.03) 19%, rgba(200,121,65,0.06) 23%, rgba(200,121,65,0.03) 27%, transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+      var(--surface);
+    border-color: rgba(200,121,65,0.55);
+    box-shadow: 0 0 20px rgba(200,121,65,0.30), 0 0 6px rgba(200,121,65,0.15), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
 
   .stat-card.rank-gold::before   { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
   .stat-card.rank-silver::before { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
