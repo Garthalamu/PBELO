@@ -153,7 +153,7 @@ def player_detail(request, player_id):
         Game.objects.filter(Q(team1_players=player) | Q(team2_players=player))
         .distinct()
         .prefetch_related("team1_players", "team2_players", "elo_changes")
-        .order_by("-played_at", "id")
+        .order_by("-played_at", "-id")
     )
 
     elo_changes_by_game = {
