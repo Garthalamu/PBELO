@@ -68,6 +68,14 @@
   .stat-card.ally::before    { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
   .stat-card.nemesis::before { background: linear-gradient(90deg, #f87171, #dc2626); }
 
+  .stat-card.rank-gold   { background: linear-gradient(135deg, var(--surface) 10%, rgba(251,191,36,0.28)); border-color: rgba(251,191,36,0.5); }
+  .stat-card.rank-silver { background: linear-gradient(135deg, var(--surface) 10%, rgba(148,163,184,0.28)); border-color: rgba(148,163,184,0.45); }
+  .stat-card.rank-bronze { background: linear-gradient(135deg, var(--surface) 10%, rgba(200,121,65,0.28)); border-color: rgba(200,121,65,0.5); }
+
+  .stat-card.rank-gold::before   { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
+  .stat-card.rank-silver::before { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
+  .stat-card.rank-bronze::before { background: linear-gradient(90deg, var(--bronze), rgba(200,121,65,0.3)); }
+
   .stat-label {
     font-size: 0.7rem;
     font-weight: 700;
@@ -95,17 +103,22 @@
   }
 
   .stat-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    padding: 0.12rem 0.45rem;
-    border-radius: 4px;
-    margin-left: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.2rem 0.35rem;
+    border-radius: 6px;
+    margin-left: 0.5rem;
     vertical-align: middle;
   }
+  .stat-rank i { font-size: 1rem; }
 
-  .stat-rank.gold   { background: rgba(251,191,36,0.15); color: var(--gold); }
-  .stat-rank.silver { background: rgba(148,163,184,0.12); color: var(--silver); }
-  .stat-rank.bronze { background: rgba(200,121,65,0.15); color: var(--bronze); }
+  .stat-rank.gold   { background: rgba(251,191,36,0.18); color: var(--gold);   border: 1px solid rgba(251,191,36,0.35); }
+  .stat-rank.silver { background: rgba(148,163,184,0.15); color: var(--silver); border: 1px solid rgba(148,163,184,0.3); }
+  .stat-rank.bronze { background: rgba(200,121,65,0.18); color: var(--bronze);  border: 1px solid rgba(200,121,65,0.35); }
   .stat-rank.other  { background: var(--surface-hi); color: var(--txt-2); }
 
   .social-name {
@@ -329,13 +342,13 @@
 <!-- Stat Cards Row 1 -->
 <div class="stat-grid fade-up delay-1">
 
-  <div class="stat-card singles">
+  <div class="stat-card singles {% if singles_rank == 1 %}rank-gold{% elif singles_rank == 2 %}rank-silver{% elif singles_rank == 3 %}rank-bronze{% endif %}">
     <div class="stat-label">Singles ELO</div>
     <div class="stat-val singles-color">
       {{ player.singles_elo|floatformat:1 }}
-      {% if singles_rank == 1 %}<span class="stat-rank gold">#1</span>
-      {% elif singles_rank == 2 %}<span class="stat-rank silver">#2</span>
-      {% elif singles_rank == 3 %}<span class="stat-rank bronze">#3</span>
+      {% if singles_rank == 1 %}<span class="stat-rank gold"><i class="bi bi-award-fill"></i></span>
+      {% elif singles_rank == 2 %}<span class="stat-rank silver"><i class="bi bi-award-fill"></i></span>
+      {% elif singles_rank == 3 %}<span class="stat-rank bronze"><i class="bi bi-award-fill"></i></span>
       {% elif singles_rank %}<span class="stat-rank other">#{{ singles_rank }}</span>
       {% endif %}
     </div>
@@ -353,13 +366,13 @@
     {% endif %}
   </div>
 
-  <div class="stat-card doubles">
+  <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
     <div class="stat-label">Doubles ELO</div>
     <div class="stat-val doubles-color">
       {{ player.doubles_elo|floatformat:1 }}
-      {% if doubles_rank == 1 %}<span class="stat-rank gold">#1</span>
-      {% elif doubles_rank == 2 %}<span class="stat-rank silver">#2</span>
-      {% elif doubles_rank == 3 %}<span class="stat-rank bronze">#3</span>
+      {% if doubles_rank == 1 %}<span class="stat-rank gold"><i class="bi bi-award-fill"></i></span>
+      {% elif doubles_rank == 2 %}<span class="stat-rank silver"><i class="bi bi-award-fill"></i></span>
+      {% elif doubles_rank == 3 %}<span class="stat-rank bronze"><i class="bi bi-award-fill"></i></span>
       {% elif doubles_rank %}<span class="stat-rank other">#{{ doubles_rank }}</span>
       {% endif %}
     </div>

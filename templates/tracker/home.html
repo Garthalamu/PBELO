@@ -104,6 +104,9 @@
               {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
             </td>
             <td>
+              {% if forloop.counter == 1 %}<i class="bi bi-award-fill medal-gold" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>
+              {% elif forloop.counter == 2 %}<i class="bi bi-award-fill medal-silver" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>
+              {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>{% endif %}
               <a href="{% url 'player_detail' player.pk %}" class="player-link">{{ player.name }}</a>
             </td>
             <td class="text-right">
@@ -151,6 +154,9 @@
               {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
             </td>
             <td>
+              {% if forloop.counter == 1 %}<i class="bi bi-award-fill medal-gold" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>
+              {% elif forloop.counter == 2 %}<i class="bi bi-award-fill medal-silver" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>
+              {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>{% endif %}
               <a href="{% url 'player_detail' player.pk %}" class="player-link">{{ player.name }}</a>
             </td>
             <td class="text-right">
