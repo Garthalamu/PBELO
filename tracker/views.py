@@ -269,6 +269,16 @@ def player_detail(request, player_id):
     singles_rows = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
     doubles_rows = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
 
+    singles_streak = 0
+    for row in singles_rows:
+        if row["won"]: singles_streak += 1
+        else: break
+
+    doubles_streak = 0
+    for row in doubles_rows:
+        if row["won"]: doubles_streak += 1
+        else: break
+
     h2h_map = {}
     for row in game_rows:
         for opp in row["opponents"]:
@@ -324,4 +334,6 @@ def player_detail(request, player_id):
         "doubles_rank": doubles_rank,
         "first_game_date": first_game_date,
         "h2h_rows": h2h_rows,
+        "singles_streak": singles_streak,
+        "doubles_streak": doubles_streak,
     })

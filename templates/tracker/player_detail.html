@@ -28,6 +28,15 @@
     margin-top: 0.35rem;
   }
 
+  .player-hero-fullname {
+    font-family: 'Figtree', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--txt-3);
+    letter-spacing: 0;
+    margin-bottom: 0.15rem;
+  }
+
   /* ── STAT GRID ────────────────────── */
   .stat-grid {
     display: grid;
@@ -41,15 +50,6 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-bottom: 1.75rem;
-  }
-
-  .player-hero-fullname {
-    font-family: 'Figtree', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--txt-3);
-    letter-spacing: 0;
-    margin-bottom: 0.15rem;
   }
 
   @media (max-width: 680px) {
@@ -170,6 +170,29 @@
     font-size: 0.7rem;
   }
 
+  /* ── WIN STREAK ─────────────────────*/
+  .streak-badge {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--txt);
+    line-height: 1;
+  }
+  .streak-badge i { color: #fb923c; font-size: 0.95rem; }
+
+  /* ── NAME ABBREVIATION ──────────────*/
+  .name-short { display: none; }
+  @media (max-width: 480px) {
+    .name-full  { display: none; }
+    .name-short { display: inline; }
+  }
+
   /* ── CHART SECTION ────────────────── */
   .chart-section {
     background: var(--surface);
@@ -212,11 +235,7 @@
     margin-right: auto;
   }
 
-  /* Custom tabs */
-  .tab-btns {
-    display: flex;
-    gap: 0.25rem;
-  }
+  .tab-btns { display: flex; gap: 0.25rem; }
 
   .tab-btn {
     padding: 0.3rem 0.8rem;
@@ -229,14 +248,13 @@
     color: var(--txt-2);
     transition: all 0.15s;
   }
-
   .tab-btn.active, .tab-btn:hover {
     background: var(--accent-dim);
     border-color: var(--accent);
     color: var(--accent);
   }
 
-  /* Sliding pill toggle (Days / Games) */
+  /* Sliding pill toggle */
   .view-toggle {
     position: relative;
     display: inline-flex;
@@ -417,13 +435,6 @@
   .elo-delta.pos { color: var(--win); }
   .elo-delta.neg { color: var(--loss); }
 
-  /* ── NAME ABBREVIATION ──────────────*/
-  .name-short { display: none; }
-  @media (max-width: 480px) {
-    .name-full  { display: none; }
-    .name-short { display: inline; }
-  }
-
   /* ── H2H COMPACT TABLE ───────────────*/
   .h2h-table th {
     padding: 0.35rem 0.75rem;
@@ -474,6 +485,7 @@
     <div class="stat-val">
       <span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span>
     </div>
+    {% if singles_streak >= 3 %}<span class="streak-badge"><i class="bi bi-fire"></i>{{ singles_streak }}</span>{% endif %}
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
@@ -493,6 +505,7 @@
     <div class="stat-val">
       <span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span>
     </div>
+    {% if doubles_streak >= 3 %}<span class="streak-badge"><i class="bi bi-fire"></i>{{ doubles_streak }}</span>{% endif %}
   </div>
 
 </div>
@@ -544,19 +557,13 @@
       <tr>
         <td><a href="{% url 'player_detail' row.opponent.pk %}"><span class="name-full">{{ row.opponent.display_name }}</span><span class="name-short">{{ row.opponent.display_name|abbreviate_name }}</span></a></td>
         <td class="text-center">
-          {% if row.singles_wins or row.singles_losses %}
-            <span class="win-color">{{ row.singles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.singles_losses }}</span>
-          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
+          {% if row.singles_wins or row.singles_losses %}<span class="win-color">{{ row.singles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.singles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
         </td>
         <td class="text-center">
-          {% if row.doubles_wins or row.doubles_losses %}
-            <span class="win-color">{{ row.doubles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.doubles_losses }}</span>
-          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
+          {% if row.doubles_wins or row.doubles_losses %}<span class="win-color">{{ row.doubles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.doubles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
         </td>
         <td class="text-center">
-          {% with ow=row.singles_wins|add:row.doubles_wins ol=row.singles_losses|add:row.doubles_losses %}
-            <span class="win-color">{{ ow }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ ol }}</span>
-          {% endwith %}
+          {% with ow=row.singles_wins|add:row.doubles_wins ol=row.singles_losses|add:row.doubles_losses %}<span class="win-color">{{ ow }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ ol }}</span>{% endwith %}
         </td>
       </tr>
       {% endfor %}
@@ -739,7 +746,6 @@
 
   let chartView = 'days';
 
-  // Sliding pill helper
   function initSlider(toggleId) {
     const toggle = document.getElementById(toggleId);
     const slider = toggle.querySelector('.view-slider');
@@ -776,8 +782,6 @@
     });
   });
 
-
-  // Singles / Doubles tab toggle with sliding pill
   const tabPill = initSlider('toggle-tab');
   tabPill.btns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -791,7 +795,6 @@
     });
   });
 
-  // Game history filter
   document.querySelectorAll('[data-hfilter]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-hfilter]').forEach(b => b.classList.remove('active'));
