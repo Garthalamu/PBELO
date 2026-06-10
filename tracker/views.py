@@ -332,7 +332,10 @@ def player_detail(request, player_id):
             "total": s["sw"] + s["sl"] + s["dw"] + s["dl"],
         }
         for opp, s in h2h_map.items()
-    ], key=lambda x: x["total"], reverse=True)
+    ], key=lambda x: (
+        -(x["singles_wins"] + x["doubles_wins"]) / x["total"],
+        x["opponent"].display_name,
+    ))
 
     teammate_wins = Counter()
     nemesis_losses = Counter()
