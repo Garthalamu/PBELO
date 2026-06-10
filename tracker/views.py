@@ -79,6 +79,12 @@ def home(request):
         [p for p in players if p.doubles_games_count > 0],
         key=lambda p: p.doubles_elo, reverse=True,
     )
+
+    for i, p in enumerate(singles_board):
+        p.singles_elo_gap = None if i == 0 else round(singles_board[i - 1].singles_elo - p.singles_elo, 1)
+    for i, p in enumerate(doubles_board):
+        p.doubles_elo_gap = None if i == 0 else round(doubles_board[i - 1].doubles_elo - p.doubles_elo, 1)
+
     return render(request, "tracker/home.html", {
         "singles_board": singles_board,
         "doubles_board": doubles_board,

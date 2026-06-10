@@ -53,16 +53,35 @@
   .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
   .wl-sep  { color: var(--txt-3); margin: 0 1px; }
 
-  /* accent bar on top-ranked row */
-  .board-row.rank-1 td { position: relative; }
-  .board-row.rank-1 td:first-child::before {
+  .elo-gap {
+    font-size: 0.65rem;
+    color: var(--txt-3);
+  }
+
+  .col-elo-gap { padding-left: 2px !important; padding-right: 0 !important; width: 1px; }
+  .col-elo     { padding-right: 4px !important; }
+
+  /* rank row gradients */
+  .board-row.rank-1 { background: linear-gradient(90deg, rgba(251,191,36,0.07), rgba(251,191,36,0.16)); }
+  .board-row.rank-2 { background: linear-gradient(90deg, rgba(148,163,184,0.04), rgba(148,163,184,0.12)); }
+  .board-row.rank-3 { background: linear-gradient(90deg, rgba(200,121,65,0.05), rgba(200,121,65,0.13)); }
+  .board-row.rank-1 td,
+  .board-row.rank-2 td,
+  .board-row.rank-3 td { position: relative; }
+
+  /* accent bar on ranked rows */
+  .board-row.rank-1 td:first-child::before,
+  .board-row.rank-2 td:first-child::before,
+  .board-row.rank-3 td:first-child::before {
     content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 2px;
-    background: var(--gold);
     border-radius: 0 2px 2px 0;
   }
+  .board-row.rank-1 td:first-child::before { background: var(--gold); }
+  .board-row.rank-2 td:first-child::before { background: var(--silver); }
+  .board-row.rank-3 td:first-child::before { background: var(--bronze); }
 </style>
 {% endblock %}
 
@@ -91,12 +110,13 @@
             <th></th>
             <th>Player</th>
             <th class="text-right">ELO</th>
+            <th></th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
         <tbody>
           {% for player in singles_board %}
-          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% endif %}">
+          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% endif %}">
             <td>
               {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
               {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
@@ -109,8 +129,11 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>{% endif %}
               <a href="{% url 'player_detail' player.pk %}" class="player-link">{{ player.name }}</a>
             </td>
-            <td class="text-right">
+            <td class="text-right col-elo">
               <span class="elo-val mono">{{ player.singles_elo|floatformat:1 }}</span>
+            </td>
+            <td class="col-elo-gap">
+              {% if player.singles_elo_gap %}<span class="elo-gap mono">-{{ player.singles_elo_gap|floatformat:1 }}</span>{% endif %}
             </td>
             <td class="text-right">
               <span class="wl-stat mono">
@@ -141,12 +164,13 @@
             <th></th>
             <th>Player</th>
             <th class="text-right">ELO</th>
+            <th></th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
         <tbody>
           {% for player in doubles_board %}
-          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% endif %}">
+          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% endif %}">
             <td>
               {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
               {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
@@ -159,8 +183,11 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;margin-right:4px;vertical-align:middle;"></i>{% endif %}
               <a href="{% url 'player_detail' player.pk %}" class="player-link">{{ player.name }}</a>
             </td>
-            <td class="text-right">
+            <td class="text-right col-elo">
               <span class="elo-val mono">{{ player.doubles_elo|floatformat:1 }}</span>
+            </td>
+            <td class="col-elo-gap">
+              {% if player.doubles_elo_gap %}<span class="elo-gap mono">-{{ player.doubles_elo_gap|floatformat:1 }}</span>{% endif %}
             </td>
             <td class="text-right">
               <span class="wl-stat mono">
