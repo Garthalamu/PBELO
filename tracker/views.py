@@ -96,7 +96,6 @@ def record_game(request):
             game = Game.objects.create(
                 game_type=data["game_type"],
                 played_at=played_at,
-                location=data["location"],
                 team1_score=data["team1_score"],
                 team2_score=data["team2_score"],
             )
@@ -121,8 +120,7 @@ def record_game(request):
 
 def matches(request):
     games = (
-        Game.objects.select_related("location")
-        .prefetch_related("team1_players", "team2_players")
+        Game.objects.prefetch_related("team1_players", "team2_players")
         .order_by("-played_at", "id")
     )
 

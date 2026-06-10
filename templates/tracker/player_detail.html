@@ -445,7 +445,7 @@
     <div class="hist-card" data-gtype="{{ row.game.game_type }}">
       <div class="hist-card-header">
         <span class="type-pill {{ row.game.game_type }}">{{ row.game.game_type|title }}</span>
-        <span class="hist-meta-text">{{ row.game.played_at|date:"M j, Y" }}{% if row.game.location %} &middot; {{ row.game.location }}{% endif %}</span>
+        <span class="hist-meta-text">{{ row.game.played_at|date:"M j, Y" }}</span>
       </div>
       <!-- Player's team (always top) -->
       <div class="hist-team-row {% if row.won %}winner{% else %}loser{% endif %}">

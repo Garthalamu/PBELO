@@ -166,37 +166,19 @@
       {% endif %}
     </div>
 
-    <!-- Date + Location -->
+    <!-- Date -->
     <div class="form-section fade-up delay-2">
       <div class="form-section-title">Game Details</div>
-      <div class="form-row-2">
-        <div class="field-group">
-          <label class="form-label" for="{{ form.played_at.id_for_label }}">Date Played</label>
-          <input type="date"
-                 name="{{ form.played_at.html_name }}"
-                 id="{{ form.played_at.id_for_label }}"
-                 value="{{ form.played_at.value }}"
-                 class="form-control {% if form.played_at.errors %}is-invalid{% endif %}">
-          {% if form.played_at.errors %}
-            <div class="invalid-feedback">{{ form.played_at.errors|join:", " }}</div>
-          {% endif %}
-        </div>
-        <div class="field-group">
-          <label class="form-label" for="{{ form.location.id_for_label }}">Location</label>
-          <select name="{{ form.location.html_name }}"
-                  id="{{ form.location.id_for_label }}"
-                  class="form-select {% if form.location.errors %}is-invalid{% endif %}">
-            <option value="">— Select location —</option>
-            {% for pk, label in form.location.field.choices %}
-              {% if pk %}
-                <option value="{{ pk }}" {% if form.location.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-              {% endif %}
-            {% endfor %}
-          </select>
-          {% if form.location.errors %}
-            <div class="invalid-feedback">{{ form.location.errors|join:", " }}</div>
-          {% endif %}
-        </div>
+      <div class="field-group">
+        <label class="form-label" for="{{ form.played_at.id_for_label }}">Date Played</label>
+        <input type="date"
+               name="{{ form.played_at.html_name }}"
+               id="{{ form.played_at.id_for_label }}"
+               value="{{ form.played_at.value }}"
+               class="form-control {% if form.played_at.errors %}is-invalid{% endif %}">
+        {% if form.played_at.errors %}
+          <div class="invalid-feedback">{{ form.played_at.errors|join:", " }}</div>
+        {% endif %}
       </div>
     </div>
 

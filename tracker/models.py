@@ -15,16 +15,6 @@ class Player(models.Model):
         return self.name
 
 
-class Location(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-
 class Game(models.Model):
     SINGLES = "singles"
     DOUBLES = "doubles"
@@ -32,7 +22,6 @@ class Game(models.Model):
 
     game_type = models.CharField(max_length=10, choices=GAME_TYPE_CHOICES)
     played_at = models.DateTimeField(default=timezone.now)
-    location = models.ForeignKey(Location, on_delete=models.PROTECT, related_name="games")
     team1_players = models.ManyToManyField(Player, related_name="team1_games")
     team2_players = models.ManyToManyField(Player, related_name="team2_games")
     team1_score = models.PositiveSmallIntegerField()

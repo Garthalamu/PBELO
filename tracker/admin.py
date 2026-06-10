@@ -2,14 +2,8 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect, render
 from django.urls import path
 
-from .models import EloChange, Game, Location, Player
+from .models import EloChange, Game, Player
 from .services import recalculate_all_elos
-
-
-@admin.register(Location)
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
 
 
 @admin.register(Player)
@@ -26,8 +20,8 @@ class EloChangeInline(admin.TabularInline):
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "game_type", "location", "team1_score", "team2_score", "played_at")
-    list_filter = ("game_type", "location")
+    list_display = ("__str__", "game_type", "team1_score", "team2_score", "played_at")
+    list_filter = ("game_type",)
     inlines = [EloChangeInline]
     change_list_template = "admin/tracker/game/change_list.html"
 

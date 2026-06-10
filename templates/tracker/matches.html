@@ -154,7 +154,7 @@
     <div class="match-card" data-type="{{ row.game.game_type }}">
       <div class="match-header">
         <span class="type-pill {{ row.game.game_type }}">{{ row.game.game_type|title }}</span>
-        <span class="match-meta-text">{{ row.game.played_at|date:"M j, Y" }}{% if row.game.location %} &middot; {{ row.game.location }}{% endif %}</span>
+        <span class="match-meta-text">{{ row.game.played_at|date:"M j, Y" }}</span>
       </div>
       <div>
         <div class="team-row {% if row.game.winning_team == 1 %}winner{% elif row.game.winning_team == 2 %}loser{% endif %}">

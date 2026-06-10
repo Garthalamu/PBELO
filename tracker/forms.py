@@ -1,5 +1,5 @@
 from django import forms
-from .models import Game, Location, Player
+from .models import Game, Player
 
 
 class RecordGameForm(forms.Form):
@@ -9,10 +9,6 @@ class RecordGameForm(forms.Form):
     )
     played_at = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    location = forms.ModelChoiceField(
-        queryset=Location.objects.all(),
-        empty_label="— Select location —",
     )
     team1_player1 = forms.ModelChoiceField(queryset=Player.objects.all(), label="Team 1 — Player 1")
     team1_player2 = forms.ModelChoiceField(queryset=Player.objects.all(), label="Team 1 — Player 2", required=False)
