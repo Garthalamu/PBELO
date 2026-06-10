@@ -155,7 +155,7 @@ def record_game(request):
 def matches(request):
     games = (
         Game.objects.prefetch_related("team1_players", "team2_players")
-        .order_by("-played_at", "id")
+        .order_by("-played_at", "-id")
     )
 
     game_rows = []
