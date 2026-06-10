@@ -132,6 +132,24 @@
     color: var(--txt-3);
     font-size: 0.9rem;
   }
+
+  .date-header {
+    position: sticky;
+    top: 58px;
+    z-index: 10;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    color: var(--txt-2);
+    background: rgba(11,15,22,0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 0.45rem 0.1rem;
+    margin-bottom: 0.4rem;
+    margin-top: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .date-header:first-of-type { margin-top: 0; }
 </style>
 {% endblock %}
 
@@ -149,8 +167,11 @@
     <button class="filter-btn" data-filter="doubles">Doubles</button>
   </div>
 
-  <div class="fade-up delay-2">
+  <div class="fade-up delay-2 matches-list">
     {% for row in matches %}
+    {% ifchanged row.game.played_at|date:"Y-m-d" %}
+    <div class="date-header">{{ row.game.played_at|date:"F j, Y" }}</div>
+    {% endifchanged %}
     <div class="match-card" data-type="{{ row.game.game_type }}">
       <div class="match-header">
         <span class="type-pill {{ row.game.game_type }}">{{ row.game.game_type|title }}</span>
@@ -195,6 +216,22 @@
 
 {% block extra_js %}
 <script>
+  function updateDateHeaders() {
+    const children = Array.from(document.querySelector('.matches-list').children);
+    let header = null;
+    let hasVisible = false;
+    children.forEach(el => {
+      if (el.classList.contains('date-header')) {
+        if (header) header.style.display = hasVisible ? '' : 'none';
+        header = el;
+        hasVisible = false;
+      } else if (el.classList.contains('match-card')) {
+        if (el.style.display !== 'none') hasVisible = true;
+      }
+    });
+    if (header) header.style.display = hasVisible ? '' : 'none';
+  }
+
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -203,6 +240,7 @@
       document.querySelectorAll('.match-card').forEach(card => {
         card.style.display = (f === 'all' || card.dataset.type === f) ? '' : 'none';
       });
+      updateDateHeaders();
     });
   });
 </script>

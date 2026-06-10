@@ -643,8 +643,8 @@
     <div class="chart-toggles">
       <div class="view-toggle" id="toggle-view">
         <div class="view-slider"></div>
-        <button class="view-btn active" data-view="days">Days</button>
-        <button class="view-btn" data-view="games">Games</button>
+        <button class="view-btn" data-view="days">Days</button>
+        <button class="view-btn active" data-view="games">Games</button>
       </div>
       <div class="view-toggle" id="toggle-tab">
         <div class="view-slider"></div>
@@ -802,13 +802,13 @@
   const cfg = { responsive: true, displayModeBar: false };
 
   {% if singles_chart != "null" %}
-    Plotly.newPlot('plot-singles', tracesDays(singlesData, '#60a5fa'), layoutDays(), cfg);
+    Plotly.newPlot('plot-singles', tracesGames(singlesData, '#60a5fa'), layoutGames(), cfg);
   {% endif %}
   {% if doubles_chart != "null" %}
-    Plotly.newPlot('plot-doubles', tracesDays(doublesData, '#4ade80'), layoutDays(), cfg);
+    Plotly.newPlot('plot-doubles', tracesGames(doublesData, '#4ade80'), layoutGames(), cfg);
   {% endif %}
 
-  let chartView = 'days';
+  let chartView = 'games';
 
   function initSlider(toggleId) {
     const toggle = document.getElementById(toggleId);

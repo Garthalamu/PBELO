@@ -164,7 +164,7 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono">{{ player.singles_elo|floatformat:1 }}</span>
+              <span class="elo-val mono elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
             </td>
             <td class="col-elo-gap">
               {% if player.singles_elo_gap %}<span class="elo-gap mono">-{{ player.singles_elo_gap|floatformat:1 }}</span>{% endif %}
@@ -221,7 +221,7 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono">{{ player.doubles_elo|floatformat:1 }}</span>
+              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
             </td>
             <td class="col-elo-gap">
               {% if player.doubles_elo_gap %}<span class="elo-gap mono">-{{ player.doubles_elo_gap|floatformat:1 }}</span>{% endif %}
@@ -241,4 +241,23 @@
   </section>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.elo-countup').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 4);
+      el.textContent = (target * ease).toFixed(1);
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toFixed(1);
+    }
+    requestAnimationFrame(tick);
+  });
+</script>
 {% endblock %}
