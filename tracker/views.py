@@ -99,6 +99,16 @@ def home(request):
         player.singles_wins = sum(1 for c in singles if c.delta > 0)
         player.doubles_wins = sum(1 for c in doubles if c.delta > 0)
 
+        player.singles_streak = 0
+        for c in reversed(singles):
+            if c.delta > 0: player.singles_streak += 1
+            else: break
+
+        player.doubles_streak = 0
+        for c in reversed(doubles):
+            if c.delta > 0: player.doubles_streak += 1
+            else: break
+
     singles_board = sorted(
         [p for p in players if p.singles_games_count > 0],
         key=lambda p: p.singles_elo, reverse=True,

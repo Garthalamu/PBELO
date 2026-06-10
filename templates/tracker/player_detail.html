@@ -171,20 +171,27 @@
   }
 
   /* ── WIN STREAK ─────────────────────*/
+  .wl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
   .streak-badge {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.7rem;
     display: flex;
     align-items: center;
     gap: 0.15rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--txt);
     line-height: 1;
   }
-  .streak-badge i { color: #fb923c; font-size: 0.95rem; }
+  .streak-badge i {
+    color: #fb923c;
+    font-size: 1rem;
+  }
+  .streak-badge .streak-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--txt-2);
+  }
 
   /* ── NAME ABBREVIATION ──────────────*/
   .name-short { display: none; }
@@ -482,10 +489,10 @@
 
   <div class="stat-card singles">
     <div class="stat-label">Singles W/L</div>
-    <div class="stat-val">
-      <span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span>
+    <div class="stat-val wl-row">
+      <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
+      {% if singles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     </div>
-    {% if singles_streak >= 3 %}<span class="streak-badge"><i class="bi bi-fire"></i>{{ singles_streak }}</span>{% endif %}
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
@@ -502,10 +509,10 @@
 
   <div class="stat-card doubles">
     <div class="stat-label">Doubles W/L</div>
-    <div class="stat-val">
-      <span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span>
+    <div class="stat-val wl-row">
+      <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
+      {% if doubles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     </div>
-    {% if doubles_streak >= 3 %}<span class="streak-badge"><i class="bi bi-fire"></i>{{ doubles_streak }}</span>{% endif %}
   </div>
 
 </div>
