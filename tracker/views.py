@@ -146,7 +146,10 @@ def matches(request):
 
 
 def matchup_calculator(request):
-    players = list(Player.objects.values("id", "name", "singles_elo", "doubles_elo").order_by("name"))
+    players = [
+        {"id": p.pk, "display_name": p.display_name, "singles_elo": p.singles_elo, "doubles_elo": p.doubles_elo}
+        for p in Player.objects.order_by("first_name", "last_name", "nickname")
+    ]
     return render(request, "tracker/matchup_calculator.html", {
         "players_json": json.dumps(players),
     })
@@ -221,6 +224,7 @@ def player_detail(request, player_id):
 
     singles_history = [e for e in elo_history if e["game__game_type"] == Game.SINGLES]
     doubles_history = [e for e in elo_history if e["game__game_type"] == Game.DOUBLES]
+    first_game_date = elo_history[0]["game__played_at"].date() if elo_history else None
 
     singles_chart = _build_elo_chart(singles_history)
     doubles_chart = _build_elo_chart(doubles_history)
@@ -267,4 +271,5 @@ def player_detail(request, player_id):
         "doubles_games_json": doubles_games_json,
         "singles_rank": singles_rank,
         "doubles_rank": doubles_rank,
+        "first_game_date": first_game_date,
     })

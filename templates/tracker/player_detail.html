@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ player.name }} — PBELO{% endblock %}
+{% block title %}{{ player.display_name }} — PBELO{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,7 +10,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   .player-hero-name {
@@ -40,6 +40,15 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-bottom: 1.75rem;
+  }
+
+  .player-hero-fullname {
+    font-family: 'Figtree', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--txt-3);
+    letter-spacing: 0;
+    margin-bottom: 0.15rem;
   }
 
   @media (max-width: 680px) {
@@ -368,8 +377,9 @@
 <!-- Hero -->
 <div class="player-hero fade-up">
   <div>
-    <div class="player-hero-name">{{ player.name }}</div>
-    <div class="player-hero-since">Member since {{ player.created_at|date:"F Y" }}</div>
+    {% if player.nickname and player.first_name %}<div class="player-hero-fullname">{{ player.first_name }} {{ player.last_name }}</div>{% endif %}
+    <div class="player-hero-name">{{ player.display_name }}</div>
+    <div class="player-hero-since">{% if first_game_date %}First game {{ first_game_date|date:"F j, Y" }}{% endif %}</div>
   </div>
   <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">← Leaderboard</a>
 </div>
@@ -423,7 +433,7 @@
   <div class="stat-card ally">
     <div class="stat-label">Best Teammate</div>
     {% if best_teammate %}
-      <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.name }}</a>
+      <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.display_name }}</a>
       <div class="stat-sub">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
@@ -434,7 +444,7 @@
   <div class="stat-card nemesis">
     <div class="stat-label">Nemesis</div>
     {% if nemesis %}
-      <a href="{% url 'player_detail' nemesis.pk %}" class="social-name" style="color:var(--loss);">{{ nemesis.name }}</a>
+      <a href="{% url 'player_detail' nemesis.pk %}" class="social-name" style="color:var(--loss);">{{ nemesis.display_name }}</a>
       <div class="stat-sub">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
@@ -498,10 +508,10 @@
       <div class="hist-team-row {% if row.won %}winner{% else %}loser{% endif %}">
         <span class="hist-dot"></span>
         <div class="hist-names">
-          <span class="hist-name-plain">{{ player.name }}</span>
+          <span class="hist-name-plain">{{ player.display_name }}</span>
           {% for tm in row.teammates %}
             <span class="partner-sep">&amp;</span>
-            <a href="{% url 'player_detail' tm.pk %}" class="hist-name">{{ tm.name }}</a>
+            <a href="{% url 'player_detail' tm.pk %}" class="hist-name">{{ tm.display_name }}</a>
           {% endfor %}
         </div>
         {% if row.won %}<span class="win-badge">Win</span>{% endif %}
@@ -515,7 +525,7 @@
         <span class="hist-dot"></span>
         <div class="hist-names">
           {% for opp in row.opponents %}
-            <a href="{% url 'player_detail' opp.pk %}" class="hist-name">{{ opp.name }}</a>
+            <a href="{% url 'player_detail' opp.pk %}" class="hist-name">{{ opp.display_name }}</a>
             {% if not forloop.last %}<span class="partner-sep">&amp;</span>{% endif %}
           {% endfor %}
         </div>

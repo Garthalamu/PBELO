@@ -3,16 +3,24 @@ from django.utils import timezone
 
 
 class Player(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    first_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
+    nickname = models.CharField(max_length=50, blank=True)
     singles_elo = models.FloatField(default=1000.0)
     doubles_elo = models.FloatField(default=1000.0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["first_name", "last_name", "nickname"]
+
+    @property
+    def display_name(self):
+        if self.nickname:
+            return self.nickname
+        return f"{self.first_name} {self.last_name}".strip()
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 
 class Game(models.Model):

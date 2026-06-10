@@ -333,7 +333,7 @@ function populateSelects() {
       if (taken.has(String(p.id))) return;
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.name}  (${Math.round(p[field])})`;
+      opt.textContent = `${p.display_name}  (${Math.round(p[field])})`;
       sel.appendChild(opt);
     });
     sel.value = cur;
@@ -345,7 +345,7 @@ function playerBySelect(id) {
   return val ? PLAYERS.find(p => p.id == val) : null;
 }
 function playerElo(id)  { const p = playerBySelect(id); return p ? p[ef()] : null; }
-function playerName(id) { const p = playerBySelect(id); return p ? p.name : null; }
+function playerName(id) { const p = playerBySelect(id); return p ? p.display_name : null; }
 
 function teamLabel(ids) { return ids.map(playerName).filter(Boolean).join(' & ') || '?'; }
 function show(id, v)    { document.getElementById(id).classList.toggle('hidden', !v); }

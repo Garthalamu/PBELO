@@ -8,8 +8,8 @@ from .services import recalculate_all_elos
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ("name", "singles_elo", "doubles_elo", "created_at")
-    search_fields = ("name",)
+    list_display = ("__str__", "singles_elo", "doubles_elo", "created_at")
+    search_fields = ("first_name", "last_name", "nickname")
 
 
 class EloChangeInline(admin.TabularInline):

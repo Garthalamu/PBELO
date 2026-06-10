@@ -148,7 +148,7 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
             </td>
             <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.name }}</span><span class="name-short">{{ player.name|abbreviate_name }}</span></a>
+              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>
             </td>
             <td class="text-right col-elo">
               <span class="elo-val mono">{{ player.singles_elo|floatformat:1 }}</span>
@@ -205,7 +205,7 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
             </td>
             <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.name }}</span><span class="name-short">{{ player.name|abbreviate_name }}</span></a>
+              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>
             </td>
             <td class="text-right col-elo">
               <span class="elo-val mono">{{ player.doubles_elo|floatformat:1 }}</span>

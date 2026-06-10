@@ -161,7 +161,7 @@
           <span class="team-indicator"></span>
           <div class="team-players">
             {% for p in row.team1 %}
-              <a href="{% url 'player_detail' p.pk %}" class="player-link">{{ p.name }}</a>
+              <a href="{% url 'player_detail' p.pk %}" class="player-link">{{ p.display_name }}</a>
               {% if not forloop.last %}<span class="partner-sep">&amp;</span>{% endif %}
             {% endfor %}
           </div>
@@ -172,7 +172,7 @@
           <span class="team-indicator"></span>
           <div class="team-players">
             {% for p in row.team2 %}
-              <a href="{% url 'player_detail' p.pk %}" class="player-link">{{ p.name }}</a>
+              <a href="{% url 'player_detail' p.pk %}" class="player-link">{{ p.display_name }}</a>
               {% if not forloop.last %}<span class="partner-sep">&amp;</span>{% endif %}
             {% endfor %}
           </div>
