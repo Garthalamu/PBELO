@@ -12,5 +12,5 @@ def subtract(value, arg):
 def abbreviate_name(name):
     parts = name.split()
     if len(parts) >= 2:
-        return f"{parts[0][0]}. {parts[-1]}"
+        return f"{parts[0]} {parts[-1][0]}."
     return name
