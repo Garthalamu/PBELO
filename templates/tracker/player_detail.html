@@ -485,6 +485,7 @@
       {{ player.singles_elo|floatformat:1 }}
       {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
     </div>
+    {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_elo }}</div>{% endif %}
   </div>
 
   <div class="stat-card singles">
@@ -493,6 +494,7 @@
       <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
       {% if singles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     </div>
+    {% if singles_show_best_streak %}<div class="stat-sub">Best streak {{ singles_best_streak }}</div>{% endif %}
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
@@ -505,6 +507,7 @@
       {{ player.doubles_elo|floatformat:1 }}
       {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
     </div>
+    {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_elo }}</div>{% endif %}
   </div>
 
   <div class="stat-card doubles">
@@ -513,6 +516,7 @@
       <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
       {% if doubles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     </div>
+    {% if doubles_show_best_streak %}<div class="stat-sub">Best streak {{ doubles_best_streak }}</div>{% endif %}
   </div>
 
 </div>

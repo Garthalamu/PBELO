@@ -289,6 +289,28 @@ def player_detail(request, player_id):
         if row["won"]: doubles_streak += 1
         else: break
 
+    singles_peak_elo = round(max((e["elo_after"] for e in singles_history), default=player.singles_elo), 1)
+    doubles_peak_elo = round(max((e["elo_after"] for e in doubles_history), default=player.doubles_elo), 1)
+
+    def _best_streak(rows_newest_first):
+        best = streak = 0
+        for row in reversed(rows_newest_first):
+            if row["won"]:
+                streak += 1
+                if streak > best:
+                    best = streak
+            else:
+                streak = 0
+        return best
+
+    singles_best_streak = _best_streak(singles_rows)
+    doubles_best_streak = _best_streak(doubles_rows)
+
+    singles_show_peak = singles_peak_elo != round(player.singles_elo, 1)
+    doubles_show_peak = doubles_peak_elo != round(player.doubles_elo, 1)
+    singles_show_best_streak = singles_best_streak >= 3 and singles_best_streak > singles_streak
+    doubles_show_best_streak = doubles_best_streak >= 3 and doubles_best_streak > doubles_streak
+
     h2h_map = {}
     for row in game_rows:
         for opp in row["opponents"]:
@@ -346,4 +368,12 @@ def player_detail(request, player_id):
         "h2h_rows": h2h_rows,
         "singles_streak": singles_streak,
         "doubles_streak": doubles_streak,
+        "singles_peak_elo": singles_peak_elo,
+        "doubles_peak_elo": doubles_peak_elo,
+        "singles_best_streak": singles_best_streak,
+        "doubles_best_streak": doubles_best_streak,
+        "singles_show_peak": singles_show_peak,
+        "doubles_show_peak": doubles_show_peak,
+        "singles_show_best_streak": singles_show_best_streak,
+        "doubles_show_best_streak": doubles_show_best_streak,
     })
