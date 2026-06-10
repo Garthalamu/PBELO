@@ -295,8 +295,6 @@
   .hist-team-row + .hist-team-row { border-top: 1px solid var(--border); }
   .hist-team-row.winner { background: rgba(74,222,128,0.05); }
   .hist-team-row.loser  { background: var(--loss-dim); }
-  .hist-team-row.loser .hist-name  { color: var(--txt-2); }
-  .hist-team-row.loser .hist-score { color: var(--txt-3); }
 
   .hist-dot {
     width: 6px; height: 6px;
@@ -396,11 +394,6 @@
     <div class="stat-val">
       <span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span>
     </div>
-    {% if singles_wins or singles_losses %}
-      <div class="stat-sub">
-        {{ singles_wins }} win{{ singles_wins|pluralize }} · {{ singles_losses }} loss{{ singles_losses|pluralize:"es" }}
-      </div>
-    {% endif %}
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
@@ -420,11 +413,6 @@
     <div class="stat-val">
       <span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span>
     </div>
-    {% if doubles_wins or doubles_losses %}
-      <div class="stat-sub">
-        {{ doubles_wins }} win{{ doubles_wins|pluralize }} · {{ doubles_losses }} loss{{ doubles_losses|pluralize:"es" }}
-      </div>
-    {% endif %}
   </div>
 
 </div>
