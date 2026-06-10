@@ -4,6 +4,32 @@
 
 {% block extra_css %}
 <style>
+  {% if player_award == 'gold' %}
+  body { background-image: radial-gradient(ellipse at 50% -5%, rgba(251,191,36,0.18) 0%, transparent 75%); }
+  .player-hero-name {
+    background: linear-gradient(135deg, #d97706 0%, #fbbf24 30%, #fde68a 52%, #fbbf24 70%, #d97706 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  {% elif player_award == 'silver' %}
+  body { background-image: radial-gradient(ellipse at 50% -5%, rgba(148,163,184,0.18) 0%, transparent 75%); }
+  .player-hero-name {
+    background: linear-gradient(135deg, #64748b 0%, #94a3b8 30%, #e2e8f0 52%, #94a3b8 70%, #64748b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  {% elif player_award == 'bronze' %}
+  body { background-image: radial-gradient(ellipse at 50% -5%, rgba(200,121,65,0.18) 0%, transparent 75%); }
+  .player-hero-name {
+    background: linear-gradient(135deg, #92400e 0%, #c87941 30%, #e8a876 52%, #c87941 70%, #92400e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  {% endif %}
+
   /* ── HERO ─────────────────────────── */
   .player-hero {
     display: flex;
@@ -509,7 +535,7 @@
     {% endif %}
     <div class="stat-label">Singles ELO</div>
     <div class="stat-val singles-color">
-      {{ player.singles_elo|floatformat:1 }}
+      <span class="elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
       {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
     </div>
     {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_elo }}</div>{% endif %}
@@ -531,7 +557,7 @@
     {% endif %}
     <div class="stat-label">Doubles ELO</div>
     <div class="stat-val doubles-color">
-      {{ player.doubles_elo|floatformat:1 }}
+      <span class="elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
       {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
     </div>
     {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_elo }}</div>{% endif %}
@@ -842,6 +868,22 @@
         card.style.display = (f === 'all' || card.dataset.gtype === f) ? '' : 'none';
       });
     });
+  });
+</script>
+<script>
+  document.querySelectorAll('.elo-countup').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 4);
+      el.textContent = (target * ease).toFixed(1);
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toFixed(1);
+    }
+    requestAnimationFrame(tick);
   });
 </script>
 {% endblock %}

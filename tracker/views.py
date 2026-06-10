@@ -306,6 +306,10 @@ def player_detail(request, player_id):
     singles_best_streak = _best_streak(singles_rows)
     doubles_best_streak = _best_streak(doubles_rows)
 
+    ranks = [r for r in [singles_rank, doubles_rank] if r is not None]
+    best_rank = min(ranks) if ranks else None
+    player_award = 'gold' if best_rank == 1 else 'silver' if best_rank == 2 else 'bronze' if best_rank == 3 else None
+
     singles_show_peak = singles_peak_elo != round(player.singles_elo, 1)
     doubles_show_peak = doubles_peak_elo != round(player.doubles_elo, 1)
     singles_show_best_streak = singles_best_streak >= 3 and singles_best_streak > singles_streak
@@ -379,4 +383,5 @@ def player_detail(request, player_id):
         "doubles_show_peak": doubles_show_peak,
         "singles_show_best_streak": singles_show_best_streak,
         "doubles_show_best_streak": doubles_show_best_streak,
+        "player_award": player_award,
     })
