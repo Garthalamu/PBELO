@@ -269,6 +269,29 @@ def player_detail(request, player_id):
     singles_rows = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
     doubles_rows = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
 
+    h2h_map = {}
+    for row in game_rows:
+        for opp in row["opponents"]:
+            if opp not in h2h_map:
+                h2h_map[opp] = {"sw": 0, "sl": 0, "dw": 0, "dl": 0}
+            entry = h2h_map[opp]
+            if row["game"].game_type == Game.SINGLES:
+                if row["won"]: entry["sw"] += 1
+                else:          entry["sl"] += 1
+            else:
+                if row["won"]: entry["dw"] += 1
+                else:          entry["dl"] += 1
+
+    h2h_rows = sorted([
+        {
+            "opponent": opp,
+            "singles_wins": s["sw"], "singles_losses": s["sl"],
+            "doubles_wins": s["dw"], "doubles_losses": s["dl"],
+            "total": s["sw"] + s["sl"] + s["dw"] + s["dl"],
+        }
+        for opp, s in h2h_map.items()
+    ], key=lambda x: x["total"], reverse=True)
+
     teammate_wins = Counter()
     nemesis_losses = Counter()
     for row in doubles_rows:
@@ -300,4 +323,5 @@ def player_detail(request, player_id):
         "singles_rank": singles_rank,
         "doubles_rank": doubles_rank,
         "first_game_date": first_game_date,
+        "h2h_rows": h2h_rows,
     })

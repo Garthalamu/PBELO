@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load leaderboard_tags %}
 {% block title %}{{ player.display_name }} — PBELO{% endblock %}
 
 {% block extra_css %}
@@ -77,9 +78,9 @@
   .stat-card.ally::before    { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
   .stat-card.nemesis::before { background: linear-gradient(90deg, #f87171, #dc2626); }
 
-  .stat-card.rank-gold   { background: linear-gradient(135deg, var(--surface) 10%, rgba(251,191,36,0.28)); border-color: rgba(251,191,36,0.5); }
-  .stat-card.rank-silver { background: linear-gradient(135deg, var(--surface) 10%, rgba(148,163,184,0.28)); border-color: rgba(148,163,184,0.45); }
-  .stat-card.rank-bronze { background: linear-gradient(135deg, var(--surface) 10%, rgba(200,121,65,0.28)); border-color: rgba(200,121,65,0.5); }
+  .stat-card.rank-gold   { background: linear-gradient(135deg, var(--surface) 0%, rgba(251,191,36,0.55)); border-color: rgba(251,191,36,0.7); box-shadow: 0 0 18px rgba(251,191,36,0.25); }
+  .stat-card.rank-silver { background: linear-gradient(135deg, var(--surface) 0%, rgba(148,163,184,0.50)); border-color: rgba(148,163,184,0.65); box-shadow: 0 0 18px rgba(148,163,184,0.22); }
+  .stat-card.rank-bronze { background: linear-gradient(135deg, var(--surface) 0%, rgba(200,121,65,0.55)); border-color: rgba(200,121,65,0.7); box-shadow: 0 0 18px rgba(200,121,65,0.25); }
 
   .stat-card.rank-gold::before   { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
   .stat-card.rank-silver::before { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
@@ -130,6 +131,18 @@
   .stat-rank.bronze { background: rgba(200,121,65,0.18); color: var(--bronze);  border: 1px solid rgba(200,121,65,0.35); }
   .stat-rank.other  { background: var(--surface-hi); color: var(--txt-2); }
 
+  .award-corner {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.7rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    opacity: 0.9;
+  }
+  .award-corner.gold   { color: var(--gold); }
+  .award-corner.silver { color: var(--silver); }
+  .award-corner.bronze { color: var(--bronze); }
+
   .social-name {
     font-size: 1.1rem;
     font-weight: 700;
@@ -139,6 +152,23 @@
     margin-bottom: 0.25rem;
   }
   .social-name:hover { color: var(--accent); opacity: 1; }
+
+  .stat-card.ally,
+  .stat-card.nemesis {
+    padding: 0.65rem 1rem;
+  }
+  .stat-card.ally .stat-label,
+  .stat-card.nemesis .stat-label {
+    margin-bottom: 0.2rem;
+  }
+  .stat-card.ally .social-name,
+  .stat-card.nemesis .social-name {
+    margin-bottom: 0.05rem;
+  }
+  .stat-card.ally .stat-sub,
+  .stat-card.nemesis .stat-sub {
+    font-size: 0.7rem;
+  }
 
   /* ── CHART SECTION ────────────────── */
   .chart-section {
@@ -386,6 +416,29 @@
   }
   .elo-delta.pos { color: var(--win); }
   .elo-delta.neg { color: var(--loss); }
+
+  /* ── NAME ABBREVIATION ──────────────*/
+  .name-short { display: none; }
+  @media (max-width: 480px) {
+    .name-full  { display: none; }
+    .name-short { display: inline; }
+  }
+
+  /* ── H2H COMPACT TABLE ───────────────*/
+  .h2h-table th {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.62rem;
+  }
+  .h2h-table td {
+    padding: 0.38rem 0.75rem;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .h2h-table td:first-child {
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
 </style>
 {% endblock %}
 
@@ -405,14 +458,14 @@
 <div class="stat-grid fade-up delay-1">
 
   <div class="stat-card singles {% if singles_rank == 1 %}rank-gold{% elif singles_rank == 2 %}rank-silver{% elif singles_rank == 3 %}rank-bronze{% endif %}">
+    {% if singles_rank == 1 %}<span class="award-corner gold"><i class="bi bi-award-fill"></i></span>
+    {% elif singles_rank == 2 %}<span class="award-corner silver"><i class="bi bi-award-fill"></i></span>
+    {% elif singles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
+    {% endif %}
     <div class="stat-label">Singles ELO</div>
     <div class="stat-val singles-color">
       {{ player.singles_elo|floatformat:1 }}
-      {% if singles_rank == 1 %}<span class="stat-rank gold"><i class="bi bi-award-fill"></i></span>
-      {% elif singles_rank == 2 %}<span class="stat-rank silver"><i class="bi bi-award-fill"></i></span>
-      {% elif singles_rank == 3 %}<span class="stat-rank bronze"><i class="bi bi-award-fill"></i></span>
-      {% elif singles_rank %}<span class="stat-rank other">#{{ singles_rank }}</span>
-      {% endif %}
+      {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
     </div>
   </div>
 
@@ -424,14 +477,14 @@
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
+    {% if doubles_rank == 1 %}<span class="award-corner gold"><i class="bi bi-award-fill"></i></span>
+    {% elif doubles_rank == 2 %}<span class="award-corner silver"><i class="bi bi-award-fill"></i></span>
+    {% elif doubles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
+    {% endif %}
     <div class="stat-label">Doubles ELO</div>
     <div class="stat-val doubles-color">
       {{ player.doubles_elo|floatformat:1 }}
-      {% if doubles_rank == 1 %}<span class="stat-rank gold"><i class="bi bi-award-fill"></i></span>
-      {% elif doubles_rank == 2 %}<span class="stat-rank silver"><i class="bi bi-award-fill"></i></span>
-      {% elif doubles_rank == 3 %}<span class="stat-rank bronze"><i class="bi bi-award-fill"></i></span>
-      {% elif doubles_rank %}<span class="stat-rank other">#{{ doubles_rank }}</span>
-      {% endif %}
+      {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
     </div>
   </div>
 
@@ -471,8 +524,49 @@
 
 </div>
 
+<!-- Head-to-Head -->
+{% if h2h_rows %}
+<div class="card fade-up delay-3" style="margin-bottom:2rem;">
+  <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Head to Head</span>
+  </div>
+  <table class="data-table h2h-table">
+    <thead>
+      <tr>
+        <th>Opponent</th>
+        <th class="text-center">Singles</th>
+        <th class="text-center">Doubles</th>
+        <th class="text-center">Overall</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in h2h_rows %}
+      <tr>
+        <td><a href="{% url 'player_detail' row.opponent.pk %}"><span class="name-full">{{ row.opponent.display_name }}</span><span class="name-short">{{ row.opponent.display_name|abbreviate_name }}</span></a></td>
+        <td class="text-center">
+          {% if row.singles_wins or row.singles_losses %}
+            <span class="win-color">{{ row.singles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.singles_losses }}</span>
+          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
+        </td>
+        <td class="text-center">
+          {% if row.doubles_wins or row.doubles_losses %}
+            <span class="win-color">{{ row.doubles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.doubles_losses }}</span>
+          {% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
+        </td>
+        <td class="text-center">
+          {% with ow=row.singles_wins|add:row.doubles_wins ol=row.singles_losses|add:row.doubles_losses %}
+            <span class="win-color">{{ ow }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ ol }}</span>
+          {% endwith %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 <!-- ELO Chart -->
-<div class="chart-section fade-up delay-3">
+<div class="chart-section fade-up {% if h2h_rows %}delay-4{% else %}delay-3{% endif %}">
   <div class="chart-head">
     <span class="chart-head-title">ELO History</span>
     <div class="chart-toggles">
@@ -505,7 +599,7 @@
 </div>
 
 <!-- Game History -->
-<div class="fade-up delay-4">
+<div class="fade-up delay-5">
   <h2 class="history-title">Game History</h2>
 
   {% if game_rows %}
