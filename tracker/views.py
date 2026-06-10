@@ -209,12 +209,24 @@ def player_detail(request, player_id):
 
     elo_history = list(
         player.elo_changes.select_related("game")
-        .order_by("game__played_at")
+        .order_by("game__played_at", "game__id")
         .values("elo_after", "game__played_at", "game__game_type")
     )
 
-    singles_chart = _build_elo_chart([e for e in elo_history if e["game__game_type"] == Game.SINGLES])
-    doubles_chart = _build_elo_chart([e for e in elo_history if e["game__game_type"] == Game.DOUBLES])
+    singles_history = [e for e in elo_history if e["game__game_type"] == Game.SINGLES]
+    doubles_history = [e for e in elo_history if e["game__game_type"] == Game.DOUBLES]
+
+    singles_chart = _build_elo_chart(singles_history)
+    doubles_chart = _build_elo_chart(doubles_history)
+
+    singles_games_json = json.dumps([
+        {"elo": round(e["elo_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        for e in singles_history
+    ])
+    doubles_games_json = json.dumps([
+        {"elo": round(e["elo_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        for e in doubles_history
+    ])
 
     singles_rows = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
     doubles_rows = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
@@ -245,6 +257,8 @@ def player_detail(request, player_id):
         "doubles_losses": doubles_losses,
         "singles_chart": json.dumps(singles_chart),
         "doubles_chart": json.dumps(doubles_chart),
+        "singles_games_json": singles_games_json,
+        "doubles_games_json": doubles_games_json,
         "singles_rank": singles_rank,
         "doubles_rank": doubles_rank,
     })

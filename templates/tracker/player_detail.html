@@ -180,6 +180,43 @@
     color: var(--accent);
   }
 
+  /* Sliding pill toggle (Days / Games) */
+  .view-toggle {
+    position: relative;
+    display: inline-flex;
+    gap: 2px;
+    background: var(--surface-hi);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .view-btn {
+    position: relative;
+    z-index: 1;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: none;
+    background: none;
+    color: var(--txt-2);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.22s;
+    white-space: nowrap;
+  }
+  .view-btn.active { color: var(--accent); }
+  .view-slider {
+    position: absolute;
+    top: 3px;
+    height: calc(100% - 6px);
+    border-radius: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    pointer-events: none;
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
+                width 0.22s cubic-bezier(0.4,0,0.2,1);
+  }
+
   .tab-pane { display: none; padding: 1.25rem; }
   .tab-pane.active { display: block; }
 
@@ -423,9 +460,17 @@
 <div class="chart-section fade-up delay-3">
   <div class="chart-head">
     <span class="chart-head-title">ELO History</span>
-    <div class="tab-btns">
-      <button class="tab-btn active" data-tab="chart-singles">Singles</button>
-      <button class="tab-btn" data-tab="chart-doubles">Doubles</button>
+    <div style="display:flex;gap:0.6rem;align-items:center;">
+      <div class="view-toggle" id="toggle-view">
+        <div class="view-slider"></div>
+        <button class="view-btn active" data-view="days">Days</button>
+        <button class="view-btn" data-view="games">Games</button>
+      </div>
+      <div class="view-toggle" id="toggle-tab">
+        <div class="view-slider"></div>
+        <button class="view-btn active" data-tab="chart-singles">Singles</button>
+        <button class="view-btn" data-tab="chart-doubles">Doubles</button>
+      </div>
     </div>
   </div>
   <div class="tab-pane active" id="chart-singles">
@@ -502,42 +547,135 @@
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
-  const darkLayout = {
+  const singlesData = {{ singles_games_json|safe }};
+  const doublesData = {{ doubles_games_json|safe }};
+
+  const BASE_COLOR = '#2c3d56';
+  const DARK = {
     paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { color: '#90a8c8', family: 'Figtree, sans-serif', size: 11 },
-    xaxis: { gridcolor: '#2c3d56', linecolor: '#2c3d56', tickfont: { color: '#5a7296' }, zerolinecolor: '#2c3d56' },
-    yaxis: { gridcolor: '#2c3d56', linecolor: '#2c3d56', tickfont: { color: '#5a7296' }, zerolinecolor: '#2c3d56' },
+    plot_bgcolor:  'rgba(0,0,0,0)',
+    font:   { color: '#90a8c8', family: 'Figtree, sans-serif', size: 11 },
+    xaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR },
+    yaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR, title: 'ELO' },
     margin: { t: 16, r: 16, b: 44, l: 56 },
   };
 
+  function fmtDate(iso) {
+    const [y, m, d] = iso.split('-');
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${mon[+m-1]} ${+d}, ${y}`;
+  }
+
+  function tracesDays(games, color) {
+    const daily = {};
+    games.forEach(g => { daily[g.date] = g.elo; });
+    const dates = Object.keys(daily).sort();
+    const elos  = dates.map(d => daily[d]);
+    return [
+      { x: dates, y: elos, mode: 'lines+markers',
+        line: { color, width: 2 }, marker: { color, size: 5 },
+        hovertemplate: '%{customdata}<br>ELO: %{y}<extra></extra>',
+        customdata: dates.map(fmtDate), showlegend: false },
+      { x: [dates[0], dates[dates.length - 1]], y: [1000, 1000],
+        mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
+        hoverinfo: 'skip', showlegend: false },
+    ];
+  }
+
+  function tracesGames(games, color) {
+    const xs = games.map((_, i) => i + 1);
+    return [
+      { x: xs, y: games.map(g => g.elo), mode: 'lines+markers',
+        line: { color, width: 2 }, marker: { color, size: 5 },
+        customdata: games.map(g => fmtDate(g.date)),
+        hovertemplate: 'Game %{x} · %{customdata}<br>ELO: %{y}<extra></extra>',
+        showlegend: false },
+      { x: [1, games.length], y: [1000, 1000],
+        mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
+        hoverinfo: 'skip', showlegend: false },
+    ];
+  }
+
+  const baselineAnnotation = [{
+    xref: 'paper', x: 0.99,
+    yref: 'y',     y: 1000,
+    text: 'Starting ELO',
+    showarrow: false,
+    xanchor: 'right',
+    yanchor: 'bottom',
+    font: { color: '#5a7296', size: 10, family: 'Figtree, sans-serif' },
+  }];
+
+  function layoutDays() {
+    return Object.assign({}, DARK, {
+      xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }),
+      annotations: baselineAnnotation,
+    });
+  }
+  function layoutGames() {
+    return Object.assign({}, DARK, {
+      xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }),
+      annotations: baselineAnnotation,
+    });
+  }
+
+  const cfg = { responsive: true, displayModeBar: false };
+
   {% if singles_chart != "null" %}
-    const sc = {{ singles_chart|safe }};
-    if (sc.data && sc.data[0]) {
-      sc.data[0].line = { color: '#60a5fa', width: 2 };
-      sc.data[0].marker = { color: '#60a5fa', size: 5 };
-      if (sc.data[1]) { sc.data[1].line = { color: '#2c3d56', width: 1, dash: 'dot' }; }
-    }
-    Plotly.newPlot('plot-singles', sc.data, Object.assign({}, sc.layout, darkLayout), { responsive: true, displayModeBar: false });
+    Plotly.newPlot('plot-singles', tracesDays(singlesData, '#60a5fa'), layoutDays(), cfg);
   {% endif %}
-
   {% if doubles_chart != "null" %}
-    const dc = {{ doubles_chart|safe }};
-    if (dc.data && dc.data[0]) {
-      dc.data[0].line = { color: '#4ade80', width: 2 };
-      dc.data[0].marker = { color: '#4ade80', size: 5 };
-      if (dc.data[1]) { dc.data[1].line = { color: '#2c3d56', width: 1, dash: 'dot' }; }
-    }
-    Plotly.newPlot('plot-doubles', dc.data, Object.assign({}, dc.layout, darkLayout), { responsive: true, displayModeBar: false });
+    Plotly.newPlot('plot-doubles', tracesDays(doublesData, '#4ade80'), layoutDays(), cfg);
   {% endif %}
 
-  // Chart tabs
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  let chartView = 'days';
+
+  // Sliding pill helper
+  function initSlider(toggleId) {
+    const toggle = document.getElementById(toggleId);
+    const slider = toggle.querySelector('.view-slider');
+    const btns   = toggle.querySelectorAll('.view-btn');
+    function move(btn) {
+      slider.style.left  = btn.offsetLeft + 'px';
+      slider.style.width = btn.offsetWidth + 'px';
+    }
+    slider.style.transition = 'none';
+    move(toggle.querySelector('.view-btn.active'));
+    requestAnimationFrame(() => { slider.style.transition = ''; });
+    return { slider, btns, move };
+  }
+
+  const viewPill = initSlider('toggle-view');
+  const viewBtns = viewPill.btns;
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      chartView = btn.dataset.view;
+      viewBtns.forEach(b => b.classList.toggle('active', b === btn));
+      viewPill.move(btn);
+      const useDays = chartView === 'days';
+      {% if singles_chart != "null" %}
+        Plotly.react('plot-singles',
+          useDays ? tracesDays(singlesData, '#60a5fa') : tracesGames(singlesData, '#60a5fa'),
+          useDays ? layoutDays() : layoutGames());
+      {% endif %}
+      {% if doubles_chart != "null" %}
+        Plotly.react('plot-doubles',
+          useDays ? tracesDays(doublesData, '#4ade80') : tracesGames(doublesData, '#4ade80'),
+          useDays ? layoutDays() : layoutGames());
+      {% endif %}
+    });
+  });
+
+
+  // Singles / Doubles tab toggle with sliding pill
+  const tabPill = initSlider('toggle-tab');
+  tabPill.btns.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.tab;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      tabPill.btns.forEach(b => b.classList.toggle('active', b === btn));
+      tabPill.move(btn);
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
       document.getElementById(target).classList.add('active');
       const plot = document.querySelector('#' + target + ' .js-plotly-plot');
       if (plot) Plotly.Plots.resize(plot);
