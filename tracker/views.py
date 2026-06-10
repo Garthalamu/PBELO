@@ -1,5 +1,9 @@
+import hmac
 import json
+import os
 from collections import Counter
+
+from django.contrib.auth.hashers import check_password
 
 import plotly.graph_objects as go
 from django.contrib import messages
@@ -53,6 +57,30 @@ def _build_elo_chart(elo_changes):
         showlegend=False,
     )
     return json.loads(fig.to_json())
+
+
+def login_view(request):
+    if request.session.get("authenticated"):
+        return redirect("home")
+    error = None
+    if request.method == "POST":
+        entered = request.POST.get("password", "")
+        hashed = os.environ.get("SITE_PASSWORD_HASH", "")
+        plain = os.environ.get("SITE_PASSWORD", "pBallers")
+        if hashed:
+            valid = check_password(entered, hashed)
+        else:
+            valid = bool(plain) and hmac.compare_digest(entered, plain)
+        if valid:
+            request.session["authenticated"] = True
+            return redirect(request.GET.get("next") or "home")
+        error = "Incorrect password."
+    return render(request, "tracker/login.html", {"error": error})
+
+
+def logout_view(request):
+    request.session.flush()
+    return redirect("login")
 
 
 def home(request):

@@ -1,9 +1,36 @@
+import os
+import re
+
 from django.contrib import admin, messages
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import redirect, render
 from django.urls import path
 
 from .models import EloChange, Game, Player
 from .services import recalculate_all_elos
+
+ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+
+def _write_env_key(key, value):
+    """Update or insert a KEY=VALUE line in the .env file."""
+    try:
+        with open(ENV_PATH, "r") as f:
+            content = f.read()
+    except FileNotFoundError:
+        content = ""
+
+    line = f'{key}="{value}"'
+    pattern = re.compile(rf"^{re.escape(key)}=.*$", re.MULTILINE)
+    if pattern.search(content):
+        content = pattern.sub(line, content)
+    else:
+        content = content.rstrip("\n") + "\n" + line + "\n"
+
+    with open(ENV_PATH, "w") as f:
+        f.write(content)
+
+    os.environ[key] = value
 
 
 @admin.register(Player)
@@ -29,6 +56,7 @@ class GameAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path("recalculate-elo/", self.admin_site.admin_view(self.recalculate_elo_view), name="recalculate_elo"),
+            path("set-password/", self.admin_site.admin_view(self.set_password_view), name="set_site_password"),
         ]
         return custom + urls
 
@@ -47,6 +75,26 @@ class GameAdmin(admin.ModelAdmin):
             "player_count": player_count,
         }
         return render(request, "admin/tracker/game/recalculate_confirm.html", context)
+
+    def set_password_view(self, request):
+        if request.method == "POST":
+            raw = request.POST.get("password", "").strip()
+            confirm = request.POST.get("password_confirm", "").strip()
+            if not raw:
+                self.message_user(request, "Password cannot be empty.", messages.ERROR)
+            elif raw != confirm:
+                self.message_user(request, "Passwords do not match.", messages.ERROR)
+            else:
+                hashed = make_password(raw)
+                _write_env_key("SITE_PASSWORD_HASH", hashed)
+                self.message_user(request, "Site password updated successfully.", messages.SUCCESS)
+                return redirect("admin:tracker_game_changelist")
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Set Site Password",
+        }
+        return render(request, "admin/tracker/game/set_password.html", context)
 
 
 @admin.register(EloChange)
