@@ -153,8 +153,25 @@
     padding: 0.9rem 1.25rem;
     border-bottom: 1px solid var(--border);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
+  }
+
+  .chart-toggles {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  @media (max-width: 500px) {
+    .chart-toggles {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4rem;
+    }
   }
 
   .chart-head-title {
@@ -458,7 +475,7 @@
 <div class="chart-section fade-up delay-3">
   <div class="chart-head">
     <span class="chart-head-title">ELO History</span>
-    <div style="display:flex;gap:0.6rem;align-items:center;">
+    <div class="chart-toggles">
       <div class="view-toggle" id="toggle-view">
         <div class="view-slider"></div>
         <button class="view-btn active" data-view="days">Days</button>
