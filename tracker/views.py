@@ -172,7 +172,11 @@ def record_game(request):
 
 def matches(request):
     games = (
-        Game.objects.prefetch_related("team1_players", "team2_players")
+        Game.objects.prefetch_related(
+            "team1_players",
+            "team2_players",
+            Prefetch("elo_changes", queryset=EloChange.objects.only("player_id", "elo_before", "elo_after")),
+        )
         .order_by("-played_at", "-id")
     )
 
@@ -180,15 +184,16 @@ def matches(request):
     for game in games:
         t1 = list(game.team1_players.all())
         t2 = list(game.team2_players.all())
+        elo_map = {ec.player_id: ec.delta for ec in game.elo_changes.all()}
         game_rows.append({
             "game": game,
             "team1": t1,
             "team2": t2,
+            "team1_delta": round(elo_map[t1[0].pk], 1) if t1 and t1[0].pk in elo_map else None,
+            "team2_delta": round(elo_map[t2[0].pk], 1) if t2 and t2[0].pk in elo_map else None,
         })
 
-    return render(request, "tracker/matches.html", {
-        "matches": game_rows,
-    })
+    return render(request, "tracker/matches.html", {"matches": game_rows})
 
 
 def matchup_calculator(request):
