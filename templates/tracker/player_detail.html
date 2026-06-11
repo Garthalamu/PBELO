@@ -525,7 +525,7 @@
 <div class="player-hero fade-up">
   <div>
     {% if player.nickname and player.first_name %}<div class="player-hero-fullname">{{ player.first_name }} {{ player.last_name }}</div>{% endif %}
-    <div class="player-hero-name">{{ player.display_name }}</div>
+    <div class="player-hero-name" id="hero-name" {% if player_award %}style="cursor:pointer;"{% endif %}>{{ player.display_name }}</div>
     <div class="player-hero-since">{% if first_game_date %}First game {{ first_game_date|date:"F j, Y" }}{% endif %}</div>
   </div>
   <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">← Leaderboard</a>
@@ -937,4 +937,68 @@
     requestAnimationFrame(tick);
   });
 </script>
+{% if player_award %}
+<script>
+(function () {
+  const AWARD = '{{ player_award }}';
+  const PALETTES = {
+    gold:   ['#fbbf24','#fcd34d','#f59e0b','#fffbeb','#fef3c7'],
+    silver: ['#94a3b8','#cbd5e1','#e2e8f0','#f8fafc','#64748b'],
+    bronze: ['#c87941','#d4956a','#e8b48a','#fff7ed','#a16207'],
+  };
+  const colors = PALETTES[AWARD];
+
+  function launchConfetti() {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const COUNT = 140;
+    const particles = Array.from({ length: COUNT }, () => ({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 80,
+      w: 6 + Math.random() * 6,
+      h: 10 + Math.random() * 6,
+      rot: Math.random() * Math.PI * 2,
+      rotV: (Math.random() - 0.5) * 0.18,
+      vx: (Math.random() - 0.5) * 2.5,
+      vy: 2.5 + Math.random() * 3.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      opacity: 1,
+    }));
+
+    let frame;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      particles.forEach(p => {
+        p.x  += p.vx;
+        p.y  += p.vy;
+        p.vy += 0.06;
+        p.rot += p.rotV;
+        if (p.y > canvas.height * 0.88) p.opacity -= 0.018;
+        if (p.opacity <= 0 || p.y > canvas.height + 20) return;
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      if (alive) { frame = requestAnimationFrame(draw); }
+      else { cancelAnimationFrame(frame); canvas.remove(); }
+    }
+    frame = requestAnimationFrame(draw);
+  }
+
+  document.getElementById('hero-name').addEventListener('click', launchConfetti);
+  launchConfetti();
+})();
+</script>
+{% endif %}
 {% endblock %}
