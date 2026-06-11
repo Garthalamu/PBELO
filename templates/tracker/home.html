@@ -92,10 +92,38 @@
     line-height: 1;
   }
 
+  /* glint sweep — shine layer animates over the row base gradient */
+  @keyframes row-glint {
+    0%   { background-position: -150% 0, 0 0; }
+    26%  { background-position: 250% 0, 0 0; }
+    100% { background-position: 250% 0, 0 0; }
+  }
+
   /* rank row gradients */
-  .board-row.rank-1 { background: linear-gradient(90deg, rgba(251,191,36,0.07), rgba(251,191,36,0.16)); }
-  .board-row.rank-2 { background: linear-gradient(90deg, rgba(148,163,184,0.04), rgba(148,163,184,0.12)); }
-  .board-row.rank-3 { background: linear-gradient(90deg, rgba(200,121,65,0.05), rgba(200,121,65,0.13)); }
+  .board-row.rank-1 {
+    background:
+      linear-gradient(105deg, transparent 25%, rgba(251,191,36,0.45) 50%, transparent 75%) no-repeat,
+      linear-gradient(90deg, rgba(251,191,36,0.07), rgba(251,191,36,0.16));
+    background-size: 60% 100%, 100% 100%;
+    background-position: -150% 0, 0 0;
+  }
+  .board-row.rank-2 {
+    background:
+      linear-gradient(105deg, transparent 25%, rgba(203,213,225,0.4) 50%, transparent 75%) no-repeat,
+      linear-gradient(90deg, rgba(148,163,184,0.04), rgba(148,163,184,0.12));
+    background-size: 60% 100%, 100% 100%;
+    background-position: -150% 0, 0 0;
+  }
+  .board-row.rank-3 {
+    background:
+      linear-gradient(105deg, transparent 25%, rgba(200,121,65,0.45) 50%, transparent 75%) no-repeat,
+      linear-gradient(90deg, rgba(200,121,65,0.05), rgba(200,121,65,0.13));
+    background-size: 60% 100%, 100% 100%;
+    background-position: -150% 0, 0 0;
+  }
+  .board-row.rank-1.glinting { animation: row-glint 10.8s ease-in-out; }
+  .board-row.rank-2.glinting { animation: row-glint 10.8s ease-in-out 0.1s; }
+  .board-row.rank-3.glinting { animation: row-glint 10.8s ease-in-out 0.2s; }
   .board-row.rank-1 td,
   .board-row.rank-2 td,
   .board-row.rank-3 td { position: relative; }
@@ -247,7 +275,7 @@
 <script>
   document.querySelectorAll('.elo-countup').forEach(el => {
     const target = parseFloat(el.dataset.target);
-    const duration = 1200;
+    const duration = 2400;
     const start = performance.now();
     function tick(now) {
       const elapsed = now - start;
@@ -259,5 +287,15 @@
     }
     requestAnimationFrame(tick);
   });
+
+  function triggerGlint() {
+    const rows = document.querySelectorAll('.board-row.rank-1, .board-row.rank-2, .board-row.rank-3');
+    rows.forEach(r => r.classList.remove('glinting'));
+    document.body.getBoundingClientRect();
+    rows.forEach(r => r.classList.add('glinting'));
+  }
+
+  document.querySelector('.page-title').style.cursor = 'pointer';
+  document.querySelector('.page-title').addEventListener('click', triggerGlint);
 </script>
 {% endblock %}
