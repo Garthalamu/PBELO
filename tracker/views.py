@@ -75,7 +75,7 @@ def _compute_best_chemistry():
         pair_stats[win_key]['wins']  += 1
         pair_stats[win_key]['games'] += 1
         pair_stats[loss_key]['games'] += 1
-    qualified = {k: v for k, v in pair_stats.items() if v['games'] >= 2}
+    qualified = {k: v for k, v in pair_stats.items() if v['games'] >= 5}
     if not qualified:
         return frozenset()
     best_key = max(qualified, key=lambda k: qualified[k]['wins'] / qualified[k]['games'])
@@ -395,7 +395,7 @@ def player_detail(request, player_id):
             for opp in row["opponents"]:
                 nemesis_losses[opp] += 1
 
-    qualified = {tm: s for tm, s in teammate_stats.items() if s['games'] >= 3}
+    qualified = {tm: s for tm, s in teammate_stats.items() if s['games'] >= 5}
     if qualified:
         best_teammate = max(qualified, key=lambda tm: qualified[tm]['wins'] / qualified[tm]['games'])
         best_teammate_wins = qualified[best_teammate]['wins']
