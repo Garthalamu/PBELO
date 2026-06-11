@@ -1,7 +1,7 @@
 import hmac
 import json
 import os
-from collections import Counter
+from collections import Counter, defaultdict
 
 from django.contrib.auth.hashers import check_password
 
@@ -57,6 +57,29 @@ def _build_elo_chart(elo_changes):
         showlegend=False,
     )
     return json.loads(fig.to_json())
+
+
+def _compute_best_chemistry():
+    pair_stats = defaultdict(lambda: {'wins': 0, 'games': 0})
+    for game in Game.objects.prefetch_related('team1_players', 'team2_players').filter(game_type=Game.DOUBLES):
+        t1 = list(game.team1_players.all())
+        t2 = list(game.team2_players.all())
+        if len(t1) != 2 or len(t2) != 2:
+            continue
+        if game.winning_team not in (1, 2):
+            continue
+        winners = t1 if game.winning_team == 1 else t2
+        losers  = t2 if game.winning_team == 1 else t1
+        win_key  = frozenset(p.pk for p in winners)
+        loss_key = frozenset(p.pk for p in losers)
+        pair_stats[win_key]['wins']  += 1
+        pair_stats[win_key]['games'] += 1
+        pair_stats[loss_key]['games'] += 1
+    qualified = {k: v for k, v in pair_stats.items() if v['games'] >= 2}
+    if not qualified:
+        return frozenset()
+    best_key = max(qualified, key=lambda k: qualified[k]['wins'] / qualified[k]['games'])
+    return best_key
 
 
 def login_view(request):
@@ -130,6 +153,10 @@ def home(request):
         p.singles_elo_gap = None if i == 0 else round(singles_board[i - 1].singles_elo - p.singles_elo, 1)
     for i, p in enumerate(doubles_board):
         p.doubles_elo_gap = None if i == 0 else round(doubles_board[i - 1].doubles_elo - p.doubles_elo, 1)
+
+    chemistry_pks = _compute_best_chemistry()
+    for p in players:
+        p.has_chemistry = p.pk in chemistry_pks
 
     return render(request, "tracker/home.html", {
         "singles_board": singles_board,
@@ -354,22 +381,39 @@ def player_detail(request, player_id):
         x["opponent"].display_name,
     ))
 
-    teammate_wins = Counter()
+    teammate_stats = {}
     nemesis_losses = Counter()
     for row in doubles_rows:
-        if row["won"]:
-            for tm in row["teammates"]:
-                teammate_wins[tm] += 1
+        for tm in row["teammates"]:
+            if tm not in teammate_stats:
+                teammate_stats[tm] = {'wins': 0, 'games': 0}
+            teammate_stats[tm]['games'] += 1
+            if row["won"]:
+                teammate_stats[tm]['wins'] += 1
     for row in game_rows:
         if not row["won"]:
             for opp in row["opponents"]:
                 nemesis_losses[opp] += 1
-    best_teammate, best_teammate_wins = teammate_wins.most_common(1)[0] if teammate_wins else (None, 0)
+
+    qualified = {tm: s for tm, s in teammate_stats.items() if s['games'] >= 3}
+    if qualified:
+        best_teammate = max(qualified, key=lambda tm: qualified[tm]['wins'] / qualified[tm]['games'])
+        best_teammate_wins = qualified[best_teammate]['wins']
+        best_teammate_games = qualified[best_teammate]['games']
+    else:
+        best_teammate = best_teammate_wins = best_teammate_games = None
+
     nemesis, nemesis_loss_count = nemesis_losses.most_common(1)[0] if nemesis_losses else (None, 0)
+
+    chemistry_pks = _compute_best_chemistry()
+    has_chemistry = player.pk in chemistry_pks
+    if player_award is None and has_chemistry:
+        player_award = 'chemistry'
 
     return render(request, "tracker/player_detail.html", {
         "best_teammate": best_teammate,
         "best_teammate_wins": best_teammate_wins,
+        "best_teammate_games": best_teammate_games,
         "nemesis": nemesis,
         "nemesis_loss_count": nemesis_loss_count,
         "player": player,
@@ -397,4 +441,5 @@ def player_detail(request, player_id):
         "singles_show_best_streak": singles_show_best_streak,
         "doubles_show_best_streak": doubles_show_best_streak,
         "player_award": player_award,
+        "has_chemistry": has_chemistry,
     })

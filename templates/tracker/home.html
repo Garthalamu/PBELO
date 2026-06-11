@@ -92,6 +92,18 @@
     line-height: 1;
   }
 
+  /* chemistry flask */
+  .lb-chemistry {
+    display: inline-flex;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+  }
+  .lb-chemistry i {
+    color: #4ade80;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
   /* glint sweep — shine layer animates over the row base gradient */
   @keyframes row-glint {
     0%   { background-position: -150% 0, 0 0; }
@@ -246,7 +258,7 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
             </td>
             <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
+              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}{% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
               <span class="elo-val mono elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>

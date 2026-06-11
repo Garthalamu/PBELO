@@ -28,6 +28,14 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  {% elif player_award == 'chemistry' %}
+  body { background-image: radial-gradient(ellipse at 50% -5%, rgba(74,222,128,0.15) 0%, transparent 75%); }
+  .player-hero-name {
+    background: linear-gradient(135deg, #15803d 0%, #4ade80 30%, #bbf7d0 52%, #4ade80 70%, #15803d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
   {% endif %}
 
   /* ── HERO ─────────────────────────── */
@@ -135,9 +143,19 @@
     box-shadow: 0 0 20px rgba(200,121,65,0.30), 0 0 6px rgba(200,121,65,0.15), inset 0 1px 0 rgba(255,255,255,0.16);
   }
 
-  .stat-card.rank-gold::before   { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
-  .stat-card.rank-silver::before { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
-  .stat-card.rank-bronze::before { background: linear-gradient(90deg, var(--bronze), rgba(200,121,65,0.3)); }
+  .stat-card.rank-gold::before      { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
+  .stat-card.rank-silver::before    { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
+  .stat-card.rank-bronze::before    { background: linear-gradient(90deg, var(--bronze), rgba(200,121,65,0.3)); }
+  .stat-card.rank-chemistry {
+    background:
+      linear-gradient(rgba(74,222,128,0.07), rgba(74,222,128,0.07)),
+      linear-gradient(110deg, transparent 44%, rgba(74,222,128,0.05) 55%, rgba(74,222,128,0.11) 60%, rgba(74,222,128,0.05) 65%, transparent 74%),
+      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+      var(--surface);
+    border-color: rgba(74,222,128,0.45);
+    box-shadow: 0 0 20px rgba(74,222,128,0.22), 0 0 6px rgba(74,222,128,0.1), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .stat-card.rank-chemistry::before { background: linear-gradient(90deg, #4ade80, rgba(74,222,128,0.3)); }
 
   .stat-label {
     font-size: 0.7rem;
@@ -192,9 +210,10 @@
     line-height: 1;
     opacity: 0.9;
   }
-  .award-corner.gold   { color: var(--gold); }
-  .award-corner.silver { color: var(--silver); }
-  .award-corner.bronze { color: var(--bronze); }
+  .award-corner.gold      { color: var(--gold); }
+  .award-corner.silver    { color: var(--silver); }
+  .award-corner.bronze    { color: var(--bronze); }
+  .award-corner.chemistry { color: #4ade80; }
 
   .social-name {
     font-size: 1.1rem;
@@ -603,14 +622,15 @@
 <!-- Stat Cards Row 2 -->
 <div class="stat-grid-2 fade-up delay-2">
 
-  <div class="stat-card ally">
+  <div class="stat-card ally {% if has_chemistry %}rank-chemistry{% endif %}">
+    {% if has_chemistry %}<span class="award-corner chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
     <div class="stat-label">Best Teammate</div>
     {% if best_teammate %}
       <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.display_name }}</a>
-      <div class="stat-sub">{{ best_teammate_wins }} win{{ best_teammate_wins|pluralize }} together</div>
+      <div class="stat-sub">{{ best_teammate_wins }}W – {{ best_teammate_games|subtract:best_teammate_wins }}L together</div>
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No doubles games yet</div>
+      <div class="stat-sub">{% if doubles_wins or doubles_losses %}Not enough team data{% else %}No doubles games yet{% endif %}</div>
     {% endif %}
   </div>
 
@@ -942,9 +962,10 @@
 (function () {
   const AWARD = '{{ player_award }}';
   const PALETTES = {
-    gold:   ['#fbbf24','#fcd34d','#f59e0b','#fffbeb','#fef3c7'],
-    silver: ['#94a3b8','#cbd5e1','#e2e8f0','#f8fafc','#64748b'],
-    bronze: ['#c87941','#d4956a','#e8b48a','#fff7ed','#a16207'],
+    gold:      ['#fbbf24','#fcd34d','#f59e0b','#fffbeb','#fef3c7'],
+    silver:    ['#94a3b8','#cbd5e1','#e2e8f0','#f8fafc','#64748b'],
+    bronze:    ['#c87941','#d4956a','#e8b48a','#fff7ed','#a16207'],
+    chemistry: ['#4ade80','#22c55e','#86efac','#dcfce7','#16a34a'],
   };
   const colors = PALETTES[AWARD];
 
