@@ -83,6 +83,14 @@ def logout_view(request):
     return redirect("login")
 
 
+def token_login(request, token):
+    share_token = os.environ.get("SHARE_TOKEN", "")
+    if share_token and hmac.compare_digest(token, share_token):
+        request.session["authenticated"] = True
+        return redirect("home")
+    return redirect("login")
+
+
 def home(request):
     changes_qs = EloChange.objects.select_related("game").order_by("game__played_at")
     players = list(Player.objects.prefetch_related(

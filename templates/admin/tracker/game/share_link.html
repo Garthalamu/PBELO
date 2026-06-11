@@ -1,0 +1,98 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+<style>
+  .alert-info {
+    padding: 1em;
+    background: #e8f4fd;
+    border: 1px solid #90cbe8;
+    border-radius: 4px;
+    margin: 1.5em 0;
+    color: var(--body-fg);
+  }
+  @media (prefers-color-scheme: dark) {
+    .alert-info {
+      background: rgba(144,203,232,0.1);
+      border-color: rgba(144,203,232,0.35);
+    }
+  }
+  .form-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    color: var(--body-fg);
+  }
+  .url-input {
+    flex: 1;
+    padding: 0.5em 0.6em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95em;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    font-family: monospace;
+  }
+  .copy-btn {
+    padding: 0.5em 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { opacity: 0.8; }
+  .muted-text { color: var(--body-quiet-color); margin-bottom: 1.5em; }
+  .success-msg { display:none; margin: 0.4em 0 0; font-size: 0.85em; color: #4caf50; }
+  @media (prefers-color-scheme: dark) {
+    .success-msg { color: #81c784; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;">
+  <h1>Shareable Link</h1>
+
+  <div class="alert-info">
+    Anyone with this link will be automatically logged in without needing the password.
+    Generating a new token instantly invalidates the old link.
+  </div>
+
+  {% if has_token %}
+    <div style="margin-bottom:1.5em;">
+      <label class="form-label">Current Link</label>
+      <div style="display:flex;gap:0.5em;align-items:center;">
+        <input id="share-url" type="text" readonly value="{{ share_url }}" class="url-input" />
+        <button type="button" id="copy-btn" class="copy-btn">Copy</button>
+      </div>
+      <p id="copy-msg" class="success-msg">Copied to clipboard!</p>
+    </div>
+  {% else %}
+    <p class="muted-text">No shareable link has been generated yet. Click the button below to create one.</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="submit"
+           value="{% if has_token %}Generate New Token{% else %}Generate Link{% endif %}"
+           class="button default"
+           {% if has_token %}onclick="return confirm('This will invalidate the current link. Continue?');"{% endif %} />
+    &nbsp;
+    <a href="{% url 'admin:tracker_player_changelist' %}" class="button">Cancel</a>
+  </form>
+</div>
+
+<script>
+  const btn = document.getElementById('copy-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('share-url').value).then(() => {
+        btn.textContent = 'Copied!';
+        document.getElementById('copy-msg').style.display = 'block';
+        setTimeout(() => { btn.textContent = 'Copy'; document.getElementById('copy-msg').style.display = 'none'; }, 2000);
+      });
+    });
+  }
+</script>
+{% endblock %}

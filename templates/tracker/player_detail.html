@@ -534,20 +534,30 @@
     {% elif singles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
     {% endif %}
     <div class="stat-label">Singles ELO</div>
-    <div class="stat-val singles-color">
-      <span class="elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
-      {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
-    </div>
-    {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_elo }}</div>{% endif %}
+    {% if singles_wins or singles_losses %}
+      <div class="stat-val singles-color">
+        <span class="elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
+        {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
+      </div>
+      {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_elo }}</div>{% endif %}
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No singles games</div>
+    {% endif %}
   </div>
 
   <div class="stat-card singles">
     <div class="stat-label">Singles W/L</div>
-    <div class="stat-val wl-row">
-      <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
-      {% if singles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
-    </div>
-    {% if singles_show_best_streak %}<div class="stat-sub">Best streak {{ singles_best_streak }}</div>{% endif %}
+    {% if singles_wins or singles_losses %}
+      <div class="stat-val wl-row">
+        <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
+        {% if singles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
+      </div>
+      {% if singles_show_best_streak %}<div class="stat-sub">Best streak {{ singles_best_streak }}</div>{% endif %}
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No singles games</div>
+    {% endif %}
   </div>
 
   <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
@@ -556,20 +566,30 @@
     {% elif doubles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
     {% endif %}
     <div class="stat-label">Doubles ELO</div>
-    <div class="stat-val doubles-color">
-      <span class="elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
-      {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
-    </div>
-    {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_elo }}</div>{% endif %}
+    {% if doubles_wins or doubles_losses %}
+      <div class="stat-val doubles-color">
+        <span class="elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
+        {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
+      </div>
+      {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_elo }}</div>{% endif %}
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No doubles games</div>
+    {% endif %}
   </div>
 
   <div class="stat-card doubles">
     <div class="stat-label">Doubles W/L</div>
-    <div class="stat-val wl-row">
-      <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
-      {% if doubles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
-    </div>
-    {% if doubles_show_best_streak %}<div class="stat-sub">Best streak {{ doubles_best_streak }}</div>{% endif %}
+    {% if doubles_wins or doubles_losses %}
+      <div class="stat-val wl-row">
+        <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
+        {% if doubles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
+      </div>
+      {% if doubles_show_best_streak %}<div class="stat-sub">Best streak {{ doubles_best_streak }}</div>{% endif %}
+    {% else %}
+      <div class="stat-val" style="color:var(--txt-3)">—</div>
+      <div class="stat-sub">No doubles games</div>
+    {% endif %}
   </div>
 
 </div>

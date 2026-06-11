@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 
-_PUBLIC_PREFIXES = ("/login/", "/admin/")
+_PUBLIC_PREFIXES = ("/login/", "/admin/", "/join/")
 
 
 class PasswordGateMiddleware:

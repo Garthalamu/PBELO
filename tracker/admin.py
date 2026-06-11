@@ -1,5 +1,6 @@
 import os
 import re
+import secrets
 
 from django.contrib import admin, messages
 from django.contrib.auth.hashers import make_password
@@ -37,6 +38,54 @@ def _write_env_key(key, value):
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ("__str__", "singles_elo", "doubles_elo", "created_at")
     search_fields = ("first_name", "last_name", "nickname")
+    change_list_template = "admin/tracker/player/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path("set-password/", self.admin_site.admin_view(self.set_password_view), name="set_site_password"),
+            path("share-link/", self.admin_site.admin_view(self.share_link_view), name="share_link"),
+        ]
+        return custom + urls
+
+    def set_password_view(self, request):
+        if request.method == "POST":
+            raw = request.POST.get("password", "").strip()
+            confirm = request.POST.get("password_confirm", "").strip()
+            if not raw:
+                self.message_user(request, "Password cannot be empty.", messages.ERROR)
+            elif raw != confirm:
+                self.message_user(request, "Passwords do not match.", messages.ERROR)
+            else:
+                hashed = make_password(raw)
+                _write_env_key("SITE_PASSWORD_HASH", hashed)
+                self.message_user(request, "Site password updated successfully.", messages.SUCCESS)
+                return redirect("admin:tracker_player_changelist")
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Set Site Password",
+        }
+        return render(request, "admin/tracker/game/set_password.html", context)
+
+    def share_link_view(self, request):
+        if request.method == "POST":
+            token = secrets.token_urlsafe(6)
+            _write_env_key("SHARE_TOKEN", token)
+            self.message_user(request, "New shareable link generated.", messages.SUCCESS)
+            return redirect(request.path)
+
+        token = os.environ.get("SHARE_TOKEN", "")
+        scheme = "https" if request.is_secure() else "http"
+        share_url = f"{scheme}://{request.get_host()}/join/{token}/" if token else ""
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Shareable Link",
+            "share_url": share_url,
+            "has_token": bool(token),
+        }
+        return render(request, "admin/tracker/game/share_link.html", context)
 
 
 class EloChangeInline(admin.TabularInline):
@@ -56,7 +105,6 @@ class GameAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path("recalculate-elo/", self.admin_site.admin_view(self.recalculate_elo_view), name="recalculate_elo"),
-            path("set-password/", self.admin_site.admin_view(self.set_password_view), name="set_site_password"),
         ]
         return custom + urls
 
@@ -75,26 +123,6 @@ class GameAdmin(admin.ModelAdmin):
             "player_count": player_count,
         }
         return render(request, "admin/tracker/game/recalculate_confirm.html", context)
-
-    def set_password_view(self, request):
-        if request.method == "POST":
-            raw = request.POST.get("password", "").strip()
-            confirm = request.POST.get("password_confirm", "").strip()
-            if not raw:
-                self.message_user(request, "Password cannot be empty.", messages.ERROR)
-            elif raw != confirm:
-                self.message_user(request, "Passwords do not match.", messages.ERROR)
-            else:
-                hashed = make_password(raw)
-                _write_env_key("SITE_PASSWORD_HASH", hashed)
-                self.message_user(request, "Site password updated successfully.", messages.SUCCESS)
-                return redirect("admin:tracker_game_changelist")
-
-        context = {
-            **self.admin_site.each_context(request),
-            "title": "Set Site Password",
-        }
-        return render(request, "admin/tracker/game/set_password.html", context)
 
 
 @admin.register(EloChange)
