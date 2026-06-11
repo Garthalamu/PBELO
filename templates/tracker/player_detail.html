@@ -496,6 +496,12 @@
   .elo-delta.neg { color: var(--loss); }
 
   /* ── H2H COMPACT TABLE ───────────────*/
+  .h2h-sticky-head th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
   .h2h-table th {
     padding: 0.35rem 0.75rem;
     font-size: 0.62rem;
@@ -627,8 +633,9 @@
   <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
     <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Head to Head</span>
   </div>
+  <div {% if h2h_rows|length > 8 %}style="max-height:13rem;overflow-y:auto;"{% endif %}>
   <table class="data-table h2h-table">
-    <thead>
+    <thead {% if h2h_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
       <tr>
         <th>Opponent</th>
         <th class="text-center">Singles</th>
@@ -653,6 +660,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endif %}
 
