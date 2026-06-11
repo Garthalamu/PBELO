@@ -407,8 +407,11 @@ def player_detail(request, player_id):
 
     chemistry_pks = _compute_best_chemistry()
     has_chemistry = player.pk in chemistry_pks
+    has_streak = singles_streak >= 3 or doubles_streak >= 3
     if player_award is None and has_chemistry:
         player_award = 'chemistry'
+    elif player_award is None and has_streak:
+        player_award = 'streak'
 
     return render(request, "tracker/player_detail.html", {
         "best_teammate": best_teammate,

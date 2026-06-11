@@ -36,6 +36,8 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  {% elif player_award == 'streak' %}
+  body { background-image: radial-gradient(ellipse at 50% -5%, rgba(249,115,22,0.15) 0%, transparent 75%); }
   {% endif %}
 
   /* ── HERO ─────────────────────────── */
@@ -156,6 +158,26 @@
     box-shadow: 0 0 20px rgba(74,222,128,0.22), 0 0 6px rgba(74,222,128,0.1), inset 0 1px 0 rgba(255,255,255,0.12);
   }
   .stat-card.rank-chemistry::before { background: linear-gradient(90deg, #4ade80, rgba(74,222,128,0.3)); }
+  .stat-card.rank-streak {
+    background:
+      linear-gradient(rgba(249,115,22,0.07), rgba(249,115,22,0.07)),
+      linear-gradient(110deg, transparent 44%, rgba(249,115,22,0.05) 55%, rgba(249,115,22,0.11) 60%, rgba(249,115,22,0.05) 65%, transparent 74%),
+      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+      var(--surface);
+    border-color: rgba(249,115,22,0.45);
+    box-shadow: 0 0 20px rgba(249,115,22,0.22), 0 0 6px rgba(249,115,22,0.1), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .stat-card.rank-streak::before { background: linear-gradient(90deg, #f97316, rgba(249,115,22,0.3)); }
+  @keyframes ember-pulse {
+    0%   { box-shadow: 0 0 18px rgba(249,115,22,0.18), 0 0 5px rgba(249,115,22,0.08),  inset 0 1px 0 rgba(255,255,255,0.12); }
+    18%  { box-shadow: 0 0 30px rgba(249,115,22,0.42), 0 0 12px rgba(249,115,22,0.22), inset 0 1px 0 rgba(255,255,255,0.12); }
+    33%  { box-shadow: 0 0 22px rgba(249,115,22,0.26), 0 0 7px rgba(249,115,22,0.11),  inset 0 1px 0 rgba(255,255,255,0.12); }
+    52%  { box-shadow: 0 0 38px rgba(249,115,22,0.52), 0 0 16px rgba(249,115,22,0.30), inset 0 1px 0 rgba(255,255,255,0.12); }
+    67%  { box-shadow: 0 0 24px rgba(249,115,22,0.28), 0 0 8px rgba(249,115,22,0.13),  inset 0 1px 0 rgba(255,255,255,0.12); }
+    83%  { box-shadow: 0 0 32px rgba(249,115,22,0.40), 0 0 11px rgba(249,115,22,0.20), inset 0 1px 0 rgba(255,255,255,0.12); }
+    100% { box-shadow: 0 0 18px rgba(249,115,22,0.18), 0 0 5px rgba(249,115,22,0.08),  inset 0 1px 0 rgba(255,255,255,0.12); }
+  }
+  .stat-card.rank-streak { animation: ember-pulse 5.5s ease-in-out infinite; }
 
   .stat-label {
     font-size: 0.7rem;
@@ -214,6 +236,8 @@
   .award-corner.silver    { color: var(--silver); }
   .award-corner.bronze    { color: var(--bronze); }
   .award-corner.chemistry { color: #4ade80; }
+  .award-corner.streak    { color: #f97316; display: flex; align-items: center; gap: 0.1rem; font-size: 1.2rem; }
+  .award-corner.streak .streak-num { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700; }
 
   .social-name {
     font-size: 1.1rem;
@@ -571,12 +595,12 @@
     {% endif %}
   </div>
 
-  <div class="stat-card singles">
+  <div class="stat-card singles {% if singles_streak >= 3 %}rank-streak{% endif %}">
+    {% if singles_streak >= 3 %}<span class="award-corner streak"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     <div class="stat-label">Singles W/L</div>
     {% if singles_wins or singles_losses %}
       <div class="stat-val wl-row">
         <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
-        {% if singles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
       </div>
       {% if singles_show_best_streak %}<div class="stat-sub">Best streak {{ singles_best_streak }}</div>{% endif %}
     {% else %}
@@ -603,12 +627,12 @@
     {% endif %}
   </div>
 
-  <div class="stat-card doubles">
+  <div class="stat-card doubles {% if doubles_streak >= 3 %}rank-streak{% endif %}">
+    {% if doubles_streak >= 3 %}<span class="award-corner streak"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
     <div class="stat-label">Doubles W/L</div>
     {% if doubles_wins or doubles_losses %}
       <div class="stat-val wl-row">
         <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
-        {% if doubles_streak >= 3 %}<span class="streak-badge"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
       </div>
       {% if doubles_show_best_streak %}<div class="stat-sub">Best streak {{ doubles_best_streak }}</div>{% endif %}
     {% else %}
@@ -966,6 +990,7 @@
     silver:    ['#94a3b8','#cbd5e1','#e2e8f0','#f8fafc','#64748b'],
     bronze:    ['#c87941','#d4956a','#e8b48a','#fff7ed','#a16207'],
     chemistry: ['#4ade80','#22c55e','#86efac','#dcfce7','#16a34a'],
+    streak:    ['#f97316','#fb923c','#fdba74','#fff7ed','#ea580c'],
   };
   const colors = PALETTES[AWARD];
 
