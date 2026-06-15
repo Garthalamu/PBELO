@@ -52,6 +52,24 @@
     font-size: 0.95rem;
   }
 
+  .teams-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-hi) transparent;
+  }
+  .teams-scroll::-webkit-scrollbar { width: 4px; }
+  .teams-scroll::-webkit-scrollbar-track { background: transparent; }
+  .teams-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  .teams-scroll::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
+  .teams-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
   .name-short { display: none; }
   @media (max-width: 760px) {
     .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
@@ -73,13 +91,14 @@
     <span class="board-name">All Pairs</span>
     <span class="board-count">{{ teams_board|length }} pairs</span>
   </div>
+  <div {% if teams_board|length > 10 %}class="teams-scroll"{% endif %}>
   <table class="data-table">
     <thead>
       <tr>
         <th></th>
         <th></th>
         <th>Team</th>
-        <th class="text-right">Combined ELO</th>
+        <th class="text-right">ELO</th>
         <th class="text-right">W / L</th>
         <th class="text-right">Adj %</th>
       </tr>
@@ -119,6 +138,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% else %}
 <div class="card fade-up delay-1">
