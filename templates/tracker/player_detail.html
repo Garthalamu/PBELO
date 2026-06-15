@@ -651,7 +651,7 @@
     <div class="stat-label">Best Teammate</div>
     {% if best_teammate %}
       <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.display_name }}</a>
-      <div class="stat-sub">{{ best_teammate_wins }}W – {{ best_teammate_games|subtract:best_teammate_wins }}L together</div>
+      <div class="stat-sub">{{ best_teammate_wins }}W – {{ best_teammate_games|subtract:best_teammate_wins }}L · {{ best_teammate_adj_pct }}% adj</div>
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
       <div class="stat-sub">{% if doubles_wins or doubles_losses %}Not enough team data{% else %}No doubles games yet{% endif %}</div>
@@ -708,8 +708,41 @@
 </div>
 {% endif %}
 
+<!-- Teammates -->
+{% if teammate_rows %}
+<div class="card fade-up {% if h2h_rows %}delay-4{% else %}delay-3{% endif %}" style="margin-bottom:2rem;">
+  <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Teammates</span>
+  </div>
+  <div {% if teammate_rows|length > 8 %}class="h2h-scroll"{% endif %}>
+  <table class="data-table h2h-table">
+    <thead {% if teammate_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
+      <tr>
+        <th>Teammate</th>
+        <th class="text-center">W</th>
+        <th class="text-center">L</th>
+        <th class="text-center">Win %</th>
+        <th class="text-center">Adj %</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in teammate_rows %}
+      <tr>
+        <td><a href="{% url 'player_detail' row.teammate.pk %}"><span class="name-full">{{ row.teammate.display_name }}</span><span class="name-short">{{ row.teammate.display_name|abbreviate_name }}</span></a></td>
+        <td class="text-center win-color">{{ row.wins }}</td>
+        <td class="text-center loss-color">{{ row.losses }}</td>
+        <td class="text-center">{{ row.win_pct }}%</td>
+        <td class="text-center mono" style="color:var(--txt-2);">{{ row.adj_win_pct }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
 <!-- ELO Chart -->
-<div class="chart-section fade-up {% if h2h_rows %}delay-4{% else %}delay-3{% endif %}">
+<div class="chart-section fade-up {% if h2h_rows or teammate_rows %}delay-5{% elif h2h_rows %}delay-4{% else %}delay-3{% endif %}">
   <div class="chart-head">
     <span class="chart-head-title">ELO History</span>
     <div class="chart-toggles">

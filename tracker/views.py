@@ -75,10 +75,10 @@ def _compute_best_chemistry():
         pair_stats[win_key]['wins']  += 1
         pair_stats[win_key]['games'] += 1
         pair_stats[loss_key]['games'] += 1
-    qualified = {k: v for k, v in pair_stats.items() if v['games'] >= 5}
+    qualified = {k: v for k, v in pair_stats.items() if v['wins'] / v['games'] >= 0.5}
     if not qualified:
         return frozenset()
-    best_key = max(qualified, key=lambda k: qualified[k]['wins'] / qualified[k]['games'])
+    best_key = max(qualified, key=lambda k: (qualified[k]['wins'] + 3) / (qualified[k]['games'] + 6))
     return best_key
 
 
@@ -395,15 +395,27 @@ def player_detail(request, player_id):
             for opp in row["opponents"]:
                 nemesis_losses[opp] += 1
 
-    qualified = {tm: s for tm, s in teammate_stats.items() if s['games'] >= 5}
-    if qualified:
-        best_teammate = max(qualified, key=lambda tm: qualified[tm]['wins'] / qualified[tm]['games'])
-        best_teammate_wins = qualified[best_teammate]['wins']
-        best_teammate_games = qualified[best_teammate]['games']
+    if teammate_stats:
+        best_teammate = max(teammate_stats, key=lambda tm: (teammate_stats[tm]['wins'] + 3) / (teammate_stats[tm]['games'] + 6))
+        best_teammate_wins = teammate_stats[best_teammate]['wins']
+        best_teammate_games = teammate_stats[best_teammate]['games']
+        best_teammate_adj_pct = round((best_teammate_wins + 3) / (best_teammate_games + 6) * 100)
     else:
-        best_teammate = best_teammate_wins = best_teammate_games = None
+        best_teammate = best_teammate_wins = best_teammate_games = best_teammate_adj_pct = None
 
     nemesis, nemesis_loss_count = nemesis_losses.most_common(1)[0] if nemesis_losses else (None, 0)
+
+    teammate_rows = sorted([
+        {
+            "teammate": tm,
+            "wins": s["wins"],
+            "losses": s["games"] - s["wins"],
+            "games": s["games"],
+            "win_pct": round(s["wins"] / s["games"] * 100),
+            "adj_win_pct": round((s["wins"] + 3) / (s["games"] + 6) * 100),
+        }
+        for tm, s in teammate_stats.items()
+    ], key=lambda x: (-x["adj_win_pct"], x["teammate"].display_name))
 
     chemistry_pks = _compute_best_chemistry()
     has_chemistry = player.pk in chemistry_pks
@@ -417,6 +429,7 @@ def player_detail(request, player_id):
         "best_teammate": best_teammate,
         "best_teammate_wins": best_teammate_wins,
         "best_teammate_games": best_teammate_games,
+        "best_teammate_adj_pct": best_teammate_adj_pct,
         "nemesis": nemesis,
         "nemesis_loss_count": nemesis_loss_count,
         "player": player,
@@ -433,6 +446,7 @@ def player_detail(request, player_id):
         "doubles_rank": doubles_rank,
         "first_game_date": first_game_date,
         "h2h_rows": h2h_rows,
+        "teammate_rows": teammate_rows,
         "singles_streak": singles_streak,
         "doubles_streak": doubles_streak,
         "singles_peak_elo": singles_peak_elo,
