@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .elo import process_game
-from .forms import RecordGameForm
+from .forms import RecordGameForm, CreatePlayerForm
 from .models import EloChange, Game, Player
 
 
@@ -234,6 +234,17 @@ def record_game(request):
         form = RecordGameForm(initial={"played_at": timezone.now().date()})
 
     return render(request, "tracker/record_game.html", {"form": form})
+
+
+def create_player(request):
+    if request.method == "POST":
+        form = CreatePlayerForm(request.POST)
+        if form.is_valid():
+            player = form.save()
+            return redirect("player_detail", player_id=player.pk)
+    else:
+        form = CreatePlayerForm()
+    return render(request, "tracker/create_player.html", {"form": form})
 
 
 def matches(request):

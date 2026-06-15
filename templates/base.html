@@ -594,6 +594,13 @@
           >
         </li>
         <li>
+          <a
+            href="{% url 'create_player' %}"
+            class="{% if request.path == '/players/create/' %}active{% endif %}"
+            >Create Player</a
+          >
+        </li>
+        <li>
           <a href="{% url 'logout' %}" style="color: var(--txt-3);">Logout</a>
         </li>
       </ul>

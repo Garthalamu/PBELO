@@ -2,6 +2,35 @@ from django import forms
 from .models import Game, Player
 
 
+class CreatePlayerForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ["first_name", "last_name", "nickname"]
+        labels = {
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "nickname": "Nickname",
+        }
+
+    def clean(self):
+        data = super().clean()
+        first = data.get("first_name", "").strip()
+        last  = data.get("last_name", "").strip()
+        nick  = data.get("nickname", "").strip()
+
+        if not first and not nick:
+            raise forms.ValidationError("Provide at least a first name or nickname.")
+
+        if nick and Player.objects.filter(nickname__iexact=nick).exists():
+            raise forms.ValidationError(f'A player with the nickname "{nick}" already exists.')
+
+        if first and Player.objects.filter(first_name__iexact=first, last_name__iexact=last).exists():
+            name = f"{first} {last}".strip()
+            raise forms.ValidationError(f'A player named "{name}" already exists.')
+
+        return data
+
+
 class RecordGameForm(forms.Form):
     game_type = forms.ChoiceField(
         choices=Game.GAME_TYPE_CHOICES,
