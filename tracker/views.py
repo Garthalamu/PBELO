@@ -164,6 +164,45 @@ def home(request):
     })
 
 
+def _build_teams_board():
+    players = list(Player.objects.all())
+    player_map = {p.pk: p for p in players}
+    pair_stats = defaultdict(lambda: {'wins': 0, 'games': 0})
+    for game in Game.objects.prefetch_related('team1_players', 'team2_players').filter(game_type=Game.DOUBLES):
+        t1 = list(game.team1_players.all())
+        t2 = list(game.team2_players.all())
+        if len(t1) != 2 or len(t2) != 2:
+            continue
+        if game.winning_team not in (1, 2):
+            continue
+        win_key  = frozenset(p.pk for p in (t1 if game.winning_team == 1 else t2))
+        loss_key = frozenset(p.pk for p in (t2 if game.winning_team == 1 else t1))
+        pair_stats[win_key]['wins']  += 1
+        pair_stats[win_key]['games'] += 1
+        pair_stats[loss_key]['games'] += 1
+    return sorted([
+        {
+            'players': sorted([player_map[pk] for pk in key], key=lambda p: p.display_name),
+            'combined_elo': round(sum(player_map[pk].doubles_elo for pk in key), 1),
+            'wins': s['wins'],
+            'losses': s['games'] - s['wins'],
+            'adj_pct': round((s['wins'] + 3) / (s['games'] + 6) * 100),
+        }
+        for key, s in pair_stats.items()
+        if all(pk in player_map for pk in key)
+    ], key=lambda x: -x['adj_pct'])
+
+
+def teams(request):
+    chemistry_pks = _compute_best_chemistry()
+    teams_board = _build_teams_board()
+    for team in teams_board:
+        team['has_chemistry'] = frozenset(p.pk for p in team['players']) == chemistry_pks
+    return render(request, "tracker/teams.html", {
+        "teams_board": teams_board,
+    })
+
+
 def record_game(request):
     if request.method == "POST":
         form = RecordGameForm(request.POST)

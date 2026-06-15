@@ -153,6 +153,27 @@
   .board-row.rank-1 td:first-child::before { background: var(--gold); }
   .board-row.rank-2 td:first-child::before { background: var(--silver); }
   .board-row.rank-3 td:first-child::before { background: var(--bronze); }
+
+  .lb-scroll {
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-hi) transparent;
+  }
+  .lb-scroll::-webkit-scrollbar { width: 4px; }
+  .lb-scroll::-webkit-scrollbar-track { background: transparent; }
+  .lb-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  .lb-scroll::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
+  @media (max-width: 760px) {
+    .lb-scroll { max-height: 40vh; }
+  }
+  .lb-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
 </style>
 {% endblock %}
 
@@ -175,6 +196,7 @@
       {% endif %}
     </div>
     {% if singles_board %}
+      <div {% if singles_board|length > 10 %}class="lb-scroll"{% endif %}>
       <table class="data-table">
         <thead>
           <tr>
@@ -218,6 +240,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     {% else %}
       <div class="empty-state">No singles games recorded yet.</div>
     {% endif %}
@@ -232,6 +255,7 @@
       {% endif %}
     </div>
     {% if doubles_board %}
+      <div {% if doubles_board|length > 10 %}class="lb-scroll"{% endif %}>
       <table class="data-table">
         <thead>
           <tr>
@@ -275,12 +299,14 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     {% else %}
       <div class="empty-state">No doubles games recorded yet.</div>
     {% endif %}
   </section>
 
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Teams — PBELO{% endblock %}
+{% load leaderboard_tags %}
+
+{% block extra_css %}
+<style>
+  .board-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .board-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    color: var(--txt);
+  }
+  .board-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--txt-3);
+  }
+
+  .board-row td:first-child { width: 48px; padding-left: 1.25rem; text-align: center; }
+  .board-row td:last-child  { padding-right: 1.25rem; }
+
+  .player-link {
+    color: var(--txt);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.12s;
+  }
+  .player-link:hover { color: var(--accent); }
+  .player-link.secondary { opacity: 0.7; font-weight: 500; }
+
+  .elo-val { font-size: 0.9rem; font-weight: 600; color: var(--txt); }
+  .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
+  .wl-sep  { color: var(--txt-3); margin: 0 1px; }
+
+  .data-table th { padding: 0.4rem 0.75rem; }
+  .data-table td { padding: 0.45rem 0.75rem; font-size: 0.82rem; }
+  .board-row td:first-child { padding-left: 1rem; }
+  .board-row td:last-child  { padding-right: 1rem; }
+
+  .chemistry-badge {
+    display: inline-flex;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+    color: #4ade80;
+    font-size: 0.95rem;
+  }
+
+  .name-short { display: none; }
+  @media (max-width: 760px) {
+    .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
+    .board-row td:last-child  { padding-right: 0.75rem; }
+    .name-full  { display: none; }
+    .name-short { display: inline; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1 class="page-title">Teams</h1>
+</div>
+
+{% if teams_board %}
+<div class="card fade-up delay-1">
+  <div class="board-head">
+    <span class="board-name">All Pairs</span>
+    <span class="board-count">{{ teams_board|length }} pairs</span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>Team</th>
+        <th class="text-right">Combined ELO</th>
+        <th class="text-right">W / L</th>
+        <th class="text-right">Adj %</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for team in teams_board %}
+      <tr class="board-row">
+        <td>
+          {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
+          {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
+          {% elif forloop.counter == 3 %}<span class="rank rank-bronze">3</span>
+          {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
+        </td>
+        <td style="width:1px;padding-left:0;padding-right:0;">
+          {% if team.has_chemistry %}<span class="chemistry-badge"><i class="bi bi-people-fill"></i></span>{% endif %}
+        </td>
+        <td>
+          <a href="{% url 'player_detail' team.players.0.pk %}" class="player-link">
+            <span class="name-full">{{ team.players.0.display_name }}</span><span class="name-short">{{ team.players.0.display_name|abbreviate_name }}</span>
+          </a><br>
+          <a href="{% url 'player_detail' team.players.1.pk %}" class="player-link secondary">
+            <span class="name-full">{{ team.players.1.display_name }}</span><span class="name-short">{{ team.players.1.display_name|abbreviate_name }}</span>
+          </a>
+        </td>
+        <td class="text-right">
+          <span class="elo-val mono">{{ team.combined_elo|floatformat:1 }}</span>
+        </td>
+        <td class="text-right">
+          <span class="wl-stat mono">
+            <span class="win-color">{{ team.wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ team.losses }}</span>
+          </span>
+        </td>
+        <td class="text-right">
+          <span class="mono" style="font-size:0.85rem;">{{ team.adj_pct }}%</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card fade-up delay-1">
+  <div class="empty-state">No doubles games recorded yet.</div>
+</div>
+{% endif %}
+{% endblock %}
