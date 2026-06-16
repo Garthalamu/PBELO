@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Teams — PBELO{% endblock %}
-{% load leaderboard_tags %}
 
 {% block extra_css %}
 <style>
@@ -17,66 +16,78 @@
     letter-spacing: 0.06em;
     color: var(--txt);
   }
-  .board-count {
+  .board-hint {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     color: var(--txt-3);
   }
 
-  .board-row td:first-child { width: 48px; padding-left: 1.25rem; text-align: center; }
-  .board-row td:last-child  { padding-right: 1.25rem; }
+  .graph-wrap {
+    width: 100%;
+    height: clamp(360px, 65vh, 620px);
+    position: relative;
+    overflow: hidden;
+  }
 
-  .player-link {
-    color: var(--txt);
+  #teams-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .node-label, .node-label-bg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
     font-weight: 600;
-    text-decoration: none;
-    transition: color 0.12s;
-  }
-  .player-link:hover { color: var(--accent); }
-  .player-link.secondary { opacity: 0.7; font-weight: 500; }
-
-  .elo-val { font-size: 0.9rem; font-weight: 600; color: var(--txt); }
-  .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
-  .wl-sep  { color: var(--txt-3); margin: 0 1px; }
-
-  .data-table th { padding: 0.4rem 0.75rem; }
-  .data-table td { padding: 0.45rem 0.75rem; font-size: 0.82rem; }
-  .board-row td:first-child { padding-left: 1rem; }
-  .board-row td:last-child  { padding-right: 1rem; }
-
-  .chemistry-badge {
-    display: inline-flex;
-    margin-left: 0.35rem;
-    vertical-align: middle;
-    color: #4ade80;
-    font-size: 0.95rem;
+    pointer-events: none;
+    user-select: none;
   }
 
-  .teams-scroll {
-    max-height: 70vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-hi) transparent;
+  .link-tooltip {
+    position: absolute;
+    background: var(--surface-hi);
+    border: 1px solid var(--border-hi);
+    border-radius: 10px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.8rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+    z-index: 20;
+    min-width: 150px;
+    max-width: 220px;
   }
-  .teams-scroll::-webkit-scrollbar { width: 4px; }
-  .teams-scroll::-webkit-scrollbar-track { background: transparent; }
-  .teams-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
-  .teams-scroll::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
-  .teams-scroll thead th {
-    position: sticky;
-    top: 0;
-    background: var(--surface);
-    z-index: 1;
+  .link-tooltip.visible { opacity: 1; }
+  .tt-names {
+    font-weight: 700;
+    color: var(--txt);
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+    font-size: 0.82rem;
   }
+  .tt-stat { color: var(--txt-2); font-size: 0.78rem; line-height: 1.5; }
+  .tt-chem { color: #4ade80; font-size: 0.78rem; }
 
-  .name-short { display: none; }
-  @media (max-width: 760px) {
-    .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
-    .board-row td:last-child  { padding-right: 0.75rem; }
-    .name-full  { display: none; }
-    .name-short { display: inline; }
+  .graph-legend {
+    padding: 0.55rem 1.25rem 0.8rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+    color: var(--txt-3);
+    border-top: 1px solid var(--border);
   }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-line {
+    display: inline-block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .legend-line-thick { width: 28px; background: var(--accent); opacity: 0.9; height: 7px; }
+  .legend-line-thin  { width: 28px; background: var(--accent); opacity: 0.35; height: 2px; }
+  .legend-line-chem  { width: 28px; background: #4ade80; height: 5px; }
 </style>
 {% endblock %}
 
@@ -85,64 +96,262 @@
   <h1 class="page-title">Teams</h1>
 </div>
 
-{% if teams_board %}
-<div class="card fade-up delay-1">
+{% if has_teams %}
+<div class="card fade-up delay-1" style="overflow:hidden;">
   <div class="board-head">
-    <span class="board-name">All Pairs</span>
-    <span class="board-count">{{ teams_board|length }} pairs</span>
+    <span class="board-name">Partnership Network</span>
+    <span class="board-hint">scroll to zoom · drag to pan</span>
   </div>
-  <div {% if teams_board|length > 10 %}class="teams-scroll"{% endif %}>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th></th>
-        <th>Team</th>
-        <th class="text-right">ELO</th>
-        <th class="text-right">W / L</th>
-        <th class="text-right">Adj %</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for team in teams_board %}
-      <tr class="board-row">
-        <td>
-          {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
-          {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
-          {% elif forloop.counter == 3 %}<span class="rank rank-bronze">3</span>
-          {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
-        </td>
-        <td style="width:1px;padding-left:0;padding-right:0;">
-          {% if team.has_chemistry %}<span class="chemistry-badge"><i class="bi bi-people-fill"></i></span>{% endif %}
-        </td>
-        <td>
-          <a href="{% url 'player_detail' team.players.0.pk %}" class="player-link">
-            <span class="name-full">{{ team.players.0.display_name }}</span><span class="name-short">{{ team.players.0.display_name|abbreviate_name }}</span>
-          </a><br>
-          <a href="{% url 'player_detail' team.players.1.pk %}" class="player-link secondary">
-            <span class="name-full">{{ team.players.1.display_name }}</span><span class="name-short">{{ team.players.1.display_name|abbreviate_name }}</span>
-          </a>
-        </td>
-        <td class="text-right">
-          <span class="elo-val mono">{{ team.combined_elo|floatformat:1 }}</span>
-        </td>
-        <td class="text-right">
-          <span class="wl-stat mono">
-            <span class="win-color">{{ team.wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ team.losses }}</span>
-          </span>
-        </td>
-        <td class="text-right">
-          <span class="mono" style="font-size:0.85rem;">{{ team.adj_pct }}%</span>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+  <div class="graph-wrap">
+    <svg id="teams-svg"></svg>
+    <div class="link-tooltip" id="link-tooltip">
+      <div class="tt-names" id="tt-names"></div>
+      <div class="tt-stat" id="tt-record"></div>
+      <div class="tt-stat" id="tt-adj"></div>
+      <div class="tt-chem" id="tt-chem" style="display:none;margin-top:0.2rem;">⚡ Best Chemistry</div>
+    </div>
+  </div>
+
+  <div class="graph-legend">
+    <span class="legend-item">
+      <span style="display:inline-block;width:56px;height:5px;border-radius:3px;background:linear-gradient(to right,#ef4444,#facc15,#4ade80);flex-shrink:0;"></span>
+      Adj win rate (low → high)
+    </span>
+    <span class="legend-item">
+      <span style="display:inline-block;width:28px;height:5px;border-radius:3px;background:#4ade80;box-shadow:0 0 6px #4ade80;flex-shrink:0;"></span>
+      Best chemistry (glow)
+    </span>
+    <span class="legend-item" style="margin-left:auto;">Click player to view profile</span>
   </div>
 </div>
+
 {% else %}
 <div class="card fade-up delay-1">
   <div class="empty-state">No doubles games recorded yet.</div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if has_teams %}
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+(function () {
+  const raw = {{ graph_json|safe }};
+  if (!raw) return;
+
+  const wrap = document.getElementById('graph-wrap') || document.querySelector('.graph-wrap');
+  const svgEl = document.getElementById('teams-svg');
+  const tooltip = document.getElementById('link-tooltip');
+  const ttNames = document.getElementById('tt-names');
+  const ttRecord = document.getElementById('tt-record');
+  const ttAdj = document.getElementById('tt-adj');
+  const ttChem = document.getElementById('tt-chem');
+
+  const cs = getComputedStyle(document.documentElement);
+  function cssVar(name, fallback) {
+    return cs.getPropertyValue(name).trim() || fallback;
+  }
+  const C_TXT        = cssVar('--txt',        '#e2e8f0');
+  const C_TXT2       = cssVar('--txt-2',      '#94a3b8');
+  const C_SURFACE_HI = cssVar('--surface-hi', '#1e2330');
+  const C_BORDER_HI  = cssVar('--border-hi',  '#334155');
+  const C_ACCENT     = cssVar('--accent',     '#3b82f6');
+  const C_CHEM       = '#4ade80';
+
+  function abbrev(name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return name.length > 9 ? name.slice(0, 8) + '…' : name;
+    return parts[0] + ' ' + parts[parts.length - 1][0].toUpperCase() + '.';
+  }
+
+  function linkStrokeWidth(d) {
+    return Math.max(2, 2 + ((d.adj_pct - 20) / 80) * 18);
+  }
+
+  const colorScale = d3.scaleLinear()
+    .domain([30, 50, 70])
+    .range(['#ef4444', '#facc15', '#4ade80'])
+    .clamp(true);
+
+  function linkStroke(d) {
+    return colorScale(d.adj_pct);
+  }
+
+  function linkOpacity(d) {
+    return d.has_chemistry ? 0.92 : 0.78;
+  }
+
+  let currentSim = null;
+
+  function draw() {
+    if (currentSim) currentSim.stop();
+
+    const W = wrap.clientWidth;
+    const H = wrap.clientHeight;
+
+    const nodes = raw.nodes.map(d => ({ ...d }));
+    const links = raw.links.map(d => ({ ...d }));
+
+    const svg = d3.select(svgEl);
+    svg.selectAll('*').remove();
+
+    // Glow filter for chemistry links
+    const defs = svg.append('defs');
+    const filt = defs.append('filter')
+      .attr('id', 'chem-glow')
+      .attr('x', '-60%').attr('y', '-60%')
+      .attr('width', '220%').attr('height', '220%');
+    filt.append('feGaussianBlur')
+      .attr('in', 'SourceGraphic')
+      .attr('stdDeviation', '5')
+      .attr('result', 'blur');
+    const fm = filt.append('feMerge');
+    fm.append('feMergeNode').attr('in', 'blur');
+    fm.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    const g = svg.append('g');
+
+    // Zoom / pan
+    const zoom = d3.zoom()
+      .scaleExtent([0.2, 5])
+      .on('zoom', e => g.attr('transform', e.transform));
+    svg.call(zoom).on('dblclick.zoom', null);
+
+    // Links
+    const linkSel = g.append('g')
+      .selectAll('line')
+      .data(links)
+      .join('line')
+      .attr('stroke', linkStroke)
+      .attr('stroke-width', linkStrokeWidth)
+      .attr('stroke-opacity', linkOpacity)
+      .attr('stroke-linecap', 'round')
+      .attr('filter', d => d.has_chemistry ? 'url(#chem-glow)' : null)
+      .style('cursor', 'crosshair');
+
+    // Nodes
+    const nodeSel = g.append('g')
+      .selectAll('g')
+      .data(nodes)
+      .join('g')
+      .style('cursor', 'pointer')
+      .call(
+        d3.drag()
+          .on('start', (ev, d) => {
+            d._dragged = false;
+            if (!ev.active) sim.alphaTarget(0.3).restart();
+            d.fx = d.x; d.fy = d.y;
+          })
+          .on('drag', (ev, d) => {
+            d._dragged = true;
+            d.fx = ev.x; d.fy = ev.y;
+          })
+          .on('end', (ev, d) => {
+            if (!ev.active) sim.alphaTarget(0);
+            d.fx = null; d.fy = null;
+          })
+      );
+
+    nodeSel.append('circle')
+      .attr('r', 18)
+      .attr('fill', C_SURFACE_HI)
+      .attr('stroke', C_BORDER_HI)
+      .attr('stroke-width', 1.5);
+
+    nodeSel.append('text')
+      .attr('class', 'node-label-bg')
+      .attr('text-anchor', 'middle')
+      .attr('y', 32)
+      .attr('fill', 'none')
+      .attr('stroke', C_SURFACE_HI)
+      .attr('stroke-width', 5)
+      .attr('stroke-linejoin', 'round')
+      .text(d => abbrev(d.name));
+
+    nodeSel.append('text')
+      .attr('class', 'node-label')
+      .attr('text-anchor', 'middle')
+      .attr('y', 32)
+      .attr('fill', C_TXT)
+      .text(d => abbrev(d.name));
+
+    // Simulation
+    const sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id).distance(160).strength(0.2))
+      .force('charge', d3.forceManyBody().strength(-500))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collide', d3.forceCollide(80));
+
+    currentSim = sim;
+
+    sim.on('tick', () => {
+      linkSel
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    // Link hover → tooltip
+    linkSel
+      .on('mouseenter', function (ev, d) {
+        const src = d.source;
+        const tgt = d.target;
+        const srcName = typeof src === 'object' ? src.name : raw.nodes.find(n => n.id === src)?.name || '';
+        const tgtName = typeof tgt === 'object' ? tgt.name : raw.nodes.find(n => n.id === tgt)?.name || '';
+        ttNames.textContent = `${srcName} & ${tgtName}`;
+        ttRecord.innerHTML = `<span class="win-color">${d.wins}W</span> &nbsp;/&nbsp; <span class="loss-color">${d.losses}L</span>`;
+        ttAdj.textContent = `Adj ${d.adj_pct}%`;
+        ttChem.style.display = d.has_chemistry ? '' : 'none';
+        tooltip.classList.add('visible');
+        d3.select(this).attr('stroke-opacity', 1);
+      })
+      .on('mousemove', function (ev) {
+        const rect = wrap.getBoundingClientRect();
+        let x = ev.clientX - rect.left + 16;
+        let y = ev.clientY - rect.top + 16;
+        if (x + 230 > wrap.clientWidth) x = ev.clientX - rect.left - 230;
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+      })
+      .on('mouseleave', function (ev, d) {
+        tooltip.classList.remove('visible');
+        d3.select(this).attr('stroke-opacity', linkOpacity(d));
+      });
+
+    // Node hover → dim unrelated links + highlight circle
+    nodeSel
+      .on('mouseenter', function (ev, d) {
+        linkSel.attr('stroke-opacity', l =>
+          (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.04
+        );
+        d3.select(this).select('circle')
+          .attr('stroke', C_ACCENT)
+          .attr('stroke-width', 2.5);
+      })
+      .on('mouseleave', function (ev, d) {
+        linkSel.attr('stroke-opacity', linkOpacity);
+        d3.select(this).select('circle')
+          .attr('stroke', C_BORDER_HI)
+          .attr('stroke-width', 1.5);
+        tooltip.classList.remove('visible');
+      })
+      .on('click', (ev, d) => {
+        if (!d._dragged) window.location.href = `/players/${d.id}/`;
+      });
+  }
+
+  draw();
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(draw, 250);
+  });
+})();
+</script>
 {% endif %}
 {% endblock %}

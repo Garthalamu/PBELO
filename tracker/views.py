@@ -189,7 +189,7 @@ def _build_teams_board():
             'adj_pct': round((s['wins'] + 3) / (s['games'] + 6) * 100),
         }
         for key, s in pair_stats.items()
-        if all(pk in player_map for pk in key)
+        if all(pk in player_map for pk in key) and s['games'] >= 3
     ], key=lambda x: -x['adj_pct'])
 
 
@@ -198,8 +198,35 @@ def teams(request):
     teams_board = _build_teams_board()
     for team in teams_board:
         team['has_chemistry'] = frozenset(p.pk for p in team['players']) == chemistry_pks
+
+    if not teams_board:
+        return render(request, "tracker/teams.html", {"has_teams": False, "graph_json": "null"})
+
+    player_map = {}
+    for team in teams_board:
+        for p in team['players']:
+            if p.pk not in player_map:
+                player_map[p.pk] = p
+
+    nodes = [
+        {"id": p.pk, "name": p.display_name, "elo": round(p.doubles_elo, 1)}
+        for p in player_map.values()
+    ]
+    links = [
+        {
+            "source": team['players'][0].pk,
+            "target": team['players'][1].pk,
+            "wins": team['wins'],
+            "losses": team['losses'],
+            "adj_pct": team['adj_pct'],
+            "has_chemistry": team['has_chemistry'],
+        }
+        for team in teams_board
+    ]
+
     return render(request, "tracker/teams.html", {
-        "teams_board": teams_board,
+        "has_teams": True,
+        "graph_json": json.dumps({"nodes": nodes, "links": links}),
     })
 
 
