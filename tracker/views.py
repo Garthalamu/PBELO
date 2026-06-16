@@ -186,10 +186,11 @@ def _build_teams_board():
             'combined_elo': round(sum(player_map[pk].doubles_elo for pk in key), 1),
             'wins': s['wins'],
             'losses': s['games'] - s['wins'],
+            'games': s['games'],
             'adj_pct': round((s['wins'] + 3) / (s['games'] + 6) * 100),
         }
         for key, s in pair_stats.items()
-        if all(pk in player_map for pk in key) and s['games'] >= 3
+        if all(pk in player_map for pk in key)
     ], key=lambda x: -x['adj_pct'])
 
 
@@ -218,6 +219,7 @@ def teams(request):
             "target": team['players'][1].pk,
             "wins": team['wins'],
             "losses": team['losses'],
+            "games": team['games'],
             "adj_pct": team['adj_pct'],
             "has_chemistry": team['has_chemistry'],
         }

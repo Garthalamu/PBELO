@@ -68,6 +68,42 @@
   .tt-stat { color: var(--txt-2); font-size: 0.78rem; line-height: 1.5; }
   .tt-chem { color: #4ade80; font-size: 0.78rem; }
 
+  @keyframes march {
+    to { stroke-dashoffset: -24; }
+  }
+  .chem-link {
+    stroke-dasharray: 12 12;
+    animation: march 0.55s linear infinite;
+  }
+
+  #min-games-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 90px;
+    height: 3px;
+    background: var(--border-hi);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  #min-games-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  #min-games-slider::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+  }
+
   .graph-legend {
     padding: 0.55rem 1.25rem 0.8rem;
     display: flex;
@@ -100,7 +136,14 @@
 <div class="card fade-up delay-1" style="overflow:hidden;">
   <div class="board-head">
     <span class="board-name">Partnership Network</span>
-    <span class="board-hint">scroll to zoom · drag to pan</span>
+    <span style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <span class="board-hint" style="display:flex;align-items:center;gap:0.5rem;">
+        Min games:
+        <input type="range" id="min-games-slider" min="1" max="5" value="1">
+        <span id="min-games-val" class="board-hint" style="min-width:1ch;">1</span>
+      </span>
+      <span class="board-hint">scroll to zoom · drag to pan</span>
+    </span>
   </div>
 
   <div class="graph-wrap">
@@ -185,14 +228,25 @@
 
   let currentSim = null;
 
-  function draw() {
+  const slider = document.getElementById('min-games-slider');
+  const sliderVal = document.getElementById('min-games-val');
+  slider.addEventListener('input', function () {
+    sliderVal.textContent = this.value;
+    draw(parseInt(this.value));
+  });
+
+  function draw(minGames = 1) {
     if (currentSim) currentSim.stop();
 
     const W = wrap.clientWidth;
     const H = wrap.clientHeight;
 
-    const nodes = raw.nodes.map(d => ({ ...d }));
-    const links = raw.links.map(d => ({ ...d }));
+    const filteredLinks = raw.links.filter(l => l.games >= minGames);
+    const activeIds = new Set(filteredLinks.flatMap(l => [l.source, l.target]));
+    const filteredNodes = raw.nodes.filter(n => activeIds.has(n.id));
+
+    const nodes = filteredNodes.map(d => ({ ...d }));
+    const links = filteredLinks.map(d => ({ ...d }));
 
     const svg = d3.select(svgEl);
     svg.selectAll('*').remove();
@@ -224,6 +278,7 @@
       .selectAll('line')
       .data(links)
       .join('line')
+      .classed('chem-link', d => d.has_chemistry)
       .attr('stroke', linkStroke)
       .attr('stroke-width', linkStrokeWidth)
       .attr('stroke-opacity', linkOpacity)
@@ -279,7 +334,7 @@
 
     // Simulation
     const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(160).strength(0.2))
+      .force('link', d3.forceLink(links).id(d => d.id).distance(160).strength(d => Math.max(0.05, Math.min(0.6, (d.adj_pct - 30) / 70 * 0.6))))
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(W / 2, H / 2))
       .force('collide', d3.forceCollide(38));
@@ -349,7 +404,7 @@
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(draw, 250);
+    resizeTimer = setTimeout(() => draw(parseInt(slider.value)), 250);
   });
 })();
 </script>
