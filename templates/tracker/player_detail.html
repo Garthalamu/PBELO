@@ -746,6 +746,11 @@
   <div class="chart-head">
     <span class="chart-head-title">ELO History</span>
     <div class="chart-toggles">
+      <div class="view-toggle" id="toggle-metric">
+        <div class="view-slider"></div>
+        <button class="view-btn active" data-metric="rating">Rating</button>
+        <button class="view-btn" data-metric="skill">Skill Range</button>
+      </div>
       <div class="view-toggle" id="toggle-view">
         <div class="view-slider"></div>
         <button class="view-btn" data-view="days">Days</button>
@@ -858,6 +863,7 @@
     return `${mon[+m-1]} ${+d}, ${y}`;
   }
 
+  // ── Rating traces ──────────────────────────────────────────────────────────
   function tracesDays(games, color) {
     const daily = {};
     games.forEach(g => { daily[g.date] = g.rating; });
@@ -888,40 +894,114 @@
     ];
   }
 
-  const baselineAnnotation = [{
-    xref: 'paper', x: 0.99,
-    yref: 'y',     y: {{ default_rating }},
+  // ── Skill range traces (μ ± 3σ band) ──────────────────────────────────────
+  // Same linear formula as formatted_ordinal but without clamping, so the band
+  // extends naturally above/below the 1000–3000 display range.
+  function displayScale(x) {
+    return ((x + 19.67) / 58.38) * 2000 + 1000;
+  }
+
+  function skillFill(color) {
+    return color === '#60a5fa' ? 'rgba(96,165,250,0.13)' : 'rgba(74,222,128,0.13)';
+  }
+  function skillBand(color) {
+    return color === '#60a5fa' ? 'rgba(96,165,250,0.28)' : 'rgba(74,222,128,0.28)';
+  }
+
+  function buildSkillTraces(xs, center, upper, lower, customdata, htmpl, color) {
+    return [
+      // Upper bound — invisible anchor for tonexty fill
+      { x: xs, y: upper, mode: 'lines', line: { width: 0, color: 'transparent' },
+        hoverinfo: 'skip', showlegend: false },
+      // Lower bound — shaded fill to upper
+      { x: xs, y: lower, mode: 'lines', fill: 'tonexty', fillcolor: skillFill(color),
+        line: { width: 1, color: skillBand(color), dash: 'dot' },
+        hoverinfo: 'skip', showlegend: false },
+      // Center (scaled μ) line
+      { x: xs, y: center, mode: 'lines+markers',
+        line: { color, width: 2 }, marker: { color, size: 5 },
+        customdata, hovertemplate: htmpl, showlegend: false },
+    ];
+  }
+
+  // Convert 3σ to display-scale width (linear, no offset component)
+  function sigmaWidth(sigma3) { return (sigma3 * 2000) / 58.38; }
+
+  function tracesSkillGames(games, color) {
+    const xs     = games.map((_, i) => i + 1);
+    // Center = displayed rating (ordinal = mu − 3σ), same line as Rating view
+    const center = games.map(g => displayScale(g.mu - 3 * g.sigma));
+    const half   = games.map(g => sigmaWidth(3 * g.sigma));
+    const upper  = center.map((c, i) => c + half[i]);
+    const lower  = center.map((c, i) => c - half[i]);
+    const cd     = games.map(g => fmtDate(g.date));
+    return buildSkillTraces(xs, center, upper, lower, cd,
+      'Game %{x} · %{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);
+  }
+
+  function tracesSkillDays(games, color) {
+    const daily = {};
+    games.forEach(g => { daily[g.date] = { mu: g.mu, sigma: g.sigma }; });
+    const dates  = Object.keys(daily).sort();
+    const center = dates.map(d => displayScale(daily[d].mu - 3 * daily[d].sigma));
+    const half   = dates.map(d => sigmaWidth(3 * daily[d].sigma));
+    const upper  = center.map((c, i) => c + half[i]);
+    const lower  = center.map((c, i) => c - half[i]);
+    const cd     = dates.map(fmtDate);
+    return buildSkillTraces(dates, center, upper, lower, cd,
+      '%{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);
+  }
+
+  // ── Layouts ────────────────────────────────────────────────────────────────
+  const ratingAnnotation = [{
+    xref: 'paper', x: 0.99, yref: 'y', y: {{ default_rating }},
     text: 'Starting Rating ({{ default_rating }})',
-    showarrow: false,
-    xanchor: 'right',
-    yanchor: 'bottom',
+    showarrow: false, xanchor: 'right', yanchor: 'bottom',
     font: { color: '#5a7296', size: 10, family: 'Figtree, sans-serif' },
   }];
 
-  function layoutDays() {
-    return Object.assign({}, DARK, {
-      xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }),
-      annotations: baselineAnnotation,
-    });
+  function layoutDays()      { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }), annotations: ratingAnnotation }); }
+  function layoutGames()     { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }), annotations: ratingAnnotation }); }
+  function layoutSkillDays() { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }) }); }
+  function layoutSkillGames(){ return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }) }); }
+
+  // ── State + render ─────────────────────────────────────────────────────────
+  let chartView   = 'games';
+  let chartMetric = 'rating';
+
+  function getTraces(data, color) {
+    if (chartMetric === 'skill') {
+      return chartView === 'days' ? tracesSkillDays(data, color) : tracesSkillGames(data, color);
+    }
+    return chartView === 'days' ? tracesDays(data, color) : tracesGames(data, color);
   }
-  function layoutGames() {
-    return Object.assign({}, DARK, {
-      xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }),
-      annotations: baselineAnnotation,
-    });
+
+  function getLayout() {
+    if (chartMetric === 'skill') {
+      return chartView === 'days' ? layoutSkillDays() : layoutSkillGames();
+    }
+    return chartView === 'days' ? layoutDays() : layoutGames();
   }
 
   const cfg = { responsive: true, displayModeBar: false };
 
+  function renderCharts() {
+    {% if singles_chart != "null" %}
+      Plotly.react('plot-singles', getTraces(singlesData, '#60a5fa'), getLayout());
+    {% endif %}
+    {% if doubles_chart != "null" %}
+      Plotly.react('plot-doubles', getTraces(doublesData, '#4ade80'), getLayout());
+    {% endif %}
+  }
+
   {% if singles_chart != "null" %}
-    Plotly.newPlot('plot-singles', tracesGames(singlesData, '#60a5fa'), layoutGames(), cfg);
+    Plotly.newPlot('plot-singles', getTraces(singlesData, '#60a5fa'), getLayout(), cfg);
   {% endif %}
   {% if doubles_chart != "null" %}
-    Plotly.newPlot('plot-doubles', tracesGames(doublesData, '#4ade80'), layoutGames(), cfg);
+    Plotly.newPlot('plot-doubles', getTraces(doublesData, '#4ade80'), getLayout(), cfg);
   {% endif %}
 
-  let chartView = 'games';
-
+  // ── Toggle wiring ──────────────────────────────────────────────────────────
   function initSlider(toggleId) {
     const toggle = document.getElementById(toggleId);
     const slider = toggle.querySelector('.view-slider');
@@ -936,25 +1016,23 @@
     return { slider, btns, move };
   }
 
-  const viewPill = initSlider('toggle-view');
-  const viewBtns = viewPill.btns;
+  const metricPill = initSlider('toggle-metric');
+  metricPill.btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      chartMetric = btn.dataset.metric;
+      metricPill.btns.forEach(b => b.classList.toggle('active', b === btn));
+      metricPill.move(btn);
+      renderCharts();
+    });
+  });
 
-  viewBtns.forEach(btn => {
+  const viewPill = initSlider('toggle-view');
+  viewPill.btns.forEach(btn => {
     btn.addEventListener('click', () => {
       chartView = btn.dataset.view;
-      viewBtns.forEach(b => b.classList.toggle('active', b === btn));
+      viewPill.btns.forEach(b => b.classList.toggle('active', b === btn));
       viewPill.move(btn);
-      const useDays = chartView === 'days';
-      {% if singles_chart != "null" %}
-        Plotly.react('plot-singles',
-          useDays ? tracesDays(singlesData, '#60a5fa') : tracesGames(singlesData, '#60a5fa'),
-          useDays ? layoutDays() : layoutGames());
-      {% endif %}
-      {% if doubles_chart != "null" %}
-        Plotly.react('plot-doubles',
-          useDays ? tracesDays(doublesData, '#4ade80') : tracesGames(doublesData, '#4ade80'),
-          useDays ? layoutDays() : layoutGames());
-      {% endif %}
+      renderCharts();
     });
   });
 

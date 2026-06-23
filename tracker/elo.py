@@ -23,11 +23,22 @@ def formatted_ordinal(mu: float, sigma: float) -> int:
     raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 2000 + 1000
     return round(max(1000, min(3000, raw)),2)
 
-# Default player (mu=25, sigma=25/3) has raw ordinal 0, which maps to 1200.
-DEFAULT_DISPLAY_RATING = round(formatted_ordinal(25.0, 25.0 / 3))
+DEFAULT_MU = 25.0
+DEFAULT_DISPLAY_RATING = round(formatted_ordinal(DEFAULT_MU, DEFAULT_MU / 3))
 
 def _r(mu: float, sigma: float):
     return _model.rating(mu=mu, sigma=sigma)
+
+
+def predict_win(
+    team1: list[tuple[float, float]],
+    team2: list[tuple[float, float]],
+) -> tuple[float, float]:
+    """Return (p_team1_wins, p_team2_wins) via PlackettLuce.predict_win."""
+    r1 = [_r(mu, sigma) for mu, sigma in team1]
+    r2 = [_r(mu, sigma) for mu, sigma in team2]
+    probs = _model.predict_win([r1, r2])
+    return probs[0], probs[1]
 
 
 def process_singles(game) -> list[dict]:

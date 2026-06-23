@@ -3,99 +3,108 @@
 
 {% block extra_css %}
 <style>
-  .calc-wrap { max-width: 740px; margin: 0 auto; }
+  .calc-wrap { max-width: 680px; margin: 0 auto; }
 
-  /* Sliding pill toggle */
-  .view-toggle {
-    position: relative;
-    display: inline-flex;
-    gap: 2px;
-    background: var(--surface-hi);
+  /* ── GAME TYPE BADGE ─────────────────── */
+  .game-type-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--txt-3);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 3px;
+    padding: 0.35rem 0.85rem;
+    margin-bottom: 1.2rem;
+    transition: all 0.2s;
   }
-  .view-btn {
-    position: relative;
-    z-index: 1;
-    padding: 0.3rem 1.2rem;
-    font-size: 0.82rem;
-    font-weight: 700;
+  .game-type-badge.is-singles { color: #60a5fa; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.07); }
+  .game-type-badge.is-doubles { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.07); }
+
+  /* ── PLAYER LIST CARD ────────────────── */
+  .matchup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-col { display: flex; flex-direction: column; }
+
+  .team-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.1rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .team-header-right { flex-direction: row-reverse; border-left: 1px solid var(--border); }
+
+  .team-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .t1-dot { background: #60a5fa; box-shadow: 0 0 5px rgba(96,165,250,0.6); }
+  .t2-dot { background: #f87171; box-shadow: 0 0 5px rgba(248,113,113,0.6); }
+
+  .team-lbl { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+  .team-lbl.t1 { color: #60a5fa; }
+  .team-lbl.t2 { color: #f87171; }
+
+  .player-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0.4rem 0.5rem;
+    gap: 1px;
+    overflow-y: auto;
+    max-height: 260px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-hi) transparent;
+  }
+  .player-list::-webkit-scrollbar { width: 3px; }
+  .player-list::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  .t2-list { border-left: 1px solid var(--border); }
+
+  .pl-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.6rem;
+    border-radius: 7px;
     border: none;
     background: none;
-    color: var(--txt-2);
     cursor: pointer;
-    border-radius: 6px;
-    transition: color 0.22s;
-    white-space: nowrap;
-  }
-  .view-btn.active { color: var(--accent); }
-  .view-slider {
-    position: absolute;
-    top: 3px;
-    height: calc(100% - 6px);
-    border-radius: 6px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    pointer-events: none;
-    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
-                width 0.22s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  /* Teams grid */
-  .teams-grid {
-    display: grid;
-    grid-template-columns: 1fr 48px 1fr;
-    align-items: start;
-  }
-  @media (max-width: 540px) {
-    .teams-grid { grid-template-columns: 1fr; }
-    .vs-col { display: none; }
-  }
-
-  .team-col { padding: 1.4rem 1.5rem; }
-
-  .team-head {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    letter-spacing: 0.06em;
-    margin-bottom: 1rem;
-  }
-  .team1-head { color: #60a5fa; }
-  .team2-head { color: #f87171; }
-
-  .vs-col {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 1.4rem;
-  }
-  .vs-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem;
-    color: var(--txt-3);
-    letter-spacing: 0.1em;
-    margin-top: 2.1rem;
-  }
-
-  .player-slot { margin-bottom: 0.85rem; }
-  .elo-hint {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--txt-3);
-    margin-top: 0.25rem;
-    min-height: 1.1em;
-  }
-  .team-avg {
-    font-size: 0.78rem;
+    width: 100%;
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 500;
     color: var(--txt-2);
+    transition: background 0.12s, color 0.12s;
+    text-align: left;
+  }
+  .pl-row:hover:not(:disabled) { background: var(--surface-hi); color: var(--txt); }
+  .pl-row:disabled { opacity: 0.28; cursor: default; }
+
+  .pl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-hi);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .pl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .pl-rating {
     font-family: 'JetBrains Mono', monospace;
-    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    color: var(--txt-3);
+    flex-shrink: 0;
   }
 
-  /* Probability bar */
+  .t1-list .pl-row.pl-selected { color: #93c5fd; background: rgba(96,165,250,0.1); font-weight: 700; }
+  .t1-list .pl-row.pl-selected .pl-dot { background: #60a5fa; border-color: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+  .t2-list .pl-row.pl-selected { color: #fca5a5; background: rgba(248,113,113,0.1); font-weight: 700; }
+  .t2-list .pl-row.pl-selected .pl-dot { background: #f87171; border-color: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+
+  /* ── WIN PROBABILITY ─────────────────── */
   .prob-section {
-    padding: 1.25rem 1.5rem;
+    padding: 1.1rem 1.25rem;
     border-top: 1px solid var(--border);
   }
   .prob-header {
@@ -141,9 +150,9 @@
     pointer-events: none;
   }
 
-  /* ELO preview */
+  /* ── ELO PREVIEW ─────────────────────── */
   .elo-section {
-    padding: 1.25rem 1.5rem;
+    padding: 1.1rem 1.25rem;
     border-top: 1px solid var(--border);
   }
   .score-row {
@@ -153,11 +162,11 @@
     margin-bottom: 1rem;
     flex-wrap: wrap;
   }
-  .score-lbl     { font-size: 0.8rem; font-weight: 700; }
-  .score-lbl-t1  { color: #60a5fa; }
-  .score-lbl-t2  { color: #f87171; }
+  .score-lbl    { font-size: 0.8rem; font-weight: 700; }
+  .score-lbl-t1 { color: #60a5fa; }
+  .score-lbl-t2 { color: #f87171; }
   .score-input {
-    width: 68px;
+    width: 64px;
     background: var(--surface-hi);
     border: 1px solid var(--border);
     border-radius: 7px;
@@ -192,6 +201,11 @@
   .delta-neg { color: var(--loss); font-weight: 700; }
 
   .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .pl-row { font-size: 0.78rem; padding: 0.38rem 0.45rem; }
+    .pl-rating { display: none; }
+  }
 </style>
 {% endblock %}
 
@@ -202,57 +216,31 @@
     <h1 class="page-title">Matchup Calculator</h1>
   </div>
 
-  <div class="card fade-up delay-1">
+  <div class="fade-up delay-1">
+    <span class="game-type-badge" id="game-type-badge">Select players</span>
+  </div>
 
-    <!-- Type toggle -->
-    <div style="padding:1.1rem 1.5rem; border-bottom:1px solid var(--border);">
-      <div class="view-toggle" id="type-toggle">
-        <div class="view-slider"></div>
-        <button class="view-btn active" data-type="singles">Singles</button>
-        <button class="view-btn" data-type="doubles">Doubles</button>
+  <div class="card fade-up delay-2">
+
+    <!-- Player lists -->
+    <div class="matchup-grid">
+      <div class="team-col">
+        <div class="team-header">
+          <span class="team-dot t1-dot"></span>
+          <span class="team-lbl t1">Team 1</span>
+        </div>
+        <div class="player-list t1-list" id="t1-list"></div>
+      </div>
+      <div class="team-col">
+        <div class="team-header team-header-right">
+          <span class="team-dot t2-dot"></span>
+          <span class="team-lbl t2">Team 2</span>
+        </div>
+        <div class="player-list t2-list" id="t2-list"></div>
       </div>
     </div>
 
-    <!-- Teams -->
-    <div class="teams-grid">
-
-      <div class="team-col">
-        <div class="team-head team1-head">Team 1</div>
-        <div class="player-slot">
-          <label class="form-label" for="t1p1">Player 1</label>
-          <select id="t1p1" class="form-select"></select>
-          <div class="elo-hint" id="hint-t1p1"></div>
-        </div>
-        <div id="wrap-t1p2" class="player-slot hidden">
-          <label class="form-label" for="t1p2">Player 2</label>
-          <select id="t1p2" class="form-select"></select>
-          <div class="elo-hint" id="hint-t1p2"></div>
-        </div>
-        <div id="avg-t1" class="team-avg hidden">Avg ELO: <strong id="avg-t1-val">—</strong></div>
-      </div>
-
-      <div class="vs-col">
-        <span class="vs-text">VS</span>
-      </div>
-
-      <div class="team-col">
-        <div class="team-head team2-head">Team 2</div>
-        <div class="player-slot">
-          <label class="form-label" for="t2p1">Player 1</label>
-          <select id="t2p1" class="form-select"></select>
-          <div class="elo-hint" id="hint-t2p1"></div>
-        </div>
-        <div id="wrap-t2p2" class="player-slot hidden">
-          <label class="form-label" for="t2p2">Player 2</label>
-          <select id="t2p2" class="form-select"></select>
-          <div class="elo-hint" id="hint-t2p2"></div>
-        </div>
-        <div id="avg-t2" class="team-avg hidden">Avg ELO: <strong id="avg-t2-val">—</strong></div>
-      </div>
-
-    </div>
-
-    <!-- Probability bar -->
+    <!-- Win probability -->
     <div id="prob-panel" class="prob-section hidden">
       <div class="prob-header">
         <span class="prob-lbl-t1" id="lbl-t1">Team 1</span>
@@ -267,13 +255,13 @@
       </div>
     </div>
 
-    <!-- ELO preview -->
+    <!-- Rating change preview -->
     <div id="elo-panel" class="elo-section hidden">
       <div class="score-row">
         <span class="score-lbl score-lbl-t1" id="score-lbl-t1">Team 1</span>
-        <input type="number" id="score-t1" class="score-input" min="0" max="99" placeholder="0">
-        <span class="score-sep">–</span>
-        <input type="number" id="score-t2" class="score-input" min="0" max="99" placeholder="0">
+        <input type="number" id="score-t1" class="score-input" min="0" max="99" placeholder="0" inputmode="numeric">
+        <span class="score-sep">&#8211;</span>
+        <input type="number" id="score-t2" class="score-input" min="0" max="99" placeholder="0" inputmode="numeric">
         <span class="score-lbl score-lbl-t2" id="score-lbl-t2">Team 2</span>
       </div>
       <div id="elo-result"></div>
@@ -285,160 +273,214 @@
 
 {% block extra_js %}
 <script>
-const PLAYERS = {{ players_json|safe }};
-const K = 24;
+(function () {
+  const PLAYERS = {{ players_json|safe }};
 
-// Sliding pill
-const typeToggle  = document.getElementById('type-toggle');
-const typeSlider  = typeToggle.querySelector('.view-slider');
-const typeBtns    = typeToggle.querySelectorAll('.view-btn');
+  // assignments: player id -> 0 | 1 (T1) | 2 (T2)
+  const assignments = {};
+  PLAYERS.forEach(p => { assignments[p.id] = 0; });
 
-function moveSlider(btn) {
-  typeSlider.style.left  = btn.offsetLeft + 'px';
-  typeSlider.style.width = btn.offsetWidth + 'px';
-}
-typeSlider.style.transition = 'none';
-moveSlider(typeToggle.querySelector('.view-btn.active'));
-requestAnimationFrame(() => { typeSlider.style.transition = ''; });
+  const teamPlayers = t => PLAYERS.filter(p => assignments[p.id] === t);
 
-let gameType = 'singles';
+  function gameType() {
+    return (teamPlayers(1).length === 2 && teamPlayers(2).length === 2) ? 'doubles' : 'singles';
+  }
+  function ratingField() { return gameType() === 'doubles' ? 'doubles_ordinal' : 'singles_ordinal'; }
 
-typeBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    gameType = btn.dataset.type;
-    typeBtns.forEach(b => b.classList.toggle('active', b === btn));
-    moveSlider(btn);
-    populateSelects();
-    update();
-  });
-});
+  // ── Player list rendering ──
+  function buildRow(p, team) {
+    const state      = assignments[p.id];
+    const isSelected = state === team;
+    const isTaken    = state !== 0 && state !== team;
+    const teamFull   = teamPlayers(team).length >= 2;
 
-// Helpers
-const SEL_IDS = ['t1p1', 't1p2', 't2p1', 't2p2'];
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'pl-row';
+    if (isSelected) row.classList.add('pl-selected');
+    row.disabled = isTaken || (teamFull && !isSelected);
 
-function ef() { return gameType === 'singles' ? 'singles_ordinal' : 'doubles_ordinal'; }
+    const dot = document.createElement('span');
+    dot.className = 'pl-dot';
 
-function populateSelects() {
-  const field = ef();
-  const chosen = {};
-  SEL_IDS.forEach(id => { chosen[id] = document.getElementById(id)?.value || ''; });
+    const name = document.createElement('span');
+    name.className = 'pl-name';
+    name.textContent = p.display_name;
 
-  SEL_IDS.forEach(id => {
-    const sel = document.getElementById(id);
-    const cur = chosen[id];
-    const taken = new Set(SEL_IDS.filter(o => o !== id).map(o => chosen[o]).filter(Boolean));
+    const rating = document.createElement('span');
+    rating.className = 'pl-rating';
+    rating.textContent = Math.round(p[ratingField()]);
 
-    sel.innerHTML = '<option value="">— Select player —</option>';
-    PLAYERS.forEach(p => {
-      if (taken.has(String(p.id))) return;
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.display_name}  (${Math.round(p[field])})`;
-      sel.appendChild(opt);
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(rating);
+
+    row.addEventListener('click', () => {
+      assignments[p.id] = isSelected ? 0 : team;
+      refresh();
     });
-    sel.value = cur;
-  });
-}
-
-function playerBySelect(id) {
-  const val = document.getElementById(id)?.value;
-  return val ? PLAYERS.find(p => p.id == val) : null;
-}
-function playerElo(id)  { const p = playerBySelect(id); return p ? p[ef()] : null; }
-function playerName(id) { const p = playerBySelect(id); return p ? p.display_name : null; }
-
-function teamLabel(ids) { return ids.map(playerName).filter(Boolean).join(' & ') || '?'; }
-function show(id, v)    { document.getElementById(id).classList.toggle('hidden', !v); }
-function expectedScore(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
-
-function update() {
-  const doubles = gameType === 'doubles';
-  show('wrap-t1p2', doubles);
-  show('wrap-t2p2', doubles);
-  show('avg-t1', doubles);
-  show('avg-t2', doubles);
-
-  SEL_IDS.forEach(id => {
-    const p = playerBySelect(id);
-    const hint = document.getElementById('hint-' + id);
-    if (hint) hint.textContent = p ? `ELO: ${p[ef()].toFixed(1)}` : '';
-  });
-
-  const e11 = playerElo('t1p1');
-  const e12 = doubles ? playerElo('t1p2') : null;
-  const e21 = playerElo('t2p1');
-  const e22 = doubles ? playerElo('t2p2') : null;
-
-  if (doubles) {
-    document.getElementById('avg-t1-val').textContent = (e11 !== null && e12 !== null) ? ((e11+e12)/2).toFixed(1) : '—';
-    document.getElementById('avg-t2-val').textContent = (e21 !== null && e22 !== null) ? ((e21+e22)/2).toFixed(1) : '—';
+    return row;
   }
 
-  const t1ok = e11 !== null && (!doubles || e12 !== null);
-  const t2ok = e21 !== null && (!doubles || e22 !== null);
-
-  if (!t1ok || !t2ok) { show('prob-panel', false); show('elo-panel', false); return; }
-
-  const r1   = doubles ? (e11+e12)/2 : e11;
-  const r2   = doubles ? (e21+e22)/2 : e21;
-  const p1   = expectedScore(r1, r2);
-  const pct1 = (p1 * 100).toFixed(1);
-  const pct2 = ((1 - p1) * 100).toFixed(1);
-
-  const lbl1 = teamLabel(doubles ? ['t1p1','t1p2'] : ['t1p1']);
-  const lbl2 = teamLabel(doubles ? ['t2p1','t2p2'] : ['t2p1']);
-
-  document.getElementById('lbl-t1').textContent          = lbl1;
-  document.getElementById('lbl-t2').textContent          = lbl2;
-  document.getElementById('score-lbl-t1').textContent    = lbl1;
-  document.getElementById('score-lbl-t2').textContent    = lbl2;
-  document.getElementById('prob-fill').style.width       = pct1 + '%';
-  document.getElementById('prob-pct1').textContent       = pct1 + '%';
-  document.getElementById('prob-pct2').textContent       = pct2 + '%';
-  document.getElementById('prob-pct2').style.left        = pct1 + '%';
-
-  show('prob-panel', true);
-  show('elo-panel', true);
-
-  updateEloPreview(r1, r2, doubles, e11, e12, e21, e22);
-}
-
-function updateEloPreview(r1, r2, doubles, e11, e12, e21, e22) {
-  const s1 = parseInt(document.getElementById('score-t1').value);
-  const s2 = parseInt(document.getElementById('score-t2').value);
-  const el = document.getElementById('elo-result');
-  if (isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) { el.innerHTML = ''; return; }
-
-  const mov  = Math.log2(Math.abs(s1 - s2) + 1);
-  const exp1 = expectedScore(r1, r2);
-  const res1 = s1 > s2 ? 1 : 0;
-  const d1   = K * mov * (res1 - exp1);
-  const d2   = K * mov * ((1 - res1) - (1 - exp1));
-
-  function fmt(d) {
-    return `<span class="${d >= 0 ? 'delta-pos' : 'delta-neg'}">${d >= 0 ? '+' : ''}${d.toFixed(1)}</span>`;
-  }
-  function row(name, before, delta) {
-    return `<tr><td>${name}</td><td>${before.toFixed(1)}</td><td>${fmt(delta)}</td><td>${(before+delta).toFixed(1)}</td></tr>`;
+  function renderList(containerId, team) {
+    document.getElementById(containerId).replaceChildren(
+      ...PLAYERS.map(p => buildRow(p, team))
+    );
   }
 
-  let rows = row(playerName('t1p1'), e11, d1);
-  if (doubles) rows += row(playerName('t1p2'), e12, d1);
-  rows += row(playerName('t2p1'), e21, d2);
-  if (doubles) rows += row(playerName('t2p2'), e22, d2);
+  // ── Badge ──
+  function updateBadge() {
+    const t1n = teamPlayers(1).length;
+    const t2n = teamPlayers(2).length;
+    const badge = document.getElementById('game-type-badge');
+    if (t1n === 0 && t2n === 0) {
+      badge.textContent = 'Select players';
+      badge.className = 'game-type-badge';
+    } else if (t1n === 2 && t2n === 2) {
+      badge.textContent = 'Doubles';
+      badge.className = 'game-type-badge is-doubles';
+    } else {
+      badge.textContent = 'Singles';
+      badge.className = 'game-type-badge is-singles';
+    }
+  }
 
-  el.innerHTML = `
-    <table class="elo-table">
-      <thead><tr><th>Player</th><th>Current</th><th>Change</th><th>After</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
+  // ── Probability + preview ──
+  function show(id, v) { document.getElementById(id).classList.toggle('hidden', !v); }
+  function teamLabel(players) { return players.map(p => p.display_name).join(' & ') || '?'; }
 
-SEL_IDS.forEach(id => document.getElementById(id)?.addEventListener('change', () => { populateSelects(); update(); }));
-document.getElementById('score-t1').addEventListener('input', update);
-document.getElementById('score-t2').addEventListener('input', update);
+  // Cached win probability from the last successful predict_win API call
+  let _lastP1win = null;
+  let _pendingFetch = null;
 
-populateSelects();
-update();
+  async function updateCalc() {
+    const t1 = teamPlayers(1);
+    const t2 = teamPlayers(2);
+    const type = gameType();
+    const doubles = type === 'doubles';
+
+    const t1ok = t1.length >= 1 && (!doubles || t1.length === 2);
+    const t2ok = t2.length >= 1 && (!doubles || t2.length === 2);
+
+    if (!t1ok || !t2ok) {
+      show('prob-panel', false);
+      show('elo-panel', false);
+      _lastP1win = null;
+      return;
+    }
+
+    // Abort any in-flight request before starting a new one
+    if (_pendingFetch) { _pendingFetch.abort(); }
+    const controller = new AbortController();
+    _pendingFetch = controller;
+
+    const t1ids = t1.map(p => p.id).join(',');
+    const t2ids = t2.map(p => p.id).join(',');
+
+    try {
+      const resp = await fetch(
+        `/matchup/predict/?t1=${t1ids}&t2=${t2ids}&type=${type}`,
+        { signal: controller.signal }
+      );
+      if (!resp.ok) return;
+      const data = await resp.json();
+      _pendingFetch = null;
+      _lastP1win = data.t1;
+
+      const pct1 = (data.t1 * 100).toFixed(1);
+      const pct2 = (data.t2 * 100).toFixed(1);
+      const lbl1 = teamLabel(t1);
+      const lbl2 = teamLabel(t2);
+
+      document.getElementById('lbl-t1').textContent       = lbl1;
+      document.getElementById('lbl-t2').textContent       = lbl2;
+      document.getElementById('score-lbl-t1').textContent = lbl1;
+      document.getElementById('score-lbl-t2').textContent = lbl2;
+      document.getElementById('prob-fill').style.width    = pct1 + '%';
+      document.getElementById('prob-pct1').textContent    = pct1 + '%';
+      document.getElementById('prob-pct2').textContent    = pct2 + '%';
+      document.getElementById('prob-pct2').style.left     = pct1 + '%';
+
+      show('prob-panel', true);
+      show('elo-panel', true);
+
+      updateRatingPreview();
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error('predict_win fetch failed', e);
+    }
+  }
+
+  // Rating preview uses the cached _lastP1win from predict_win so the
+  // expected-score used for delta calculations matches the actual model output.
+  function updateRatingPreview() {
+    const t1    = teamPlayers(1);
+    const t2    = teamPlayers(2);
+    const field = ratingField();
+    const s1    = parseInt(document.getElementById('score-t1').value);
+    const s2    = parseInt(document.getElementById('score-t2').value);
+    const el    = document.getElementById('elo-result');
+    el.replaceChildren();
+    if (_lastP1win === null || isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) return;
+
+    const K    = 24;
+    const mov  = Math.log2(Math.abs(s1 - s2) + 1);
+    const res1 = s1 > s2 ? 1 : 0;
+    const d1   = K * mov * (res1 - _lastP1win);
+    const d2   = K * mov * ((1 - res1) - (1 - _lastP1win));
+
+    const table = document.createElement('table');
+    table.className = 'elo-table';
+
+    const thead = document.createElement('thead');
+    const hrow  = document.createElement('tr');
+    ['Player', 'Current', 'Change', 'After'].forEach(txt => {
+      const th = document.createElement('th');
+      th.textContent = txt;
+      hrow.appendChild(th);
+    });
+    thead.appendChild(hrow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    [...t1.map(p => [p, d1]), ...t2.map(p => [p, d2])].forEach(([p, delta]) => {
+      const before = p[field];
+      const tr = document.createElement('tr');
+
+      const tdName = document.createElement('td');
+      tdName.textContent = p.display_name;
+
+      const tdBefore = document.createElement('td');
+      tdBefore.textContent = before.toFixed(1);
+
+      const tdDelta = document.createElement('td');
+      tdDelta.className = delta >= 0 ? 'delta-pos' : 'delta-neg';
+      tdDelta.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1);
+
+      const tdAfter = document.createElement('td');
+      tdAfter.textContent = (before + delta).toFixed(1);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdBefore);
+      tr.appendChild(tdDelta);
+      tr.appendChild(tdAfter);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    el.appendChild(table);
+  }
+
+  function refresh() {
+    renderList('t1-list', 1);
+    renderList('t2-list', 2);
+    updateBadge();
+    updateCalc();
+  }
+
+  // Score changes only need to re-render the preview; no new API call needed.
+  document.getElementById('score-t1').addEventListener('input', updateRatingPreview);
+  document.getElementById('score-t2').addEventListener('input', updateRatingPreview);
+
+  refresh();
+})();
 </script>
 {% endblock %}
