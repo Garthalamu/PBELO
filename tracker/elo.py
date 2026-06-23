@@ -1,16 +1,9 @@
 """
-ELO rating calculations for singles and doubles pickleball.
+Rating calculations — Phase 2 will replace this with OpenSkill logic.
 
-Singles: standard two-player ELO with margin of victory scaling.
-Doubles: each team's rating is the average of its two players' doubles ELO.
-         All four players are updated based on that team-vs-team matchup.
-
-Margin of victory multiplier: log2(|score_diff| + 1)
-  - 1-point win  → ×1.0  (baseline, identical to plain ELO)
-  - 2-point win  → ×1.58
-  - 5-point win  → ×2.58
-  - 11-point win → ×3.58
-The same multiplier is applied to both sides, preserving zero-sum.
+The old ELO helpers are preserved below for reference until the rewrite lands.
+process_game is stubbed; recording a new game will raise NotImplementedError
+until Phase 2 is complete.
 """
 
 import math
@@ -29,11 +22,7 @@ def updated_ratings(
     score_a: int,
     score_b: int,
 ) -> tuple[float, float]:
-    """Return (new_rating_a, new_rating_b) after a head-to-head result.
-
-    score_a and score_b are the actual game scores; the winner is derived
-    from them and the margin scales the K-factor logarithmically.
-    """
+    """Return (new_rating_a, new_rating_b) after a head-to-head result."""
     a_won = score_a > score_b
     mov = math.log2(abs(score_a - score_b) + 1)
     exp_a = expected_score(rating_a, rating_b)
@@ -44,82 +33,8 @@ def updated_ratings(
     return new_a, new_b
 
 
-def process_singles(game) -> list[dict]:
-    """
-    Calculate and apply ELO changes for a singles game.
-    Returns a list of EloChange-ready dicts: {player, elo_before, elo_after}.
-    """
-    players1 = list(game.team1_players.all())
-    players2 = list(game.team2_players.all())
-    player1 = players1[0]
-    player2 = players2[0]
-
-    new1, new2 = updated_ratings(
-        player1.singles_elo, player2.singles_elo,
-        game.team1_score, game.team2_score,
-    )
-
-    changes = [
-        {"player": player1, "elo_before": player1.singles_elo, "elo_after": new1},
-        {"player": player2, "elo_before": player2.singles_elo, "elo_after": new2},
-    ]
-
-    player1.singles_elo = new1
-    player2.singles_elo = new2
-    player1.save(update_fields=["singles_elo"])
-    player2.save(update_fields=["singles_elo"])
-
-    return changes
-
-
-def process_doubles(game) -> list[dict]:
-    """
-    Calculate and apply ELO changes for a doubles game.
-    Team rating = average of the two players' doubles ELO.
-    Each player is updated by the same delta their team earned.
-    Returns a list of EloChange-ready dicts: {player, elo_before, elo_after}.
-    """
-    team1 = list(game.team1_players.all())
-    team2 = list(game.team2_players.all())
-
-    team1_rating = sum(p.doubles_elo for p in team1) / len(team1)
-    team2_rating = sum(p.doubles_elo for p in team2) / len(team2)
-
-    new_team1_rating, new_team2_rating = updated_ratings(
-        team1_rating, team2_rating,
-        game.team1_score, game.team2_score,
-    )
-
-    team1_delta = new_team1_rating - team1_rating
-    team2_delta = new_team2_rating - team2_rating
-
-    changes = []
-    for player in team1:
-        before = player.doubles_elo
-        after = before + team1_delta
-        changes.append({"player": player, "elo_before": before, "elo_after": after})
-        player.doubles_elo = after
-        player.save(update_fields=["doubles_elo"])
-
-    for player in team2:
-        before = player.doubles_elo
-        after = before + team2_delta
-        changes.append({"player": player, "elo_before": before, "elo_after": after})
-        player.doubles_elo = after
-        player.save(update_fields=["doubles_elo"])
-
-    return changes
-
-
 def process_game(game) -> None:
-    """Apply ELO changes for a game and persist EloChange records."""
-    from .models import EloChange
-
-    if game.game_type == "singles":
-        changes = process_singles(game)
-    else:
-        changes = process_doubles(game)
-
-    EloChange.objects.bulk_create([
-        EloChange(game=game, **change) for change in changes
-    ])
+    """Replaced in Phase 2 with OpenSkill logic."""
+    raise NotImplementedError(
+        "OpenSkill rating logic not yet implemented. Complete Phase 2 first."
+    )

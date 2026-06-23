@@ -585,10 +585,10 @@
     <div class="stat-label">Singles ELO</div>
     {% if singles_wins or singles_losses %}
       <div class="stat-val singles-color">
-        <span class="elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
+        <span class="elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:1 }}</span>
         {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
       </div>
-      {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_elo }}</div>{% endif %}
+      {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_ordinal }}</div>{% endif %}
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
       <div class="stat-sub">No singles games</div>
@@ -617,10 +617,10 @@
     <div class="stat-label">Doubles ELO</div>
     {% if doubles_wins or doubles_losses %}
       <div class="stat-val doubles-color">
-        <span class="elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
+        <span class="elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:1 }}</span>
         {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
       </div>
-      {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_elo }}</div>{% endif %}
+      {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_ordinal }}</div>{% endif %}
     {% else %}
       <div class="stat-val" style="color:var(--txt-3)">—</div>
       <div class="stat-sub">No doubles games</div>
@@ -803,8 +803,8 @@
               <a href="{% url 'player_detail' tm.pk %}" class="hplayer-name">{{ tm.display_name }}</a>
             {% endfor %}
           </div>
-          {% if row.elo_delta is not None %}
-            <span class="helo {% if row.elo_delta >= 0 %}pos{% else %}neg{% endif %}">{% if row.elo_delta >= 0 %}+{% endif %}{{ row.elo_delta|floatformat:1 }}</span>
+          {% if row.rating_delta is not None %}
+            <span class="helo {% if row.rating_delta >= 0 %}pos{% else %}neg{% endif %}">{% if row.rating_delta >= 0 %}+{% endif %}{{ row.rating_delta|floatformat:1 }}</span>
           {% endif %}
         </div>
 
@@ -848,7 +848,7 @@
     plot_bgcolor:  'rgba(0,0,0,0)',
     font:   { color: '#90a8c8', family: 'Figtree, sans-serif', size: 11 },
     xaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR },
-    yaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR, title: 'ELO' },
+    yaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR, title: 'Rating' },
     margin: { t: 16, r: 16, b: 44, l: 56 },
   };
 
@@ -860,15 +860,15 @@
 
   function tracesDays(games, color) {
     const daily = {};
-    games.forEach(g => { daily[g.date] = g.elo; });
+    games.forEach(g => { daily[g.date] = g.rating; });
     const dates = Object.keys(daily).sort();
-    const elos  = dates.map(d => daily[d]);
+    const ratings = dates.map(d => daily[d]);
     return [
-      { x: dates, y: elos, mode: 'lines+markers',
+      { x: dates, y: ratings, mode: 'lines+markers',
         line: { color, width: 2 }, marker: { color, size: 5 },
-        hovertemplate: '%{customdata}<br>ELO: %{y}<extra></extra>',
+        hovertemplate: '%{customdata}<br>Rating: %{y}<extra></extra>',
         customdata: dates.map(fmtDate), showlegend: false },
-      { x: [dates[0], dates[dates.length - 1]], y: [1000, 1000],
+      { x: [dates[0], dates[dates.length - 1]], y: [0, 0],
         mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
         hoverinfo: 'skip', showlegend: false },
     ];
@@ -877,12 +877,12 @@
   function tracesGames(games, color) {
     const xs = games.map((_, i) => i + 1);
     return [
-      { x: xs, y: games.map(g => g.elo), mode: 'lines+markers',
+      { x: xs, y: games.map(g => g.rating), mode: 'lines+markers',
         line: { color, width: 2 }, marker: { color, size: 5 },
         customdata: games.map(g => fmtDate(g.date)),
-        hovertemplate: 'Game %{x} · %{customdata}<br>ELO: %{y}<extra></extra>',
+        hovertemplate: 'Game %{x} · %{customdata}<br>Rating: %{y}<extra></extra>',
         showlegend: false },
-      { x: [1, games.length], y: [1000, 1000],
+      { x: [1, games.length], y: [0, 0],
         mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
         hoverinfo: 'skip', showlegend: false },
     ];
@@ -890,8 +890,8 @@
 
   const baselineAnnotation = [{
     xref: 'paper', x: 0.99,
-    yref: 'y',     y: 1000,
-    text: 'Starting ELO',
+    yref: 'y',     y: 0,
+    text: 'Starting Rating',
     showarrow: false,
     xanchor: 'right',
     yanchor: 'bottom',

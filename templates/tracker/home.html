@@ -226,10 +226,10 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.singles_elo }}">{{ player.singles_elo|floatformat:1 }}</span>
+              <span class="elo-val mono elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:1 }}</span>
             </td>
             <td class="col-elo-gap">
-              {% if player.singles_elo_gap %}<span class="elo-gap mono">-{{ player.singles_elo_gap|floatformat:1 }}</span>{% endif %}
+              {% if player.singles_ordinal_gap %}<span class="elo-gap mono">-{{ player.singles_ordinal_gap|floatformat:1 }}</span>{% endif %}
             </td>
             <td class="text-right">
               <span class="wl-stat mono">
@@ -285,10 +285,10 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}{% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_elo }}">{{ player.doubles_elo|floatformat:1 }}</span>
+              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:1 }}</span>
             </td>
             <td class="col-elo-gap">
-              {% if player.doubles_elo_gap %}<span class="elo-gap mono">-{{ player.doubles_elo_gap|floatformat:1 }}</span>{% endif %}
+              {% if player.doubles_ordinal_gap %}<span class="elo-gap mono">-{{ player.doubles_ordinal_gap|floatformat:1 }}</span>{% endif %}
             </td>
             <td class="text-right">
               <span class="wl-stat mono">

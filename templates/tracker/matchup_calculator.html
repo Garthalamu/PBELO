@@ -316,7 +316,7 @@ typeBtns.forEach(btn => {
 // Helpers
 const SEL_IDS = ['t1p1', 't1p2', 't2p1', 't2p2'];
 
-function ef() { return gameType === 'singles' ? 'singles_elo' : 'doubles_elo'; }
+function ef() { return gameType === 'singles' ? 'singles_ordinal' : 'doubles_ordinal'; }
 
 function populateSelects() {
   const field = ef();

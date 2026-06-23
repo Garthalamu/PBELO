@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import make_password
 from django.shortcuts import redirect, render
 from django.urls import path
 
-from .models import EloChange, Game, Player
+from .models import RatingChange, Game, Player
 from .services import recalculate_all_elos
 
 ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -36,7 +36,7 @@ def _write_env_key(key, value):
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "singles_elo", "doubles_elo", "created_at")
+    list_display = ("__str__", "singles_mu", "doubles_mu", "created_at")
     search_fields = ("first_name", "last_name", "nickname")
     change_list_template = "admin/tracker/player/change_list.html"
 
@@ -88,17 +88,17 @@ class PlayerAdmin(admin.ModelAdmin):
         return render(request, "admin/tracker/game/share_link.html", context)
 
 
-class EloChangeInline(admin.TabularInline):
-    model = EloChange
+class RatingChangeInline(admin.TabularInline):
+    model = RatingChange
     extra = 0
-    readonly_fields = ("player", "elo_before", "elo_after", "delta")
+    readonly_fields = ("player", "mu_before", "sigma_before", "mu_after", "sigma_after")
 
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = ("__str__", "game_type", "team1_score", "team2_score", "played_at")
     list_filter = ("game_type",)
-    inlines = [EloChangeInline]
+    inlines = [RatingChangeInline]
     change_list_template = "admin/tracker/game/change_list.html"
 
     def get_urls(self):
@@ -125,7 +125,7 @@ class GameAdmin(admin.ModelAdmin):
         return render(request, "admin/tracker/game/recalculate_confirm.html", context)
 
 
-@admin.register(EloChange)
-class EloChangeAdmin(admin.ModelAdmin):
-    list_display = ("player", "game", "elo_before", "elo_after", "delta")
+@admin.register(RatingChange)
+class RatingChangeAdmin(admin.ModelAdmin):
+    list_display = ("player", "game", "mu_before", "sigma_before", "mu_after", "sigma_after")
     list_filter = ("game__game_type",)

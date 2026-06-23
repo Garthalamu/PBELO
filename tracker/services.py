@@ -1,20 +1,26 @@
 from django.db import transaction
 
 from .elo import process_game
-from .models import EloChange, Game, Player
+from .models import RatingChange, Game, Player
+
+_DEFAULT_MU = 25.0
+_DEFAULT_SIGMA = 25.0 / 3
 
 
 def recalculate_all_elos():
     """
-    Rebuild every player's ELO from scratch by replaying all games in order.
+    Rebuild every player's rating from scratch by replaying all games in order.
     Runs inside a single transaction so a failure leaves the DB unchanged.
     """
     with transaction.atomic():
-        Player.objects.update(singles_elo=1000.0, doubles_elo=1000.0)
-        EloChange.objects.all().delete()
+        Player.objects.update(
+            singles_mu=_DEFAULT_MU,
+            singles_sigma=_DEFAULT_SIGMA,
+            doubles_mu=_DEFAULT_MU,
+            doubles_sigma=_DEFAULT_SIGMA,
+        )
+        RatingChange.objects.all().delete()
 
-        # No prefetch_related — each process_game call must read fresh player
-        # ELOs from the DB to see updates made by earlier games in this loop.
         games = Game.objects.order_by("played_at")
         for game in games:
             process_game(game)

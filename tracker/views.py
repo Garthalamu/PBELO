@@ -13,21 +13,22 @@ from django.utils import timezone
 
 from .elo import process_game
 from .forms import RecordGameForm, CreatePlayerForm
-from .models import EloChange, Game, Player
+from .models import RatingChange, Game, Player
 
 
-def _build_elo_chart(elo_changes):
-    """Return a line chart figure JSON showing closing ELO per day, or None if no data.
+def _build_elo_chart(rating_changes):
+    """Return a line chart figure JSON showing closing ordinal per day, or None if no data.
 
-    elo_changes must be ordered by game__played_at ascending.
+    rating_changes must be ordered by game__played_at ascending.
     """
-    if not elo_changes:
+    if not rating_changes:
         return None
 
     daily_close: dict = {}
-    for ec in elo_changes:
-        day = ec["game__played_at"].date()
-        daily_close[day] = round(ec["elo_after"], 1)
+    for rc in rating_changes:
+        day = rc["game__played_at"].date()
+        ordinal = rc["mu_after"] - 3 * rc["sigma_after"]
+        daily_close[day] = round(ordinal, 1)
 
     dates = list(daily_close.keys())
     closes = list(daily_close.values())
@@ -39,19 +40,19 @@ def _build_elo_chart(elo_changes):
         mode="lines+markers",
         line=dict(color="#0d6efd", width=2),
         marker=dict(size=7, color="#0d6efd"),
-        hovertemplate="%{x|%b %d, %Y}<br>ELO: %{y}<extra></extra>",
+        hovertemplate="%{x|%b %d, %Y}<br>Rating: %{y}<extra></extra>",
     ))
     fig.add_hline(
-        y=1000,
+        y=0,
         line=dict(color="#6c757d", width=1, dash="dot"),
-        annotation_text="Start (1000)",
+        annotation_text="Start (0)",
         annotation_position="bottom right",
     )
     fig.update_layout(
         margin=dict(l=50, r=20, t=20, b=50),
         paper_bgcolor="white",
         plot_bgcolor="white",
-        yaxis=dict(title="ELO", gridcolor="#e9ecef", zeroline=False),
+        yaxis=dict(title="Rating", gridcolor="#e9ecef", zeroline=False),
         xaxis=dict(title="Date", gridcolor="#e9ecef", type="date", tickformat="%b %d, %Y"),
         hovermode="closest",
         showlegend=False,
@@ -115,13 +116,13 @@ def token_login(request, token):
 
 
 def home(request):
-    changes_qs = EloChange.objects.select_related("game").order_by("game__played_at")
+    changes_qs = RatingChange.objects.select_related("game").order_by("game__played_at")
     players = list(Player.objects.prefetch_related(
-        Prefetch("elo_changes", queryset=changes_qs)
+        Prefetch("rating_changes", queryset=changes_qs)
     ))
 
     for player in players:
-        all_changes = list(player.elo_changes.all())
+        all_changes = list(player.rating_changes.all())
         singles = [c for c in all_changes if c.game.game_type == Game.SINGLES]
         doubles = [c for c in all_changes if c.game.game_type == Game.DOUBLES]
 
@@ -142,17 +143,17 @@ def home(request):
 
     singles_board = sorted(
         [p for p in players if p.singles_games_count > 0],
-        key=lambda p: p.singles_elo, reverse=True,
+        key=lambda p: p.singles_ordinal, reverse=True,
     )
     doubles_board = sorted(
         [p for p in players if p.doubles_games_count > 0],
-        key=lambda p: p.doubles_elo, reverse=True,
+        key=lambda p: p.doubles_ordinal, reverse=True,
     )
 
     for i, p in enumerate(singles_board):
-        p.singles_elo_gap = None if i == 0 else round(singles_board[i - 1].singles_elo - p.singles_elo, 1)
+        p.singles_ordinal_gap = None if i == 0 else round(singles_board[i - 1].singles_ordinal - p.singles_ordinal, 1)
     for i, p in enumerate(doubles_board):
-        p.doubles_elo_gap = None if i == 0 else round(doubles_board[i - 1].doubles_elo - p.doubles_elo, 1)
+        p.doubles_ordinal_gap = None if i == 0 else round(doubles_board[i - 1].doubles_ordinal - p.doubles_ordinal, 1)
 
     chemistry_pks = _compute_best_chemistry()
     for p in players:
@@ -214,7 +215,7 @@ def matches(request):
         Game.objects.prefetch_related(
             "team1_players",
             "team2_players",
-            Prefetch("elo_changes", queryset=EloChange.objects.only("player_id", "elo_before", "elo_after")),
+            Prefetch("rating_changes", queryset=RatingChange.objects.only("player_id", "mu_before", "sigma_before", "mu_after", "sigma_after")),
         )
         .order_by("-played_at", "-id")
     )
@@ -223,7 +224,7 @@ def matches(request):
     for game in games:
         t1 = list(game.team1_players.all())
         t2 = list(game.team2_players.all())
-        elo_map = {ec.player_id: ec.delta for ec in game.elo_changes.all()}
+        elo_map = {rc.player_id: rc.delta for rc in game.rating_changes.all()}
         game_rows.append({
             "game": game,
             "team1": t1,
@@ -237,7 +238,7 @@ def matches(request):
 
 def matchup_calculator(request):
     players = [
-        {"id": p.pk, "display_name": p.display_name, "singles_elo": p.singles_elo, "doubles_elo": p.doubles_elo}
+        {"id": p.pk, "display_name": p.display_name, "singles_ordinal": p.singles_ordinal, "doubles_ordinal": p.doubles_ordinal}
         for p in Player.objects.order_by("first_name", "last_name", "nickname")
     ]
     return render(request, "tracker/matchup_calculator.html", {
@@ -251,12 +252,12 @@ def player_detail(request, player_id):
     games = (
         Game.objects.filter(Q(team1_players=player) | Q(team2_players=player))
         .distinct()
-        .prefetch_related("team1_players", "team2_players", "elo_changes")
+        .prefetch_related("team1_players", "team2_players", "rating_changes")
         .order_by("-played_at", "-id")
     )
 
     elo_changes_by_game = {
-        ec.game_id: ec for ec in player.elo_changes.all()
+        rc.game_id: rc for rc in player.rating_changes.all()
     }
 
     singles_wins = singles_losses = doubles_wins = doubles_losses = 0
@@ -283,7 +284,7 @@ def player_detail(request, player_id):
         else:
             player_score, opp_score = game.team2_score, game.team1_score
 
-        elo_change = elo_changes_by_game.get(game.pk)
+        rating_change = elo_changes_by_game.get(game.pk)
 
         game_rows.append({
             "game": game,
@@ -292,39 +293,41 @@ def player_detail(request, player_id):
             "teammates": list(teammates),
             "player_score": player_score,
             "opp_score": opp_score,
-            "elo_delta": elo_change.delta if elo_change else None,
+            "rating_delta": rating_change.delta if rating_change else None,
         })
 
-    singles_ranked = list(
-        Player.objects.filter(elo_changes__game__game_type=Game.SINGLES)
-        .distinct().order_by("-singles_elo")
+    singles_ranked = sorted(
+        Player.objects.filter(rating_changes__game__game_type=Game.SINGLES).distinct(),
+        key=lambda p: p.singles_ordinal,
+        reverse=True,
     )
-    doubles_ranked = list(
-        Player.objects.filter(elo_changes__game__game_type=Game.DOUBLES)
-        .distinct().order_by("-doubles_elo")
+    doubles_ranked = sorted(
+        Player.objects.filter(rating_changes__game__game_type=Game.DOUBLES).distinct(),
+        key=lambda p: p.doubles_ordinal,
+        reverse=True,
     )
     singles_rank = next((i + 1 for i, p in enumerate(singles_ranked) if p.pk == player.pk), None)
     doubles_rank = next((i + 1 for i, p in enumerate(doubles_ranked) if p.pk == player.pk), None)
 
-    elo_history = list(
-        player.elo_changes.select_related("game")
+    rating_history = list(
+        player.rating_changes.select_related("game")
         .order_by("game__played_at", "game__id")
-        .values("elo_after", "game__played_at", "game__game_type")
+        .values("mu_after", "sigma_after", "game__played_at", "game__game_type")
     )
 
-    singles_history = [e for e in elo_history if e["game__game_type"] == Game.SINGLES]
-    doubles_history = [e for e in elo_history if e["game__game_type"] == Game.DOUBLES]
-    first_game_date = elo_history[0]["game__played_at"].date() if elo_history else None
+    singles_history = [e for e in rating_history if e["game__game_type"] == Game.SINGLES]
+    doubles_history = [e for e in rating_history if e["game__game_type"] == Game.DOUBLES]
+    first_game_date = rating_history[0]["game__played_at"].date() if rating_history else None
 
     singles_chart = _build_elo_chart(singles_history)
     doubles_chart = _build_elo_chart(doubles_history)
 
     singles_games_json = json.dumps([
-        {"elo": round(e["elo_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        {"rating": round(e["mu_after"] - 3 * e["sigma_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
         for e in singles_history
     ])
     doubles_games_json = json.dumps([
-        {"elo": round(e["elo_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        {"rating": round(e["mu_after"] - 3 * e["sigma_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
         for e in doubles_history
     ])
 
@@ -341,8 +344,8 @@ def player_detail(request, player_id):
         if row["won"]: doubles_streak += 1
         else: break
 
-    singles_peak_elo = round(max((e["elo_after"] for e in singles_history), default=player.singles_elo), 1)
-    doubles_peak_elo = round(max((e["elo_after"] for e in doubles_history), default=player.doubles_elo), 1)
+    singles_peak_ordinal = round(max((e["mu_after"] - 3 * e["sigma_after"] for e in singles_history), default=player.singles_ordinal), 1)
+    doubles_peak_ordinal = round(max((e["mu_after"] - 3 * e["sigma_after"] for e in doubles_history), default=player.doubles_ordinal), 1)
 
     def _best_streak(rows_newest_first):
         best = streak = 0
@@ -362,8 +365,8 @@ def player_detail(request, player_id):
     best_rank = min(ranks) if ranks else None
     player_award = 'gold' if best_rank == 1 else 'silver' if best_rank == 2 else 'bronze' if best_rank == 3 else None
 
-    singles_show_peak = singles_peak_elo != round(player.singles_elo, 1)
-    doubles_show_peak = doubles_peak_elo != round(player.doubles_elo, 1)
+    singles_show_peak = singles_peak_ordinal != round(player.singles_ordinal, 1)
+    doubles_show_peak = doubles_peak_ordinal != round(player.doubles_ordinal, 1)
     singles_show_best_streak = singles_best_streak >= 3 and singles_best_streak > singles_streak
     doubles_show_best_streak = doubles_best_streak >= 3 and doubles_best_streak > doubles_streak
 
@@ -461,8 +464,8 @@ def player_detail(request, player_id):
         "teammate_rows": teammate_rows,
         "singles_streak": singles_streak,
         "doubles_streak": doubles_streak,
-        "singles_peak_elo": singles_peak_elo,
-        "doubles_peak_elo": doubles_peak_elo,
+        "singles_peak_ordinal": singles_peak_ordinal,
+        "doubles_peak_ordinal": doubles_peak_ordinal,
         "singles_best_streak": singles_best_streak,
         "doubles_best_streak": doubles_best_streak,
         "singles_show_peak": singles_show_peak,
