@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from .elo import formatted_ordinal as _formatted_ordinal
 
 _DEFAULT_MU = 25.0
 _DEFAULT_SIGMA = 25.0 / 3
@@ -20,11 +21,11 @@ class Player(models.Model):
 
     @property
     def singles_ordinal(self):
-        return self.singles_mu - 3 * self.singles_sigma
+        return _formatted_ordinal(self.singles_mu, self.singles_sigma)
 
     @property
     def doubles_ordinal(self):
-        return self.doubles_mu - 3 * self.doubles_sigma
+        return _formatted_ordinal(self.doubles_mu, self.doubles_sigma)
 
     @property
     def display_name(self):
@@ -79,11 +80,11 @@ class RatingChange(models.Model):
 
     @property
     def ordinal_before(self):
-        return self.mu_before - 3 * self.sigma_before
+        return _formatted_ordinal(self.mu_before, self.sigma_before)
 
     @property
     def ordinal_after(self):
-        return self.mu_after - 3 * self.sigma_after
+        return _formatted_ordinal(self.mu_after, self.sigma_after)
 
     @property
     def delta(self):

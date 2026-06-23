@@ -1,5 +1,8 @@
 {
-  "[html]": {
+  "files.associations": {
+    "**/*.html": "django-html"
+  },
+  "[django-html]": {
     "editor.formatOnSave": false
   }
 }

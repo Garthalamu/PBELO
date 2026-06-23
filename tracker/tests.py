@@ -1,46 +1,54 @@
 from django.test import TestCase
-from .elo import expected_score, updated_ratings, K
-import math
+from openskill.models import PlackettLuce
 
 
-class ExpectedScoreTests(TestCase):
-    def test_equal_ratings_is_50_percent(self):
-        self.assertAlmostEqual(expected_score(1000, 1000), 0.5)
+class OpenSkillRatingTests(TestCase):
+    def setUp(self):
+        self.model = PlackettLuce()
+        self.default_mu = 25.0
+        self.default_sigma = 25.0 / 3
 
-    def test_higher_rated_favored(self):
-        self.assertGreater(expected_score(1200, 1000), 0.5)
+    def _rating(self, mu=None, sigma=None):
+        return self.model.rating(
+            mu=mu or self.default_mu,
+            sigma=sigma or self.default_sigma,
+        )
 
-    def test_lower_rated_underdog(self):
-        self.assertLess(expected_score(1000, 1200), 0.5)
-
-    def test_symmetry(self):
-        a = expected_score(1100, 900)
-        b = expected_score(900, 1100)
-        self.assertAlmostEqual(a + b, 1.0)
-
-
-class UpdatedRatingsTests(TestCase):
     def test_winner_gains_loser_loses(self):
-        new_a, new_b = updated_ratings(1000, 1000, 11, 9)
-        self.assertGreater(new_a, 1000)
-        self.assertLess(new_b, 1000)
+        r1, r2 = self._rating(), self._rating()
+        [[new_r1], [new_r2]] = self.model.rate([[r1], [r2]], scores=[11, 9])
+        self.assertGreater(new_r1.mu, r1.mu)
+        self.assertLess(new_r2.mu, r2.mu)
 
-    def test_ratings_are_zero_sum(self):
-        new_a, new_b = updated_ratings(1000, 1200, 11, 9)
-        self.assertAlmostEqual(new_a + new_b, 2200.0)
+    def test_sigma_decreases_after_game(self):
+        r1, r2 = self._rating(), self._rating()
+        [[new_r1], [new_r2]] = self.model.rate([[r1], [r2]], scores=[11, 9])
+        self.assertLess(new_r1.sigma, r1.sigma)
+        self.assertLess(new_r2.sigma, r2.sigma)
+
+    def test_score_order_determines_winner(self):
+        # PlackettLuce uses scores for ordering only, not magnitude.
+        # Swapping the scores should swap who gains and who loses.
+        r1, r2 = self._rating(), self._rating()
+        [[team1_wins], [team1_loses]] = self.model.rate([[r1], [r2]], scores=[11, 7])
+        [[team2_win_r1], [team2_win_r2]] = self.model.rate([[r1], [r2]], scores=[7, 11])
+        self.assertGreater(team1_wins.mu, r1.mu)
+        self.assertGreater(team2_win_r2.mu, r2.mu)
 
     def test_upset_gives_larger_gain(self):
-        new_underdog, _ = updated_ratings(1000, 1200, 11, 9)
-        new_favourite, _ = updated_ratings(1200, 1000, 11, 9)
-        self.assertGreater(new_underdog - 1000, new_favourite - 1200)
+        underdog = self._rating(mu=20.0)
+        favourite = self._rating(mu=30.0)
+        [[new_underdog], _] = self.model.rate([[underdog], [favourite]], scores=[11, 9])
+        [[new_favourite], _] = self.model.rate([[favourite], [underdog]], scores=[11, 9])
+        self.assertGreater(new_underdog.mu - underdog.mu, new_favourite.mu - favourite.mu)
 
-    def test_larger_margin_gives_larger_change(self):
-        _, new_b_close = updated_ratings(1000, 1000, 11, 9)   # 2-point win
-        _, new_b_wide = updated_ratings(1000, 1000, 11, 0)    # 11-point win
-        self.assertGreater(1000 - new_b_wide, 1000 - new_b_close)
-
-    def test_one_point_win_uses_baseline_k(self):
-        # log2(1 + 1) == 1.0, so MOV multiplier is exactly 1 — identical to plain ELO.
-        new_a, _ = updated_ratings(1000, 1000, 11, 10)
-        expected_gain = K * 1.0 * (1.0 - 0.5)
-        self.assertAlmostEqual(new_a - 1000, expected_gain)
+    def test_doubles_two_players_per_team(self):
+        team1 = [self._rating(), self._rating()]
+        team2 = [self._rating(), self._rating()]
+        [new_team1, new_team2] = self.model.rate([team1, team2], scores=[11, 7])
+        self.assertEqual(len(new_team1), 2)
+        self.assertEqual(len(new_team2), 2)
+        for r_new, r_old in zip(new_team1, team1):
+            self.assertGreater(r_new.mu, r_old.mu)
+        for r_new, r_old in zip(new_team2, team2):
+            self.assertLess(r_new.mu, r_old.mu)

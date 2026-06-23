@@ -11,7 +11,7 @@ from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import process_game
+from .elo import formatted_ordinal as rating_ordinal, process_game
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -27,7 +27,7 @@ def _build_elo_chart(rating_changes):
     daily_close: dict = {}
     for rc in rating_changes:
         day = rc["game__played_at"].date()
-        ordinal = rc["mu_after"] - 3 * rc["sigma_after"]
+        ordinal = rating_ordinal(rc["mu_after"], rc["sigma_after"])
         daily_close[day] = round(ordinal, 1)
 
     dates = list(daily_close.keys())
@@ -43,9 +43,9 @@ def _build_elo_chart(rating_changes):
         hovertemplate="%{x|%b %d, %Y}<br>Rating: %{y}<extra></extra>",
     ))
     fig.add_hline(
-        y=0,
+        y=1200,
         line=dict(color="#6c757d", width=1, dash="dot"),
-        annotation_text="Start (0)",
+        annotation_text="Start (1200)",
         annotation_position="bottom right",
     )
     fig.update_layout(
@@ -323,11 +323,11 @@ def player_detail(request, player_id):
     doubles_chart = _build_elo_chart(doubles_history)
 
     singles_games_json = json.dumps([
-        {"rating": round(e["mu_after"] - 3 * e["sigma_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        {"rating": round(rating_ordinal(e["mu_after"], e["sigma_after"]), 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
         for e in singles_history
     ])
     doubles_games_json = json.dumps([
-        {"rating": round(e["mu_after"] - 3 * e["sigma_after"], 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
+        {"rating": round(rating_ordinal(e["mu_after"], e["sigma_after"]), 1), "date": e["game__played_at"].strftime("%Y-%m-%d")}
         for e in doubles_history
     ])
 
@@ -344,8 +344,8 @@ def player_detail(request, player_id):
         if row["won"]: doubles_streak += 1
         else: break
 
-    singles_peak_ordinal = round(max((e["mu_after"] - 3 * e["sigma_after"] for e in singles_history), default=player.singles_ordinal), 1)
-    doubles_peak_ordinal = round(max((e["mu_after"] - 3 * e["sigma_after"] for e in doubles_history), default=player.doubles_ordinal), 1)
+    singles_peak_ordinal = round(max((rating_ordinal(e["mu_after"], e["sigma_after"]) for e in singles_history), default=player.singles_ordinal), 1)
+    doubles_peak_ordinal = round(max((rating_ordinal(e["mu_after"], e["sigma_after"]) for e in doubles_history), default=player.doubles_ordinal), 1)
 
     def _best_streak(rows_newest_first):
         best = streak = 0

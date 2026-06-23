@@ -21,12 +21,12 @@
 
 {% block content %}
 <div style="max-width:540px;">
-  <h1>Recalculate ELO Ratings</h1>
+  <h1>Recalculate Ratings</h1>
 
   <div class="alert-warning">
-    <strong>Warning:</strong> This will reset all {{ player_count }} player ELO rating(s) to 1000 and
-    replay all {{ game_count }} game(s) in chronological order. Existing ELO history will be rebuilt
-    from scratch. This cannot be undone.
+    <strong>Warning:</strong> This will reset all {{ player_count }} player rating(s) to default values
+    and replay all {{ game_count }} game(s) in chronological order. Existing rating history will be
+    rebuilt from scratch. This cannot be undone.
   </div>
 
   <form method="post">

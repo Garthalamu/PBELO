@@ -36,9 +36,22 @@ def _write_env_key(key, value):
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "singles_mu", "doubles_mu", "created_at")
+    list_display = (
+        "__str__",
+        "singles_mu", "singles_sigma", "singles_ordinal",
+        "doubles_mu", "doubles_sigma", "doubles_ordinal",
+        "created_at",
+    )
     search_fields = ("first_name", "last_name", "nickname")
     change_list_template = "admin/tracker/player/change_list.html"
+
+    @admin.display(description="Singles Rating")
+    def singles_ordinal(self, obj):
+        return obj.singles_ordinal
+
+    @admin.display(description="Doubles Rating")
+    def doubles_ordinal(self, obj):
+        return obj.doubles_ordinal
 
     def get_urls(self):
         urls = super().get_urls()
@@ -111,14 +124,14 @@ class GameAdmin(admin.ModelAdmin):
     def recalculate_elo_view(self, request):
         if request.method == "POST":
             count = recalculate_all_elos()
-            self.message_user(request, f"ELO recalculated across {count} game(s).", messages.SUCCESS)
+            self.message_user(request, f"Ratings recalculated across {count} game(s).", messages.SUCCESS)
             return redirect("admin:tracker_game_changelist")
 
         game_count = Game.objects.count()
         player_count = Player.objects.count()
         context = {
             **self.admin_site.each_context(request),
-            "title": "Recalculate ELO Ratings",
+            "title": "Recalculate Ratings",
             "game_count": game_count,
             "player_count": player_count,
         }

@@ -868,7 +868,7 @@
         line: { color, width: 2 }, marker: { color, size: 5 },
         hovertemplate: '%{customdata}<br>Rating: %{y}<extra></extra>',
         customdata: dates.map(fmtDate), showlegend: false },
-      { x: [dates[0], dates[dates.length - 1]], y: [0, 0],
+      { x: [dates[0], dates[dates.length - 1]], y: [1200, 1200],
         mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
         hoverinfo: 'skip', showlegend: false },
     ];
@@ -882,7 +882,7 @@
         customdata: games.map(g => fmtDate(g.date)),
         hovertemplate: 'Game %{x} · %{customdata}<br>Rating: %{y}<extra></extra>',
         showlegend: false },
-      { x: [1, games.length], y: [0, 0],
+      { x: [1, games.length], y: [1200, 1200],
         mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
         hoverinfo: 'skip', showlegend: false },
     ];
@@ -890,8 +890,8 @@
 
   const baselineAnnotation = [{
     xref: 'paper', x: 0.99,
-    yref: 'y',     y: 0,
-    text: 'Starting Rating',
+    yref: 'y',     y: 1200,
+    text: 'Starting Rating (1200)',
     showarrow: false,
     xanchor: 'right',
     yanchor: 'bottom',
