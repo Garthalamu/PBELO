@@ -20,8 +20,8 @@ def ordinal(mu: float, sigma: float) -> float:
 
 def formatted_ordinal(mu: float, sigma: float) -> int:
     """User-facing rating on a ~1000-3000 scale"""
-    raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 2000 + 1000
-    return round(max(1000, min(3000, raw)),2)
+    raw = ((ordinal(mu, sigma) + 20) / 60) * 1500 + 900
+    return round(max(900, min(2400, raw)),2)
 
 DEFAULT_MU = 25.0
 DEFAULT_DISPLAY_RATING = round(formatted_ordinal(DEFAULT_MU, DEFAULT_MU / 3))

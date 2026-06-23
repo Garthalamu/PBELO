@@ -56,12 +56,6 @@
   .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
   .wl-sep  { color: var(--txt-3); margin: 0 1px; }
 
-  .elo-gap {
-    font-size: 0.65rem;
-    color: var(--txt-3);
-  }
-
-  .col-elo-gap { padding-left: 2px !important; padding-right: 0 !important; width: 1px; }
   .col-elo     { padding-right: 4px !important; }
 
   @media (max-width: 760px) {
@@ -204,7 +198,6 @@
             <th></th>
             <th>Player</th>
             <th class="text-right">ELO</th>
-            <th></th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
@@ -226,10 +219,7 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:1 }}</span>
-            </td>
-            <td class="col-elo-gap">
-              {% if player.singles_ordinal_gap %}<span class="elo-gap mono">-{{ player.singles_ordinal_gap|floatformat:1 }}</span>{% endif %}
+              <span class="elo-val mono elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span>
             </td>
             <td class="text-right">
               <span class="wl-stat mono">
@@ -263,7 +253,6 @@
             <th></th>
             <th>Player</th>
             <th class="text-right">ELO</th>
-            <th></th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
@@ -285,10 +274,7 @@
               <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}{% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
             </td>
             <td class="text-right col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:1 }}</span>
-            </td>
-            <td class="col-elo-gap">
-              {% if player.doubles_ordinal_gap %}<span class="elo-gap mono">-{{ player.doubles_ordinal_gap|floatformat:1 }}</span>{% endif %}
+              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span>
             </td>
             <td class="text-right">
               <span class="wl-stat mono">
@@ -319,9 +305,9 @@
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 4);
-      el.textContent = (target * ease).toFixed(1);
+      el.textContent = Math.round(target * ease);
       if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = target.toFixed(1);
+      else el.textContent = Math.round(target);
     }
     requestAnimationFrame(tick);
   });
