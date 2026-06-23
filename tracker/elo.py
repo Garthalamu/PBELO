@@ -18,10 +18,18 @@ def ordinal(mu: float, sigma: float) -> float:
     return _model.rating(mu=mu, sigma=sigma).ordinal()
 
 
+def _display_scale(x: float) -> float:
+    """Unclamped linear transform used by formatted_ordinal and skill_range."""
+    return ((x + 20) / 60) * 1500 + 900
+
 def formatted_ordinal(mu: float, sigma: float) -> int:
-    """User-facing rating on a ~1000-3000 scale"""
-    raw = ((ordinal(mu, sigma) + 20) / 60) * 1500 + 900
-    return round(max(900, min(2400, raw)),2)
+    """User-facing rating on a ~900-2400 scale"""
+    return round(max(900, min(2400, _display_scale(ordinal(mu, sigma)))), 2)
+
+def skill_range(mu: float, sigma: float) -> tuple[float, float, float]:
+    """Return (center, upper, lower) display values for the skill range chart, unclamped."""
+    ord_val = ordinal(mu, sigma)  # mu - 3σ from the model
+    return _display_scale(mu), _display_scale(mu + 3 * sigma), _display_scale(ord_val)
 
 DEFAULT_MU = 25.0
 DEFAULT_DISPLAY_RATING = round(formatted_ordinal(DEFAULT_MU, DEFAULT_MU / 3))

@@ -3,58 +3,52 @@
 
 {% block extra_css %}
 <style>
-  .calc-wrap { max-width: 680px; margin: 0 auto; }
+  .calc-wrap { max-width: 700px; margin: 0 auto; }
 
-  /* ── GAME TYPE BADGE ─────────────────── */
-  .game-type-badge {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--txt-3);
+  /* ── PLAYER PICKER ─────────────────────────── */
+  .picker-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.35rem 0.85rem;
-    margin-bottom: 1.2rem;
-    transition: all 0.2s;
-  }
-  .game-type-badge.is-singles { color: #60a5fa; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.07); }
-  .game-type-badge.is-doubles { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.07); }
-
-  /* ── PLAYER LIST CARD ────────────────── */
-  .matchup-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
   }
 
+  .matchup-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .team-col { display: flex; flex-direction: column; }
 
   .team-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.85rem 1.1rem 0.6rem;
+    padding: 0.8rem 1rem;
     border-bottom: 1px solid var(--border);
   }
-  .team-header-right { flex-direction: row-reverse; border-left: 1px solid var(--border); }
+  .team-header.t2-side {
+    flex-direction: row-reverse;
+    border-left: 1px solid var(--border);
+  }
 
   .team-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .t1-dot { background: #60a5fa; box-shadow: 0 0 5px rgba(96,165,250,0.6); }
-  .t2-dot { background: #f87171; box-shadow: 0 0 5px rgba(248,113,113,0.6); }
+  .t1-dot { background: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.7); }
+  .t2-dot { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.7); }
 
-  .team-lbl { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+  .team-lbl {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
   .team-lbl.t1 { color: #60a5fa; }
   .team-lbl.t2 { color: #f87171; }
 
   .player-list {
     display: flex;
     flex-direction: column;
-    padding: 0.4rem 0.5rem;
+    padding: 0.35rem 0.45rem;
     gap: 1px;
     overflow-y: auto;
-    max-height: 260px;
+    max-height: 240px;
     scrollbar-width: thin;
     scrollbar-color: var(--border-hi) transparent;
   }
@@ -66,7 +60,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.42rem 0.6rem;
+    padding: 0.42rem 0.55rem;
     border-radius: 7px;
     border: none;
     background: none;
@@ -80,7 +74,7 @@
     text-align: left;
   }
   .pl-row:hover:not(:disabled) { background: var(--surface-hi); color: var(--txt); }
-  .pl-row:disabled { opacity: 0.28; cursor: default; }
+  .pl-row:disabled { opacity: 0.22; cursor: default; }
 
   .pl-dot {
     width: 8px; height: 8px;
@@ -89,122 +83,278 @@
     flex-shrink: 0;
     transition: all 0.15s;
   }
-  .pl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .pl-rating {
+  .pl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+
+  .t1-list .pl-row.pl-selected { color: #93c5fd; background: rgba(96,165,250,0.1); font-weight: 700; }
+  .t1-list .pl-row.pl-selected .pl-dot { background: #60a5fa; border-color: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.55); }
+  .t2-list .pl-row.pl-selected { color: #fca5a5; background: rgba(248,113,113,0.1); font-weight: 700; }
+  .t2-list .pl-row.pl-selected .pl-dot { background: #f87171; border-color: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.55); }
+
+  /* ── MATCH PREVIEW CARD ──────────────────── */
+  .match-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .match-card::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6 0%, #818cf8 42%, #f43f5e 58%, #f87171 100%);
+  }
+
+  .match-type-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .type-pill {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 0.25rem 0.85rem;
+    border-radius: 20px;
+    border: 1px solid;
+    transition: all 0.2s;
+  }
+  .type-pill.is-singles { color: #60a5fa; border-color: rgba(96,165,250,0.35); background: rgba(96,165,250,0.08); }
+  .type-pill.is-doubles { color: #4ade80; border-color: rgba(74,222,128,0.35); background: rgba(74,222,128,0.08); }
+
+  .match-teams {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 1.5rem 1.5rem 1rem;
+    gap: 1rem;
+  }
+
+  .match-team-block { display: flex; flex-direction: column; gap: 0.25rem; }
+  .match-team-block.t1-block { align-items: flex-start; }
+  .match-team-block.t2-block { align-items: flex-end; }
+
+  .match-player-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .t2-block .match-player-row { flex-direction: row-reverse; }
+
+  .match-player-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+  }
+  .t1-block .match-player-name { color: #93c5fd; }
+  .t2-block .match-player-name { color: #fca5a5; }
+
+  .match-player-rating {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 700;
     color: var(--txt-3);
     flex-shrink: 0;
   }
 
-  .t1-list .pl-row.pl-selected { color: #93c5fd; background: rgba(96,165,250,0.1); font-weight: 700; }
-  .t1-list .pl-row.pl-selected .pl-dot { background: #60a5fa; border-color: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
-  .t2-list .pl-row.pl-selected { color: #fca5a5; background: rgba(248,113,113,0.1); font-weight: 700; }
-  .t2-list .pl-row.pl-selected .pl-dot { background: #f87171; border-color: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
-
-  /* ── WIN PROBABILITY ─────────────────── */
-  .prob-section {
-    padding: 1.1rem 1.25rem;
-    border-top: 1px solid var(--border);
-  }
-  .prob-header {
+  .match-vs-col {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.55rem;
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-  .prob-lbl-t1  { color: #60a5fa; }
-  .prob-lbl-t2  { color: #f87171; }
-  .prob-lbl-mid { color: var(--txt-3); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; }
-
-  .prob-track {
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #c0294a, #1e1018);
-    overflow: hidden;
-    position: relative;
-  }
-  .prob-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #1a2d45, #3b82f6);
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 10px;
-    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #fff;
+    gap: 0.2rem;
+    padding: 0 0.25rem;
   }
-  .prob-t2-pct {
-    position: absolute;
-    top: 0; height: 100%;
-    display: flex; align-items: center;
-    padding-left: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.82rem; font-weight: 700;
-    color: #fff;
-    pointer-events: none;
-  }
-
-  /* ── ELO PREVIEW ─────────────────────── */
-  .elo-section {
-    padding: 1.1rem 1.25rem;
-    border-top: 1px solid var(--border);
-  }
-  .score-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-  .score-lbl    { font-size: 0.8rem; font-weight: 700; }
-  .score-lbl-t1 { color: #60a5fa; }
-  .score-lbl-t2 { color: #f87171; }
-  .score-input {
-    width: 64px;
-    background: var(--surface-hi);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 0.4rem 0.6rem;
-    color: var(--txt);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
-    text-align: center;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .score-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-  .score-sep { color: var(--txt-3); font-size: 1.1rem; font-weight: 700; }
-
-  .elo-table { width: 100%; border-collapse: collapse; }
-  .elo-table th {
-    font-size: 0.67rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
+  .vs-line { width: 1px; height: 18px; background: var(--border); }
+  .vs-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.14em;
     color: var(--txt-3);
-    padding: 0.45rem 0.75rem;
+  }
+
+  /* Win probability */
+  .prob-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0.5rem 1.5rem 1.6rem;
+  }
+
+  .prob-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    min-width: 88px;
+    transition: opacity 0.3s;
+  }
+  .prob-pct.t1 { color: #60a5fa; text-align: left; }
+  .prob-pct.t2 { color: #f87171; text-align: right; }
+
+  .prob-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .prob-bar-track {
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(248,113,113,0.3);
+    overflow: hidden;
+  }
+  .prob-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    border-radius: 3px;
+    transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+    width: 50%;
+  }
+  .prob-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--txt-3);
+  }
+
+  /* ── SCORE SIMULATOR ──────────────────────── */
+  .sim-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+
+  .sim-head {
+    padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--txt-3);
+  }
+
+  .sim-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sim-score-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .sim-score-lbl {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sim-score-lbl.t1 { color: #60a5fa; }
+  .sim-score-lbl.t2 { color: #f87171; }
+
+  .sim-score-input {
+    width: 100px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.6rem;
+    line-height: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid var(--border);
+    color: var(--txt);
+    padding: 0.1rem 0;
+    -moz-appearance: textfield;
+    transition: border-color 0.15s;
+  }
+  .sim-score-input::-webkit-inner-spin-button,
+  .sim-score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .sim-score-input:focus { outline: none; border-bottom-color: var(--accent); }
+
+  .sim-score-sep {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--txt-3);
+    padding: 0 0.75rem;
+    padding-top: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  /* Rating change table */
+  .sim-table { width: 100%; border-collapse: collapse; }
+
+  .sim-table thead th {
+    padding: 0.45rem 1.25rem;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--txt-3);
     border-bottom: 1px solid var(--border);
     text-align: left;
   }
-  .elo-table td {
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border);
+  .sim-table thead th:not(:first-child) { text-align: right; }
+
+  .sim-table td {
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.85rem;
+    color: var(--txt);
+  }
+  .sim-table td:not(:first-child) {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.82rem;
+    text-align: right;
   }
-  .elo-table tbody tr:last-child td { border-bottom: none; }
-  .delta-pos { color: var(--win);  font-weight: 700; }
+  .sim-table tbody tr:last-child td { border-bottom: none; }
+
+  .sim-divider td {
+    padding: 0.28rem 1.25rem;
+    font-size: 0.57rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--surface-hi);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .sim-divider.t1-div td { color: #60a5fa; }
+  .sim-divider.t2-div td { color: #f87171; }
+
+  .delta-pos { color: var(--win); font-weight: 700; }
   .delta-neg { color: var(--loss); font-weight: 700; }
 
   .hidden { display: none !important; }
 
-  @media (max-width: 480px) {
-    .pl-row { font-size: 0.78rem; padding: 0.38rem 0.45rem; }
-    .pl-rating { display: none; }
+  @media (max-width: 520px) {
+    .match-teams { padding: 1rem 0.9rem 0.7rem; gap: 0.5rem; }
+    .match-player-name { font-size: 1.1rem; }
+    .prob-pct { font-size: 2.1rem; min-width: 68px; }
+    .prob-row { padding: 0.4rem 0.9rem 1.1rem; gap: 0.6rem; }
+    .sim-score-input { font-size: 2.8rem; width: 80px; }
+    .sim-table td, .sim-table thead th,
+    .sim-divider td { padding-left: 0.75rem; padding-right: 0.75rem; }
   }
 </style>
 {% endblock %}
@@ -216,13 +366,8 @@
     <h1 class="page-title">Matchup Calculator</h1>
   </div>
 
-  <div class="fade-up delay-1">
-    <span class="game-type-badge" id="game-type-badge">Select players</span>
-  </div>
-
-  <div class="card fade-up delay-2">
-
-    <!-- Player lists -->
+  <!-- Player Picker -->
+  <div class="picker-card fade-up delay-1">
     <div class="matchup-grid">
       <div class="team-col">
         <div class="team-header">
@@ -232,42 +377,58 @@
         <div class="player-list t1-list" id="t1-list"></div>
       </div>
       <div class="team-col">
-        <div class="team-header team-header-right">
+        <div class="team-header t2-side">
           <span class="team-dot t2-dot"></span>
           <span class="team-lbl t2">Team 2</span>
         </div>
         <div class="player-list t2-list" id="t2-list"></div>
       </div>
     </div>
-
-    <!-- Win probability -->
-    <div id="prob-panel" class="prob-section hidden">
-      <div class="prob-header">
-        <span class="prob-lbl-t1" id="lbl-t1">Team 1</span>
-        <span class="prob-lbl-mid">Win Probability</span>
-        <span class="prob-lbl-t2" id="lbl-t2">Team 2</span>
-      </div>
-      <div class="prob-track">
-        <div class="prob-fill" id="prob-fill" style="width:50%">
-          <span id="prob-pct1">50%</span>
-        </div>
-        <div class="prob-t2-pct" id="prob-pct2" style="left:50%">50%</div>
-      </div>
-    </div>
-
-    <!-- Rating change preview -->
-    <div id="elo-panel" class="elo-section hidden">
-      <div class="score-row">
-        <span class="score-lbl score-lbl-t1" id="score-lbl-t1">Team 1</span>
-        <input type="number" id="score-t1" class="score-input" min="0" max="99" placeholder="0" inputmode="numeric">
-        <span class="score-sep">&#8211;</span>
-        <input type="number" id="score-t2" class="score-input" min="0" max="99" placeholder="0" inputmode="numeric">
-        <span class="score-lbl score-lbl-t2" id="score-lbl-t2">Team 2</span>
-      </div>
-      <div id="elo-result"></div>
-    </div>
-
   </div>
+
+  <!-- Match Preview -->
+  <div class="match-card hidden" id="match-card">
+    <div class="match-type-row">
+      <span class="type-pill is-singles" id="type-pill">Singles</span>
+    </div>
+    <div class="match-teams">
+      <div class="match-team-block t1-block" id="t1-block"></div>
+      <div class="match-vs-col">
+        <div class="vs-line"></div>
+        <span class="vs-text">VS</span>
+        <div class="vs-line"></div>
+      </div>
+      <div class="match-team-block t2-block" id="t2-block"></div>
+    </div>
+    <div class="prob-row">
+      <div class="prob-pct t1" id="prob-pct1">—</div>
+      <div class="prob-center">
+        <div class="prob-bar-track">
+          <div class="prob-bar-fill" id="prob-bar-fill"></div>
+        </div>
+        <span class="prob-label">Win Probability</span>
+      </div>
+      <div class="prob-pct t2" id="prob-pct2">—</div>
+    </div>
+  </div>
+
+  <!-- Score Simulator -->
+  <div class="sim-card hidden" id="sim-card">
+    <div class="sim-head">Simulate Outcome</div>
+    <div class="sim-score-row">
+      <div class="sim-score-block">
+        <span class="sim-score-lbl t1" id="sim-lbl-t1">Team 1</span>
+        <input type="number" id="score-t1" class="sim-score-input" min="0" max="99" placeholder="0" inputmode="numeric">
+      </div>
+      <span class="sim-score-sep">–</span>
+      <div class="sim-score-block">
+        <span class="sim-score-lbl t2" id="sim-lbl-t2">Team 2</span>
+        <input type="number" id="score-t2" class="sim-score-input" min="0" max="99" placeholder="0" inputmode="numeric">
+      </div>
+    </div>
+    <div id="sim-result"></div>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -276,7 +437,6 @@
 (function () {
   const PLAYERS = {{ players_json|safe }};
 
-  // assignments: player id -> 0 | 1 (T1) | 2 (T2)
   const assignments = {};
   PLAYERS.forEach(p => { assignments[p.id] = 0; });
 
@@ -287,7 +447,7 @@
   }
   function ratingField() { return gameType() === 'doubles' ? 'doubles_ordinal' : 'singles_ordinal'; }
 
-  // ── Player list rendering ──
+  // Player picker rows — no rating shown here
   function buildRow(p, team) {
     const state      = assignments[p.id];
     const isSelected = state === team;
@@ -307,13 +467,8 @@
     name.className = 'pl-name';
     name.textContent = p.display_name;
 
-    const rating = document.createElement('span');
-    rating.className = 'pl-rating';
-    rating.textContent = Math.round(p[ratingField()]);
-
     row.appendChild(dot);
     row.appendChild(name);
-    row.appendChild(rating);
 
     row.addEventListener('click', () => {
       assignments[p.id] = isSelected ? 0 : team;
@@ -328,28 +483,34 @@
     );
   }
 
-  // ── Badge ──
-  function updateBadge() {
-    const t1n = teamPlayers(1).length;
-    const t2n = teamPlayers(2).length;
-    const badge = document.getElementById('game-type-badge');
-    if (t1n === 0 && t2n === 0) {
-      badge.textContent = 'Select players';
-      badge.className = 'game-type-badge';
-    } else if (t1n === 2 && t2n === 2) {
-      badge.textContent = 'Doubles';
-      badge.className = 'game-type-badge is-doubles';
-    } else {
-      badge.textContent = 'Singles';
-      badge.className = 'game-type-badge is-singles';
-    }
+  // Build match preview team block with player name + rating
+  function renderTeamBlock(elId, players, field) {
+    const el = document.getElementById(elId);
+    el.replaceChildren();
+    players.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'match-player-row';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'match-player-name';
+      nameEl.textContent = p.display_name;
+
+      const ratingEl = document.createElement('span');
+      ratingEl.className = 'match-player-rating';
+      ratingEl.textContent = Math.round(p[field]);
+
+      row.appendChild(nameEl);
+      row.appendChild(ratingEl);
+      el.appendChild(row);
+    });
   }
 
-  // ── Probability + preview ──
-  function show(id, v) { document.getElementById(id).classList.toggle('hidden', !v); }
-  function teamLabel(players) { return players.map(p => p.display_name).join(' & ') || '?'; }
+  function show(id, v) {
+    document.getElementById(id).classList.toggle('hidden', !v);
+  }
 
-  // Cached win probability from the last successful predict_win API call
+  function teamLabel(players) { return players.map(p => p.display_name).join(' & '); }
+
   let _lastP1win = null;
   let _pendingFetch = null;
 
@@ -358,28 +519,40 @@
     const t2 = teamPlayers(2);
     const type = gameType();
     const doubles = type === 'doubles';
+    const field = ratingField();
 
     const t1ok = t1.length >= 1 && (!doubles || t1.length === 2);
     const t2ok = t2.length >= 1 && (!doubles || t2.length === 2);
 
     if (!t1ok || !t2ok) {
-      show('prob-panel', false);
-      show('elo-panel', false);
+      show('match-card', false);
+      show('sim-card', false);
       _lastP1win = null;
       return;
     }
 
-    // Abort any in-flight request before starting a new one
+    // Populate match preview
+    renderTeamBlock('t1-block', t1, field);
+    renderTeamBlock('t2-block', t2, field);
+
+    document.getElementById('sim-lbl-t1').textContent = teamLabel(t1);
+    document.getElementById('sim-lbl-t2').textContent = teamLabel(t2);
+
+    const pill = document.getElementById('type-pill');
+    pill.textContent = doubles ? 'Doubles' : 'Singles';
+    pill.className = 'type-pill ' + (doubles ? 'is-doubles' : 'is-singles');
+
+    show('match-card', true);
+    show('sim-card', true);
+
+    // Fetch win probability
     if (_pendingFetch) { _pendingFetch.abort(); }
     const controller = new AbortController();
     _pendingFetch = controller;
 
-    const t1ids = t1.map(p => p.id).join(',');
-    const t2ids = t2.map(p => p.id).join(',');
-
     try {
       const resp = await fetch(
-        `/matchup/predict/?t1=${t1ids}&t2=${t2ids}&type=${type}`,
+        `/matchup/predict/?t1=${t1.map(p => p.id).join(',')}&t2=${t2.map(p => p.id).join(',')}&type=${type}`,
         { signal: controller.signal }
       );
       if (!resp.ok) return;
@@ -387,22 +560,9 @@
       _pendingFetch = null;
       _lastP1win = data.t1;
 
-      const pct1 = (data.t1 * 100).toFixed(1);
-      const pct2 = (data.t2 * 100).toFixed(1);
-      const lbl1 = teamLabel(t1);
-      const lbl2 = teamLabel(t2);
-
-      document.getElementById('lbl-t1').textContent       = lbl1;
-      document.getElementById('lbl-t2').textContent       = lbl2;
-      document.getElementById('score-lbl-t1').textContent = lbl1;
-      document.getElementById('score-lbl-t2').textContent = lbl2;
-      document.getElementById('prob-fill').style.width    = pct1 + '%';
-      document.getElementById('prob-pct1').textContent    = pct1 + '%';
-      document.getElementById('prob-pct2').textContent    = pct2 + '%';
-      document.getElementById('prob-pct2').style.left     = pct1 + '%';
-
-      show('prob-panel', true);
-      show('elo-panel', true);
+      document.getElementById('prob-pct1').textContent = (data.t1 * 100).toFixed(1) + '%';
+      document.getElementById('prob-pct2').textContent = (data.t2 * 100).toFixed(1) + '%';
+      document.getElementById('prob-bar-fill').style.width = (data.t1 * 100).toFixed(1) + '%';
 
       updateRatingPreview();
     } catch (e) {
@@ -410,15 +570,13 @@
     }
   }
 
-  // Rating preview uses the cached _lastP1win from predict_win so the
-  // expected-score used for delta calculations matches the actual model output.
   function updateRatingPreview() {
     const t1    = teamPlayers(1);
     const t2    = teamPlayers(2);
     const field = ratingField();
     const s1    = parseInt(document.getElementById('score-t1').value);
     const s2    = parseInt(document.getElementById('score-t2').value);
-    const el    = document.getElementById('elo-result');
+    const el    = document.getElementById('sim-result');
     el.replaceChildren();
     if (_lastP1win === null || isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) return;
 
@@ -429,7 +587,7 @@
     const d2   = K * mov * ((1 - res1) - (1 - _lastP1win));
 
     const table = document.createElement('table');
-    table.className = 'elo-table';
+    table.className = 'sim-table';
 
     const thead = document.createElement('thead');
     const hrow  = document.createElement('tr');
@@ -442,29 +600,37 @@
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    [...t1.map(p => [p, d1]), ...t2.map(p => [p, d2])].forEach(([p, delta]) => {
+
+    function addDivider(label, cls) {
+      const tr = document.createElement('tr');
+      tr.className = 'sim-divider ' + cls;
+      const td = document.createElement('td');
+      td.colSpan = 4;
+      td.textContent = label;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
+    function addPlayerRow(p, delta) {
       const before = p[field];
       const tr = document.createElement('tr');
-
-      const tdName = document.createElement('td');
-      tdName.textContent = p.display_name;
-
-      const tdBefore = document.createElement('td');
-      tdBefore.textContent = before.toFixed(1);
-
-      const tdDelta = document.createElement('td');
-      tdDelta.className = delta >= 0 ? 'delta-pos' : 'delta-neg';
-      tdDelta.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1);
-
-      const tdAfter = document.createElement('td');
-      tdAfter.textContent = (before + delta).toFixed(1);
-
-      tr.appendChild(tdName);
-      tr.appendChild(tdBefore);
-      tr.appendChild(tdDelta);
-      tr.appendChild(tdAfter);
+      [p.display_name, Math.round(before),
+       (delta >= 0 ? '+' : '') + Math.round(delta),
+       Math.round(before + delta)
+      ].forEach((val, i) => {
+        const td = document.createElement('td');
+        td.textContent = val;
+        if (i === 2) td.className = delta >= 0 ? 'delta-pos' : 'delta-neg';
+        tr.appendChild(td);
+      });
       tbody.appendChild(tr);
-    });
+    }
+
+    addDivider('Team 1', 't1-div');
+    t1.forEach(p => addPlayerRow(p, d1));
+    addDivider('Team 2', 't2-div');
+    t2.forEach(p => addPlayerRow(p, d2));
+
     table.appendChild(tbody);
     el.appendChild(table);
   }
@@ -472,11 +638,9 @@
   function refresh() {
     renderList('t1-list', 1);
     renderList('t2-list', 2);
-    updateBadge();
     updateCalc();
   }
 
-  // Score changes only need to re-render the preview; no new API call needed.
   document.getElementById('score-t1').addEventListener('input', updateRatingPreview);
   document.getElementById('score-t2').addEventListener('input', updateRatingPreview);
 

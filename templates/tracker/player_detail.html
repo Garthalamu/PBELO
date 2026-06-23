@@ -895,11 +895,6 @@
   }
 
   // ── Skill range traces (μ ± 3σ band) ──────────────────────────────────────
-  // Same linear formula as formatted_ordinal but without clamping, so the band
-  // extends naturally above/below the 1000–3000 display range.
-  function displayScale(x) {
-    return ((x + 19.67) / 58.38) * 2000 + 1000;
-  }
 
   function skillFill(color) {
     return color === '#60a5fa' ? 'rgba(96,165,250,0.13)' : 'rgba(74,222,128,0.13)';
@@ -924,16 +919,11 @@
     ];
   }
 
-  // Convert 3σ to display-scale width (linear, no offset component)
-  function sigmaWidth(sigma3) { return (sigma3 * 2000) / 58.38; }
-
   function tracesSkillGames(games, color) {
     const xs     = games.map((_, i) => i + 1);
-    // Center = displayed rating (ordinal = mu − 3σ), same line as Rating view
-    const center = games.map(g => displayScale(g.mu - 3 * g.sigma));
-    const half   = games.map(g => sigmaWidth(3 * g.sigma));
-    const upper  = center.map((c, i) => c + half[i]);
-    const lower  = center.map((c, i) => c - half[i]);
+    const center = games.map(g => g.center);
+    const upper  = games.map(g => g.upper);
+    const lower  = games.map(g => g.lower);
     const cd     = games.map(g => fmtDate(g.date));
     return buildSkillTraces(xs, center, upper, lower, cd,
       'Game %{x} · %{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);
@@ -941,12 +931,11 @@
 
   function tracesSkillDays(games, color) {
     const daily = {};
-    games.forEach(g => { daily[g.date] = { mu: g.mu, sigma: g.sigma }; });
+    games.forEach(g => { daily[g.date] = { center: g.center, upper: g.upper, lower: g.lower }; });
     const dates  = Object.keys(daily).sort();
-    const center = dates.map(d => displayScale(daily[d].mu - 3 * daily[d].sigma));
-    const half   = dates.map(d => sigmaWidth(3 * daily[d].sigma));
-    const upper  = center.map((c, i) => c + half[i]);
-    const lower  = center.map((c, i) => c - half[i]);
+    const center = dates.map(d => daily[d].center);
+    const upper  = dates.map(d => daily[d].upper);
+    const lower  = dates.map(d => daily[d].lower);
     const cd     = dates.map(fmtDate);
     return buildSkillTraces(dates, center, upper, lower, cd,
       '%{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);

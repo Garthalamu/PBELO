@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -358,24 +358,18 @@ def player_detail(request, player_id):
     singles_chart = _build_elo_chart(singles_history)
     doubles_chart = _build_elo_chart(doubles_history)
 
-    singles_games_json = json.dumps([
-        {
+    def _game_entry(e):
+        center, upper, lower = skill_range(e["mu_after"], e["sigma_after"])
+        return {
             "rating": round(rating_ordinal(e["mu_after"], e["sigma_after"]), 1),
-            "mu": round(e["mu_after"], 5),
-            "sigma": round(e["sigma_after"], 5),
+            "center": round(center, 1),
+            "upper": round(upper, 1),
+            "lower": round(lower, 1),
             "date": e["game__played_at"].strftime("%Y-%m-%d"),
         }
-        for e in singles_history
-    ])
-    doubles_games_json = json.dumps([
-        {
-            "rating": round(rating_ordinal(e["mu_after"], e["sigma_after"]), 1),
-            "mu": round(e["mu_after"], 5),
-            "sigma": round(e["sigma_after"], 5),
-            "date": e["game__played_at"].strftime("%Y-%m-%d"),
-        }
-        for e in doubles_history
-    ])
+
+    singles_games_json = json.dumps([_game_entry(e) for e in singles_history])
+    doubles_games_json = json.dumps([_game_entry(e) for e in doubles_history])
 
     singles_rows = [r for r in game_rows if r["game"].game_type == Game.SINGLES]
     doubles_rows = [r for r in game_rows if r["game"].game_type == Game.DOUBLES]
