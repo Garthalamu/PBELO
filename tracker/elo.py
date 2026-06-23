@@ -9,6 +9,8 @@ Margin of victory is handled via the scores= parameter — a larger gap
 produces a proportionally larger rating shift, similar to the old log2 MOV.
 """
 
+import math
+
 from openskill.models import PlackettLuce
 
 _model = PlackettLuce(margin=2.0)
@@ -30,6 +32,21 @@ def skill_range(mu: float, sigma: float) -> tuple[float, float, float]:
     """Return (center, upper, lower) display values for the skill range chart, unclamped."""
     ord_val = ordinal(mu, sigma)  # mu - 3σ from the model
     return _display_scale(mu), _display_scale(mu + 3 * sigma), _display_scale(ord_val)
+
+
+_SCALE_FACTOR = 1500 / 60  # linear derivative of _display_scale w.r.t. raw ordinal
+
+def gaussian_curve(mu: float, sigma: float, n: int = 200) -> tuple[list[float], list[float]]:
+    """Gaussian PDF in formatted_ordinal display space (unclamped), centred on μ."""
+    d_mu = _display_scale(mu)
+    d_sigma = sigma * _SCALE_FACTOR
+    x_min = d_mu - 4.0 * d_sigma
+    x_max = d_mu + 4.0 * d_sigma
+    step = (x_max - x_min) / (n - 1)
+    xs = [x_min + i * step for i in range(n)]
+    coeff = 1.0 / (d_sigma * math.sqrt(2.0 * math.pi))
+    ys = [coeff * math.exp(-0.5 * ((x - d_mu) / d_sigma) ** 2) for x in xs]
+    return xs, ys
 
 DEFAULT_MU = 25.0
 DEFAULT_DISPLAY_RATING = round(formatted_ordinal(DEFAULT_MU, DEFAULT_MU / 3))

@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -280,6 +280,65 @@ def predict_win_api(request):
 
     p1, p2 = elo_predict_win(team1, team2)
     return JsonResponse({"t1": p1, "t2": p2})
+
+
+def player_compare(request):
+    players = Player.objects.order_by("first_name", "last_name", "nickname")
+    players_json = json.dumps([{"id": p.pk, "display_name": p.display_name} for p in players])
+    return render(request, "tracker/player_compare.html", {"players_json": players_json})
+
+
+def compare_data_api(request):
+    if not request.session.get("authenticated"):
+        return JsonResponse({"error": "Not authenticated"}, status=401)
+    try:
+        p1_id = int(request.GET.get("p1", ""))
+        p2_id = int(request.GET.get("p2", ""))
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "p1 and p2 required"}, status=400)
+
+    game_type = request.GET.get("type", "singles")
+    try:
+        p1 = Player.objects.get(pk=p1_id)
+        p2 = Player.objects.get(pk=p2_id)
+    except Player.DoesNotExist:
+        return JsonResponse({"error": "Player not found"}, status=404)
+
+    if game_type == "doubles":
+        mu1, sigma1 = p1.doubles_mu, p1.doubles_sigma
+        mu2, sigma2 = p2.doubles_mu, p2.doubles_sigma
+    else:
+        mu1, sigma1 = p1.singles_mu, p1.singles_sigma
+        mu2, sigma2 = p2.singles_mu, p2.singles_sigma
+
+    x1, y1 = elo_gaussian_curve(mu1, sigma1)
+    x2, y2 = elo_gaussian_curve(mu2, sigma2)
+
+    def _short(p):
+        if p.nickname:
+            return p.nickname
+        if p.first_name and p.last_name:
+            return f"{p.first_name} {p.last_name[0]}."
+        return p.display_name
+
+    return JsonResponse({
+        "p1": {
+            "name": p1.display_name,
+            "short_name": _short(p1),
+            "curve": {"x": [round(v, 2) for v in x1], "y": [round(v, 6) for v in y1]},
+            "rating": round(rating_ordinal(mu1, sigma1)),
+            "mu": round(mu1, 2),
+            "sigma": round(sigma1, 2),
+        },
+        "p2": {
+            "name": p2.display_name,
+            "short_name": _short(p2),
+            "curve": {"x": [round(v, 2) for v in x2], "y": [round(v, 6) for v in y2]},
+            "rating": round(rating_ordinal(mu2, sigma2)),
+            "mu": round(mu2, 2),
+            "sigma": round(sigma2, 2),
+        },
+    })
 
 
 def player_detail(request, player_id):

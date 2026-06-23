@@ -581,6 +581,13 @@
         </li>
         <li>
           <a
+            href="{% url 'player_compare' %}"
+            class="{% if request.path == '/compare/' %}active{% endif %}"
+            >Compare</a
+          >
+        </li>
+        <li>
+          <a
             href="{% url 'record_game' %}"
             class="{% if request.path == '/record/' %}active{% endif %}"
             >Record Game</a
