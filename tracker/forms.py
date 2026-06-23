@@ -37,7 +37,7 @@ class RecordGameForm(forms.Form):
         widget=forms.RadioSelect,
     )
     played_at = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     team1_player1 = forms.ModelChoiceField(queryset=Player.objects.all(), label="Team 1 — Player 1")
     team1_player2 = forms.ModelChoiceField(queryset=Player.objects.all(), label="Team 1 — Player 2", required=False)

@@ -3,298 +3,386 @@
 
 {% block extra_css %}
 <style>
-  .record-wrap {
-    max-width: 700px;
+  .rg-wrap {
+    max-width: 660px;
     margin: 0 auto;
   }
 
-  .form-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.4rem 1.5rem;
-    margin-bottom: 1.25rem;
+  /* ── META BAR ────────────────────────── */
+  .game-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    flex-wrap: wrap;
   }
 
-  .form-section-title {
-    font-size: 0.72rem;
+  .game-type-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--txt-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.38rem 0.85rem;
+    transition: all 0.2s;
+  }
+  .game-type-badge.is-singles { color: #60a5fa; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.07); }
+  .game-type-badge.is-doubles { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.07); }
+
+  .date-field {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-left: auto;
+  }
+  .date-lbl {
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--txt-3);
-    margin-bottom: 1rem;
   }
-
-  /* Game type pill toggle */
-  .type-toggle {
-    display: flex;
-    gap: 0;
-    background: var(--surface-hi);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 3px;
-    width: fit-content;
-  }
-
-  .type-toggle input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-
-  .type-toggle label {
-    padding: 0.45rem 1.5rem;
-    border-radius: 7px;
-    font-size: 0.875rem;
-    font-weight: 700;
-    cursor: pointer;
-    color: var(--txt-2);
-    transition: all 0.15s;
-    user-select: none;
-    letter-spacing: 0.02em;
-  }
-
-  .type-toggle input[type="radio"]:checked + label {
-    background: var(--accent);
-    color: #07090c;
-    box-shadow: 0 1px 6px var(--accent-glow);
-  }
-
-  /* Two-column form row */
-  .form-row-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  @media (max-width: 560px) {
-    .form-row-2 { grid-template-columns: 1fr; }
-    .form-section { padding: 1.1rem 1.1rem; }
-  }
-
-  .field-group { display: flex; flex-direction: column; }
-  .field-group + .field-group { margin-top: 0.85rem; }
-
-  /* Team cards */
-  .teams-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
-  }
-
-  @media (max-width: 560px) { .teams-grid { grid-template-columns: 1fr; } }
-
-  .team-card {
+  .date-input {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 8px;
+    padding: 0.38rem 0.7rem;
+    color: var(--txt);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    transition: border-color 0.15s;
+    color-scheme: dark;
+  }
+  .date-input:focus { outline: none; border-color: var(--accent); }
+
+  /* ── MATCHUP CARD ────────────────────── */
+  .matchup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
     overflow: hidden;
+    margin-bottom: 1.2rem;
   }
 
-  .team-card-head {
-    padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+  .matchup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .team-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
+    padding: 0.85rem 1.1rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .team-header-right {
+    flex-direction: row-reverse;
+    border-left: 1px solid var(--border);
   }
 
-  .team1-head { color: #60a5fa; }
-  .team2-head { color: #f87171; }
-
   .team-dot {
-    width: 7px; height: 7px;
+    width: 6px; height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .team1-dot { background: #60a5fa; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
-  .team2-dot { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+  .t1-dot { background: #60a5fa; box-shadow: 0 0 5px rgba(96,165,250,0.6); }
+  .t2-dot { background: #f87171; box-shadow: 0 0 5px rgba(248,113,113,0.6); }
 
-  .team-card-body {
-    padding: 1.1rem 1.25rem;
+  .team-lbl {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .team-lbl.t1 { color: #60a5fa; }
+  .team-lbl.t2 { color: #f87171; }
+
+  /* ── PLAYER LIST ─────────────────────── */
+  .player-list {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    padding: 0.4rem 0.5rem;
+    gap: 1px;
+    overflow-y: auto;
+    max-height: 260px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-hi) transparent;
+  }
+  .player-list::-webkit-scrollbar { width: 3px; }
+  .player-list::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+  .player-list.t2-list { border-left: 1px solid var(--border); }
+
+  .pl-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.6rem;
+    border-radius: 7px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--txt-2);
+    transition: background 0.12s, color 0.12s;
+    text-align: left;
+  }
+  .pl-row:hover:not(:disabled) {
+    background: var(--surface-hi);
+    color: var(--txt);
+  }
+  .pl-row:disabled {
+    opacity: 0.28;
+    cursor: default;
+  }
+  .pl-row:disabled .pl-dot { opacity: 0.4; }
+
+  .pl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-hi);
+    flex-shrink: 0;
+    transition: all 0.15s;
   }
 
+  .pl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Selected states */
+  .t1-list .pl-row.pl-selected {
+    color: #93c5fd;
+    background: rgba(96,165,250,0.1);
+    font-weight: 700;
+  }
+  .t1-list .pl-row.pl-selected .pl-dot {
+    background: #60a5fa;
+    border-color: #60a5fa;
+    box-shadow: 0 0 6px rgba(96,165,250,0.5);
+  }
+  .t2-list .pl-row.pl-selected {
+    color: #fca5a5;
+    background: rgba(248,113,113,0.1);
+    font-weight: 700;
+  }
+  .t2-list .pl-row.pl-selected .pl-dot {
+    background: #f87171;
+    border-color: #f87171;
+    box-shadow: 0 0 6px rgba(248,113,113,0.5);
+  }
+
+  /* Full indicator when team is at capacity */
+  .team-full-hint {
+    font-size: 0.68rem;
+    color: var(--txt-3);
+    padding: 0.3rem 0.6rem 0.5rem;
+    font-style: italic;
+  }
+
+  /* ── SCORE BAR ───────────────────────── */
+  .score-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    border-top: 1px solid var(--border);
+    padding: 0.85rem 1rem;
+  }
+
+  .score-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .score-tag {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .score-tag.t1 { color: #60a5fa; }
+  .score-tag.t2 { color: #f87171; }
+
+  .score-num {
+    width: 80px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    background: none;
+    border: none;
+    color: var(--txt);
+    padding: 0;
+    -moz-appearance: textfield;
+    border-bottom: 2px solid var(--border);
+    transition: border-color 0.15s;
+  }
+  .score-num::-webkit-inner-spin-button,
+  .score-num::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .score-num:focus { outline: none; border-bottom-color: var(--accent); }
+
+  .score-sep {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--txt-3);
+    padding: 0 0.5rem;
+    padding-top: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  /* ── VALIDATION ─────────────────────── */
+  .val-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    background: rgba(251,191,36,0.07);
+    border: 1px solid rgba(251,191,36,0.25);
+    color: #fbbf24;
+  }
+  .val-msg::before {
+    content: '!';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #fbbf24;
+    font-size: 0.65rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  /* ── ACTIONS ─────────────────────────── */
   .form-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.65rem;
     flex-wrap: wrap;
+    align-items: center;
   }
+  .btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
+  /* ── ERROR ───────────────────────────── */
   .error-box {
-    background: var(--loss-dim);
+    background: rgba(248,113,113,0.07);
     border: 1px solid rgba(248,113,113,0.25);
     border-radius: 10px;
-    padding: 0.8rem 1rem;
-    color: var(--loss);
+    padding: 0.75rem 1rem;
+    color: #f87171;
     font-size: 0.875rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.2rem;
+  }
+
+  /* ── RESPONSIVE ──────────────────────── */
+  @media (max-width: 500px) {
+    .pl-row { font-size: 0.78rem; padding: 0.38rem 0.45rem; }
+    .score-num { font-size: 2.8rem; width: 64px; }
+    .team-header { padding: 0.7rem 0.75rem 0.5rem; }
+    .date-field { margin-left: 0; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="record-wrap">
+<div class="rg-wrap">
   <div class="page-header fade-up">
     <h1 class="page-title">Record Game</h1>
   </div>
 
-  <form method="post" id="game-form">
+  {% if form.non_field_errors %}
+  <div class="error-box fade-up">
+    {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" id="game-form" autocomplete="off">
     {% csrf_token %}
+    <input type="hidden" name="game_type"     id="h-game-type"  value="{{ form.game_type.value|default:'singles' }}">
+    <input type="hidden" name="played_at"     id="h-played-at"  value="{{ form.played_at.value|default:'' }}">
+    <input type="hidden" name="team1_player1" id="h-t1p1"       value="{{ form.team1_player1.value|default:'' }}">
+    <input type="hidden" name="team1_player2" id="h-t1p2"       value="{{ form.team1_player2.value|default:'' }}">
+    <input type="hidden" name="team2_player1" id="h-t2p1"       value="{{ form.team2_player1.value|default:'' }}">
+    <input type="hidden" name="team2_player2" id="h-t2p2"       value="{{ form.team2_player2.value|default:'' }}">
+    <input type="hidden" name="_addanother"   id="h-addanother" value="">
 
-    {% if form.non_field_errors %}
-      <div class="error-box fade-up">
-        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- Game type -->
-    <div class="form-section fade-up delay-1">
-      <div class="form-section-title">Game Type</div>
-      <div class="type-toggle">
-        {% for radio in form.game_type %}
-          {{ radio.tag }}
-          <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
-        {% endfor %}
-      </div>
-      {% if form.game_type.errors %}
-        <div class="invalid-feedback" style="display:block;margin-top:0.5rem">{{ form.game_type.errors|join:", " }}</div>
-      {% endif %}
-    </div>
-
-    <!-- Date -->
-    <div class="form-section fade-up delay-2">
-      <div class="form-section-title">Game Details</div>
-      <div class="field-group">
-        <label class="form-label" for="{{ form.played_at.id_for_label }}">Date Played</label>
-        <input type="date"
-               name="{{ form.played_at.html_name }}"
-               id="{{ form.played_at.id_for_label }}"
-               value="{{ form.played_at.value }}"
-               class="form-control {% if form.played_at.errors %}is-invalid{% endif %}">
-        {% if form.played_at.errors %}
-          <div class="invalid-feedback">{{ form.played_at.errors|join:", " }}</div>
-        {% endif %}
+    <!-- Badge + date -->
+    <div class="game-meta-bar fade-up delay-1">
+      <span class="game-type-badge" id="game-type-badge">Select players</span>
+      <div class="date-field">
+        <span class="date-lbl">Date</span>
+        <input type="date" id="date-picker" class="date-input">
       </div>
     </div>
 
-    <!-- Teams -->
-    <div class="teams-grid fade-up delay-3">
+    <!-- Matchup: player lists + score -->
+    <div class="matchup-card fade-up delay-2">
+      <div class="matchup-grid">
 
-      <!-- Team 1 -->
-      <div class="team-card">
-        <div class="team-card-head team1-head">
-          <span class="team-dot team1-dot"></span> Team 1
+        <!-- Team 1 -->
+        <div class="team-col">
+          <div class="team-header">
+            <span class="team-dot t1-dot"></span>
+            <span class="team-lbl t1">Team 1</span>
+          </div>
+          <div class="player-list t1-list" id="t1-list"></div>
         </div>
-        <div class="team-card-body">
-          <div class="field-group">
-            <label class="form-label" for="{{ form.team1_player1.id_for_label }}">Player 1</label>
-            <select name="{{ form.team1_player1.html_name }}"
-                    id="{{ form.team1_player1.id_for_label }}"
-                    class="form-select {% if form.team1_player1.errors %}is-invalid{% endif %}">
-              <option value="">— Select —</option>
-              {% for pk, label in form.team1_player1.field.choices %}
-                {% if pk %}
-                  <option value="{{ pk }}" {% if form.team1_player1.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.team1_player1.errors %}
-              <div class="invalid-feedback">{{ form.team1_player1.errors|join:", " }}</div>
-            {% endif %}
+
+        <!-- Team 2 -->
+        <div class="team-col">
+          <div class="team-header team-header-right">
+            <span class="team-dot t2-dot"></span>
+            <span class="team-lbl t2">Team 2</span>
           </div>
-          <div class="field-group doubles-field">
-            <label class="form-label" for="{{ form.team1_player2.id_for_label }}">Player 2</label>
-            <select name="{{ form.team1_player2.html_name }}"
-                    id="{{ form.team1_player2.id_for_label }}"
-                    class="form-select {% if form.team1_player2.errors %}is-invalid{% endif %}">
-              <option value="">— Select —</option>
-              {% for pk, label in form.team1_player2.field.choices %}
-                {% if pk %}
-                  <option value="{{ pk }}" {% if form.team1_player2.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.team1_player2.errors %}
-              <div class="invalid-feedback">{{ form.team1_player2.errors|join:", " }}</div>
-            {% endif %}
-          </div>
-          <div class="field-group">
-            <label class="form-label" for="{{ form.team1_score.id_for_label }}">Score</label>
-            <input type="number"
-                   name="{{ form.team1_score.html_name }}"
-                   id="{{ form.team1_score.id_for_label }}"
-                   value="{{ form.team1_score.value|default:'' }}"
-                   min="0"
-                   class="form-control {% if form.team1_score.errors %}is-invalid{% endif %}">
-            {% if form.team1_score.errors %}
-              <div class="invalid-feedback">{{ form.team1_score.errors|join:", " }}</div>
-            {% endif %}
-          </div>
+          <div class="player-list t2-list" id="t2-list"></div>
         </div>
+
       </div>
 
-      <!-- Team 2 -->
-      <div class="team-card">
-        <div class="team-card-head team2-head">
-          <span class="team-dot team2-dot"></span> Team 2
+      <!-- Score bar — full width, large direct inputs -->
+      <div class="score-bar">
+        <div class="score-block">
+          <span class="score-tag t1">Team 1</span>
+          <input type="number" name="team1_score" id="team1_score"
+                 value="{{ form.team1_score.value|default:'' }}"
+                 min="0" inputmode="numeric" placeholder="0" class="score-num">
         </div>
-        <div class="team-card-body">
-          <div class="field-group">
-            <label class="form-label" for="{{ form.team2_player1.id_for_label }}">Player 1</label>
-            <select name="{{ form.team2_player1.html_name }}"
-                    id="{{ form.team2_player1.id_for_label }}"
-                    class="form-select {% if form.team2_player1.errors %}is-invalid{% endif %}">
-              <option value="">— Select —</option>
-              {% for pk, label in form.team2_player1.field.choices %}
-                {% if pk %}
-                  <option value="{{ pk }}" {% if form.team2_player1.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.team2_player1.errors %}
-              <div class="invalid-feedback">{{ form.team2_player1.errors|join:", " }}</div>
-            {% endif %}
-          </div>
-          <div class="field-group doubles-field">
-            <label class="form-label" for="{{ form.team2_player2.id_for_label }}">Player 2</label>
-            <select name="{{ form.team2_player2.html_name }}"
-                    id="{{ form.team2_player2.id_for_label }}"
-                    class="form-select {% if form.team2_player2.errors %}is-invalid{% endif %}">
-              <option value="">— Select —</option>
-              {% for pk, label in form.team2_player2.field.choices %}
-                {% if pk %}
-                  <option value="{{ pk }}" {% if form.team2_player2.value == pk|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-            {% if form.team2_player2.errors %}
-              <div class="invalid-feedback">{{ form.team2_player2.errors|join:", " }}</div>
-            {% endif %}
-          </div>
-          <div class="field-group">
-            <label class="form-label" for="{{ form.team2_score.id_for_label }}">Score</label>
-            <input type="number"
-                   name="{{ form.team2_score.html_name }}"
-                   id="{{ form.team2_score.id_for_label }}"
-                   value="{{ form.team2_score.value|default:'' }}"
-                   min="0"
-                   class="form-control {% if form.team2_score.errors %}is-invalid{% endif %}">
-            {% if form.team2_score.errors %}
-              <div class="invalid-feedback">{{ form.team2_score.errors|join:", " }}</div>
-            {% endif %}
-          </div>
+        <span class="score-sep">&#8211;</span>
+        <div class="score-block">
+          <span class="score-tag t2">Team 2</span>
+          <input type="number" name="team2_score" id="team2_score"
+                 value="{{ form.team2_score.value|default:'' }}"
+                 min="0" inputmode="numeric" placeholder="0" class="score-num">
         </div>
       </div>
 
     </div>
 
-    <div class="form-actions fade-up delay-4">
-      <button type="submit" class="btn btn-primary">Record Game</button>
+    <!-- Validation message -->
+    <div class="val-msg" id="val-msg" style="display:none"></div>
+
+    <!-- Submit -->
+    <div class="form-actions fade-up delay-3">
+      <button type="submit" class="btn btn-primary" id="btn-save">Record Game</button>
+      <button type="submit" class="btn btn-ghost"   id="btn-add-another">Record &amp; Add Another</button>
       <a href="{% url 'home' %}" class="btn btn-ghost">Cancel</a>
     </div>
 
@@ -305,49 +393,174 @@
 
 {% block extra_js %}
 <script>
-  function toggleDoubles() {
-    const isDoubles = document.querySelector('input[name="game_type"]:checked')?.value === 'doubles';
-    document.querySelectorAll('.doubles-field').forEach(el => {
-      el.style.display = isDoubles ? '' : 'none';
+(function () {
+  const players = {{ players_json|safe }};
+
+  // Restore selections from a POST validation error round-trip
+  const initVals = {
+    t1p1: "{{ form.team1_player1.value|default:'' }}",
+    t1p2: "{{ form.team1_player2.value|default:'' }}",
+    t2p1: "{{ form.team2_player1.value|default:'' }}",
+    t2p2: "{{ form.team2_player2.value|default:'' }}",
+  };
+
+  // assignments: player id -> 0 (none) | 1 (T1) | 2 (T2)
+  const assignments = {};
+  players.forEach(p => {
+    const sid = String(p.id);
+    if (sid === initVals.t1p1 || sid === initVals.t1p2)      assignments[p.id] = 1;
+    else if (sid === initVals.t2p1 || sid === initVals.t2p2) assignments[p.id] = 2;
+    else                                                       assignments[p.id] = 0;
+  });
+
+  const teamPlayers = t => players.filter(p => assignments[p.id] === t);
+
+  // ── Player list rendering ──
+  function buildPlayerRow(p, team) {
+    const state = assignments[p.id];
+    const isSelected = state === team;
+    const isTaken    = state !== 0 && state !== team;
+    const teamFull   = teamPlayers(team).length >= 2;
+
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'pl-row';
+    if (isSelected) row.classList.add('pl-selected');
+    // Disable if taken by other team, or if team is full and this player isn't already on it
+    row.disabled = isTaken || (teamFull && !isSelected);
+
+    const dot = document.createElement('span');
+    dot.className = 'pl-dot';
+
+    const name = document.createElement('span');
+    name.className = 'pl-name';
+    name.textContent = p.display_name;
+
+    row.appendChild(dot);
+    row.appendChild(name);
+
+    row.addEventListener('click', () => {
+      if (isSelected) {
+        assignments[p.id] = 0;      // deselect
+      } else {
+        assignments[p.id] = team;   // select for this team
+      }
+      refresh();
     });
+
+    return row;
   }
 
-  document.querySelectorAll('input[name="game_type"]').forEach(el => {
-    el.addEventListener('change', toggleDoubles);
-  });
-  toggleDoubles();
-
-  const playerSelectIds = ['id_team1_player1','id_team1_player2','id_team2_player1','id_team2_player2'];
-  const allOptions = {};
-  playerSelectIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) allOptions[id] = Array.from(el.options).map(o => ({ value: o.value, text: o.text }));
-  });
-
-  function syncPlayerSelects() {
-    const selected = {};
-    playerSelectIds.forEach(id => {
-      const el = document.getElementById(id);
-      selected[id] = el ? el.value : '';
-    });
-    playerSelectIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const taken = new Set(playerSelectIds.filter(o => o !== id).map(o => selected[o]).filter(v => v !== ''));
-      const cur = selected[id];
-      el.innerHTML = '';
-      allOptions[id].forEach(({ value, text }) => {
-        if (!taken.has(value)) {
-          const opt = new Option(text, value, false, value === cur);
-          el.appendChild(opt);
-        }
-      });
-    });
+  function renderList(containerId, team) {
+    const container = document.getElementById(containerId);
+    container.replaceChildren(...players.map(p => buildPlayerRow(p, team)));
   }
 
-  playerSelectIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', syncPlayerSelects);
+  // ── Badge ──
+  function updateBadge() {
+    const t1n = teamPlayers(1).length;
+    const t2n = teamPlayers(2).length;
+    const badge = document.getElementById('game-type-badge');
+    if (t1n === 0 && t2n === 0) {
+      badge.textContent = 'Select players';
+      badge.className = 'game-type-badge';
+    } else if (t1n === 2 && t2n === 2) {
+      badge.textContent = 'Doubles';
+      badge.className = 'game-type-badge is-doubles';
+    } else {
+      badge.textContent = 'Singles';
+      badge.className = 'game-type-badge is-singles';
+    }
+  }
+
+  // ── Game type (implicit) ──
+  function computeGameType() {
+    return (teamPlayers(1).length === 2 && teamPlayers(2).length === 2) ? 'doubles' : 'singles';
+  }
+
+  // ── Hidden inputs ──
+  function syncHidden() {
+    const t1 = teamPlayers(1);
+    const t2 = teamPlayers(2);
+    document.getElementById('h-t1p1').value = t1[0] ? t1[0].id : '';
+    document.getElementById('h-t1p2').value = t1[1] ? t1[1].id : '';
+    document.getElementById('h-t2p1').value = t2[0] ? t2[0].id : '';
+    document.getElementById('h-t2p2').value = t2[1] ? t2[1].id : '';
+    document.getElementById('h-game-type').value = computeGameType();
+  }
+
+  // ── Validation ──
+  function getValidationError() {
+    const t1n = teamPlayers(1).length;
+    const t2n = teamPlayers(2).length;
+    if (t1n === 0 && t2n === 0) return null;
+    if (t1n === 0) return 'Team 1 has no players selected.';
+    if (t2n === 0) return 'Team 2 has no players selected.';
+    if (t1n !== t2n) {
+      const short = t1n < t2n ? 'Team 1' : 'Team 2';
+      return short + ' needs a second player for a doubles match.';
+    }
+    return null;
+  }
+
+  function updateValidation() {
+    const t1n = teamPlayers(1).length;
+    const t2n = teamPlayers(2).length;
+    const hasAny = t1n + t2n > 0;
+    const err = getValidationError();
+    const msg = document.getElementById('val-msg');
+    const btnSave = document.getElementById('btn-save');
+    const btnAdd  = document.getElementById('btn-add-another');
+
+    if (err && hasAny) {
+      msg.textContent = err;
+      msg.style.display = 'flex';
+      btnSave.disabled = true;
+      btnAdd.disabled  = true;
+    } else {
+      msg.style.display = 'none';
+      btnSave.disabled = false;
+      btnAdd.disabled  = false;
+    }
+  }
+
+  function refresh() {
+    renderList('t1-list', 1);
+    renderList('t2-list', 2);
+    updateBadge();
+    syncHidden();
+    updateValidation();
+  }
+
+  // ── Date ──
+  const hDate = document.getElementById('h-played-at');
+  const datePicker = document.getElementById('date-picker');
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  const dateVal = (hDate.value && /^\d{4}-\d{2}-\d{2}$/.test(hDate.value)) ? hDate.value : todayStr;
+  datePicker.value = dateVal;
+  hDate.value = dateVal;
+  datePicker.addEventListener('change', () => { hDate.value = datePicker.value; });
+
+  // ── Submit ──
+  document.getElementById('btn-save').addEventListener('click', () => {
+    document.getElementById('h-addanother').value = '';
   });
+  document.getElementById('btn-add-another').addEventListener('click', () => {
+    document.getElementById('h-addanother').value = '1';
+  });
+  document.getElementById('game-form').addEventListener('submit', e => {
+    const err = getValidationError();
+    if (err) {
+      e.preventDefault();
+      const msg = document.getElementById('val-msg');
+      msg.textContent = err;
+      msg.style.display = 'flex';
+    }
+  });
+
+  refresh();
+})();
 </script>
 {% endblock %}

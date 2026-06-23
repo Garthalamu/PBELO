@@ -11,7 +11,7 @@ from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -43,9 +43,9 @@ def _build_elo_chart(rating_changes):
         hovertemplate="%{x|%b %d, %Y}<br>Rating: %{y}<extra></extra>",
     ))
     fig.add_hline(
-        y=1200,
+        y=DEFAULT_DISPLAY_RATING,
         line=dict(color="#6c757d", width=1, dash="dot"),
-        annotation_text="Start (1200)",
+        annotation_text=f"Start ({DEFAULT_DISPLAY_RATING})",
         annotation_position="bottom right",
     )
     fig.update_layout(
@@ -192,11 +192,17 @@ def record_game(request):
             process_game(game)
 
             messages.success(request, "Game recorded and ratings updated.")
+            if request.POST.get("_addanother"):
+                return redirect("record_game")
             return redirect("home")
     else:
         form = RecordGameForm(initial={"played_at": timezone.now().date()})
 
-    return render(request, "tracker/record_game.html", {"form": form})
+    players_json = json.dumps([
+        {"id": p.pk, "display_name": p.display_name}
+        for p in Player.objects.order_by("first_name", "last_name", "nickname")
+    ])
+    return render(request, "tracker/record_game.html", {"form": form, "players_json": players_json})
 
 
 def create_player(request):
@@ -472,4 +478,5 @@ def player_detail(request, player_id):
         "doubles_show_best_streak": doubles_show_best_streak,
         "player_award": player_award,
         "has_chemistry": has_chemistry,
+        "default_rating": DEFAULT_DISPLAY_RATING,
     })

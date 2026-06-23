@@ -11,11 +11,7 @@ produces a proportionally larger rating shift, similar to the old log2 MOV.
 
 from openskill.models import PlackettLuce
 
-_model = PlackettLuce()
-
-# Default player (mu=25, sigma=25/3) has raw ordinal 0, which maps to 1200.
-DEFAULT_DISPLAY_RATING = 1200
-
+_model = PlackettLuce(margin=2.0)
 
 def ordinal(mu: float, sigma: float) -> float:
     """Raw OpenSkill ordinal — used internally for ranking comparisons."""
@@ -23,10 +19,12 @@ def ordinal(mu: float, sigma: float) -> float:
 
 
 def formatted_ordinal(mu: float, sigma: float) -> int:
-    """User-facing rating on a ~200–3000 scale, centred around 1200 for a default player."""
-    raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 1400 + 800
-    return round(max(200, min(3000, raw)))
+    """User-facing rating on a ~1000-3000 scale"""
+    raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 2000 + 1000
+    return round(max(1000, min(3000, raw)),2)
 
+# Default player (mu=25, sigma=25/3) has raw ordinal 0, which maps to 1200.
+DEFAULT_DISPLAY_RATING = round(formatted_ordinal(25.0, 25.0 / 3))
 
 def _r(mu: float, sigma: float):
     return _model.rating(mu=mu, sigma=sigma)
