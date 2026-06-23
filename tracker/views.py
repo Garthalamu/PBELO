@@ -227,10 +227,8 @@ def matches(request):
         elo_map = {rc.player_id: rc.delta for rc in game.rating_changes.all()}
         game_rows.append({
             "game": game,
-            "team1": t1,
-            "team2": t2,
-            "team1_delta": round(elo_map[t1[0].pk], 1) if t1 and t1[0].pk in elo_map else None,
-            "team2_delta": round(elo_map[t2[0].pk], 1) if t2 and t2[0].pk in elo_map else None,
+            "team1": [(p, round(elo_map[p.pk]) if p.pk in elo_map else None) for p in t1],
+            "team2": [(p, round(elo_map[p.pk]) if p.pk in elo_map else None) for p in t2],
         })
 
     return render(request, "tracker/matches.html", {"matches": game_rows})

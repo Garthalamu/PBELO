@@ -24,7 +24,7 @@ def ordinal(mu: float, sigma: float) -> float:
 
 def formatted_ordinal(mu: float, sigma: float) -> int:
     """User-facing rating on a ~200–3000 scale, centred around 1200 for a default player."""
-    raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 2800 + 256.59
+    raw = ((ordinal(mu, sigma) + 19.67) / 58.38) * 1400 + 800
     return round(max(200, min(3000, raw)))
 
 

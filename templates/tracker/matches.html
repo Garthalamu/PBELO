@@ -124,6 +124,12 @@
   }
   .mteam-right .mplayers { align-items: flex-end; }
 
+  .mplayer-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
   .mplayer-name {
     font-size: 0.88rem;
     font-weight: 600;
@@ -209,13 +215,13 @@
         <!-- Team 1 — left -->
         <div class="mteam mteam-left {% if row.game.winning_team == 1 %}mwinner{% else %}mloser{% endif %}">
           <div class="mplayers">
-            {% for p in row.team1 %}
-              <a href="{% url 'player_detail' p.pk %}" class="mplayer-name">{{ p.display_name }}</a>
+            {% for p, delta in row.team1 %}
+              <div class="mplayer-row">
+                <a href="{% url 'player_detail' p.pk %}" class="mplayer-name">{{ p.display_name }}</a>
+                {% if delta is not None %}<span class="melo {% if delta >= 0 %}pos{% else %}neg{% endif %}">{% if delta >= 0 %}+{% endif %}{{ delta }}</span>{% endif %}
+              </div>
             {% endfor %}
           </div>
-          {% if row.team1_delta is not None %}
-            <span class="melo {% if row.team1_delta >= 0 %}pos{% else %}neg{% endif %}">{% if row.team1_delta >= 0 %}+{% endif %}{{ row.team1_delta|floatformat:1 }}</span>
-          {% endif %}
         </div>
 
         <!-- Score -->
@@ -228,13 +234,13 @@
         <!-- Team 2 — right -->
         <div class="mteam mteam-right {% if row.game.winning_team == 2 %}mwinner{% else %}mloser{% endif %}">
           <div class="mplayers">
-            {% for p in row.team2 %}
-              <a href="{% url 'player_detail' p.pk %}" class="mplayer-name">{{ p.display_name }}</a>
+            {% for p, delta in row.team2 %}
+              <div class="mplayer-row">
+                <a href="{% url 'player_detail' p.pk %}" class="mplayer-name">{{ p.display_name }}</a>
+                {% if delta is not None %}<span class="melo {% if delta >= 0 %}pos{% else %}neg{% endif %}">{% if delta >= 0 %}+{% endif %}{{ delta }}</span>{% endif %}
+              </div>
             {% endfor %}
           </div>
-          {% if row.team2_delta is not None %}
-            <span class="melo {% if row.team2_delta >= 0 %}pos{% else %}neg{% endif %}">{% if row.team2_delta >= 0 %}+{% endif %}{{ row.team2_delta|floatformat:1 }}</span>
-          {% endif %}
         </div>
 
       </div>
