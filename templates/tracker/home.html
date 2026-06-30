@@ -3,28 +3,13 @@
 
 {% block extra_css %}
 <style>
-  .boards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-  @media (max-width: 760px) {
-    .boards-grid { grid-template-columns: 1fr; }
-  }
-
   .board-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem 0.85rem;
+    padding: 0.75rem 1.25rem 0.75rem;
     border-bottom: 1px solid var(--border);
-  }
-
-  .board-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.06em;
-    color: var(--txt);
+    gap: 1rem;
   }
 
   .board-count {
@@ -33,6 +18,45 @@
     color: var(--txt-3);
   }
 
+  /* ── Toggle ──────────────────────── */
+  .view-toggle {
+    position: relative;
+    display: inline-flex;
+    gap: 2px;
+    background: var(--surface-hi);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .view-btn {
+    position: relative;
+    z-index: 1;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: none;
+    background: none;
+    color: var(--txt-2);
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: 'Figtree', sans-serif;
+    transition: color 0.22s;
+    white-space: nowrap;
+  }
+  .view-btn.active { color: var(--accent); }
+  .view-slider {
+    position: absolute;
+    top: 3px;
+    height: calc(100% - 6px);
+    border-radius: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    pointer-events: none;
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
+                width 0.22s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ── Table ───────────────────────── */
   .board-row td:first-child { width: 48px; padding-left: 1.25rem; text-align: center; }
   .board-row td:last-child  { padding-right: 1.25rem; }
   .col-award { width: 1px; padding-left: 0 !important; padding-right: 0 !important; }
@@ -55,57 +79,43 @@
 
   .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
   .wl-sep  { color: var(--txt-3); margin: 0 1px; }
+  .col-elo { padding-right: 4px !important; }
 
-  .col-elo     { padding-right: 4px !important; }
-
-  @media (max-width: 760px) {
-    .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
-    .board-row td:last-child  { padding-right: 0.75rem; }
-    .data-table td { padding: 0.45rem 0.6rem; font-size: 0.875rem; }
-    .data-table th { padding: 0.4rem 0.6rem; }
-    .elo-val  { font-size: 0.875rem; }
-    .wl-stat  { font-size: 0.82rem; }
-
-    .player-link { font-size: 0.875rem; }
-    .rank { width: 22px; height: 22px; font-size: 0.72rem; }
-    .rank-num { font-size: 0.78rem; }
-    .name-full  { display: none; }
-    .name-short { display: inline; }
+  .last5 { display: inline-flex; gap: 3px; align-items: center; }
+  .l5-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
+  .l5-dot.win  { background: var(--win); }
+  .l5-dot.loss { background: var(--loss); }
+  .l5-dot.empty { background: var(--border); }
+  .col-last5 { padding-right: 0.35rem !important; }
+  .col-elo   { padding-left:  0.35rem !important; }
 
-  /* streak fire */
+  /* streak / chemistry icons */
   .lb-streak {
     position: relative;
     display: inline-flex;
     margin-left: 0.35rem;
     vertical-align: middle;
   }
-  .lb-streak i {
-    color: #fb923c;
-    font-size: 1.04rem;
-    line-height: 1;
-  }
+  .lb-streak i { color: #fb923c; font-size: 1.04rem; line-height: 1; }
 
-  /* chemistry flask */
   .lb-chemistry {
     display: inline-flex;
     margin-left: 0.35rem;
     vertical-align: middle;
   }
-  .lb-chemistry i {
-    color: #4ade80;
-    font-size: 1rem;
-    line-height: 1;
-  }
+  .lb-chemistry i { color: #4ade80; font-size: 1rem; line-height: 1; }
 
-  /* glint sweep — shine layer animates over the row base gradient */
+  /* glint sweep */
   @keyframes row-glint {
     0%   { background-position: -150% 0, 0 0; }
     26%  { background-position: 250% 0, 0 0; }
     100% { background-position: 250% 0, 0 0; }
   }
 
-  /* rank row gradients */
   .board-row.rank-1 {
     background:
       linear-gradient(105deg, transparent 25%, rgba(251,191,36,0.45) 50%, transparent 75%) no-repeat,
@@ -134,7 +144,6 @@
   .board-row.rank-2 td,
   .board-row.rank-3 td { position: relative; }
 
-  /* accent bar on ranked rows */
   .board-row.rank-1 td:first-child::before,
   .board-row.rank-2 td:first-child::before,
   .board-row.rank-3 td:first-child::before {
@@ -149,7 +158,7 @@
   .board-row.rank-3 td:first-child::before { background: var(--bronze); }
 
   .lb-scroll {
-    max-height: 60vh;
+    max-height: 70vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -159,14 +168,25 @@
   .lb-scroll::-webkit-scrollbar-track { background: transparent; }
   .lb-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
   .lb-scroll::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
-  @media (max-width: 760px) {
-    .lb-scroll { max-height: 40vh; }
-  }
   .lb-scroll thead th {
     position: sticky;
     top: 0;
     background: var(--surface);
     z-index: 1;
+  }
+
+  @media (max-width: 640px) {
+    .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
+    .board-row td:last-child  { padding-right: 0.75rem; }
+    .data-table td { padding: 0.45rem 0.6rem; font-size: 0.875rem; }
+    .data-table th { padding: 0.4rem 0.6rem; }
+    .elo-val   { font-size: 0.875rem; }
+    .wl-stat   { font-size: 0.82rem; }
+    .player-link { font-size: 0.875rem; }
+    .rank { width: 22px; height: 22px; font-size: 0.72rem; }
+    .rank-num { font-size: 0.78rem; }
+    .name-full  { display: none; }
+    .name-short { display: inline; }
   }
 </style>
 {% endblock %}
@@ -175,29 +195,31 @@
 {% load leaderboard_tags %}
 
 <div class="page-header fade-up">
-  <h1 class="page-title">Leaderboard</h1>
+  <h1 class="page-title" id="page-title" style="cursor:pointer;">Leaderboard</h1>
   <a href="{% url 'record_game' %}" class="btn btn-primary">+ Record Game</a>
 </div>
 
-<div class="boards-grid">
-
-  <!-- Singles -->
-  <section class="card fade-up delay-1">
-    <div class="board-head">
-      <span class="board-name">Singles</span>
-      {% if singles_board %}
-        <span class="board-count">{{ singles_board|length }} players</span>
-      {% endif %}
+<section class="card fade-up delay-1" style="max-width:700px; margin-left:auto; margin-right:auto;">
+  <div class="board-head">
+    <span class="board-count" id="board-count"></span>
+    <div class="view-toggle" id="type-toggle">
+      <div class="view-slider"></div>
+      <button class="view-btn" data-type="singles">Singles</button>
+      <button class="view-btn active" data-type="doubles">Doubles</button>
     </div>
+  </div>
+
+  <!-- Singles board -->
+  <div id="singles-board" style="display:none;">
     {% if singles_board %}
-      <div {% if singles_board|length > 10 %}class="lb-scroll"{% endif %}>
+      <div {% if singles_board|length > 12 %}class="lb-scroll"{% endif %}>
       <table class="data-table">
         <thead>
           <tr>
-            <th></th>
-            <th></th>
+            <th></th><th></th>
             <th>Player</th>
-            <th class="text-right">ELO</th>
+            <th class="text-right"></th>
+            <th>Rating</th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
@@ -216,9 +238,18 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
             </td>
             <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
+              <a href="{% url 'player_detail' player.pk %}" class="player-link">
+                <span class="name-full">{{ player.display_name }}</span>
+                <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
+              </a>
+              {% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
             </td>
-            <td class="text-right col-elo">
+            <td class="text-right col-last5">
+              <span class="last5">
+                {% for won in player.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}
+              </span>
+            </td>
+            <td class="col-elo">
               <span class="elo-val mono elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span>
             </td>
             <td class="text-right">
@@ -234,25 +265,19 @@
     {% else %}
       <div class="empty-state">No singles games recorded yet.</div>
     {% endif %}
-  </section>
+  </div>
 
-  <!-- Doubles -->
-  <section class="card fade-up delay-2">
-    <div class="board-head">
-      <span class="board-name">Doubles</span>
-      {% if doubles_board %}
-        <span class="board-count">{{ doubles_board|length }} players</span>
-      {% endif %}
-    </div>
+  <!-- Doubles board -->
+  <div id="doubles-board">
     {% if doubles_board %}
-      <div {% if doubles_board|length > 10 %}class="lb-scroll"{% endif %}>
+      <div {% if doubles_board|length > 12 %}class="lb-scroll"{% endif %}>
       <table class="data-table">
         <thead>
           <tr>
-            <th></th>
-            <th></th>
+            <th></th><th></th>
             <th>Player</th>
-            <th class="text-right">ELO</th>
+            <th class="text-right"></th>
+            <th>Rating</th>
             <th class="text-right">W / L</th>
           </tr>
         </thead>
@@ -271,9 +296,19 @@
               {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
             </td>
             <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link"><span class="name-full">{{ player.display_name }}</span><span class="name-short">{{ player.display_name|abbreviate_name }}</span></a>{% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}{% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
+              <a href="{% url 'player_detail' player.pk %}" class="player-link">
+                <span class="name-full">{{ player.display_name }}</span>
+                <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
+              </a>
+              {% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
+              {% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
             </td>
-            <td class="text-right col-elo">
+            <td class="text-right col-last5">
+              <span class="last5">
+                {% for won in player.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}
+              </span>
+            </td>
+            <td class="col-elo">
               <span class="elo-val mono elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span>
             </td>
             <td class="text-right">
@@ -289,15 +324,53 @@
     {% else %}
       <div class="empty-state">No doubles games recorded yet.</div>
     {% endif %}
-  </section>
-
-</div>
-
+  </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  document.querySelectorAll('.elo-countup').forEach(el => {
+(function () {
+  const counts = {
+    singles: {{ singles_board|length }},
+    doubles: {{ doubles_board|length }},
+  };
+
+  const singleDiv = document.getElementById('singles-board');
+  const doubleDiv = document.getElementById('doubles-board');
+  const countEl   = document.getElementById('board-count');
+
+  function showBoard(type) {
+    singleDiv.style.display = type === 'singles' ? '' : 'none';
+    doubleDiv.style.display = type === 'doubles' ? '' : 'none';
+    countEl.textContent = counts[type] + ' player' + (counts[type] !== 1 ? 's' : '');
+  }
+
+  // Toggle — same initSlider pattern as player detail page
+  const toggle = document.getElementById('type-toggle');
+  const slider = toggle.querySelector('.view-slider');
+  const btns   = toggle.querySelectorAll('.view-btn');
+
+  function moveSlider(btn) {
+    slider.style.left  = btn.offsetLeft + 'px';
+    slider.style.width = btn.offsetWidth + 'px';
+  }
+
+  slider.style.transition = 'none';
+  moveSlider(toggle.querySelector('.view-btn.active'));
+  requestAnimationFrame(() => { slider.style.transition = ''; });
+
+  btns.forEach(btn => btn.addEventListener('click', () => {
+    btns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    moveSlider(btn);
+    showBoard(btn.dataset.type);
+  }));
+
+  showBoard('doubles');
+
+  // ELO count-up (only for visible board on load)
+  document.querySelectorAll('#doubles-board .elo-countup').forEach(el => {
     const target = parseFloat(el.dataset.target);
     const duration = 2400;
     const start = performance.now();
@@ -312,14 +385,13 @@
     requestAnimationFrame(tick);
   });
 
-  function triggerGlint() {
+  // Glint on title click
+  document.getElementById('page-title').addEventListener('click', () => {
     const rows = document.querySelectorAll('.board-row.rank-1, .board-row.rank-2, .board-row.rank-3');
     rows.forEach(r => r.classList.remove('glinting'));
     document.body.getBoundingClientRect();
     rows.forEach(r => r.classList.add('glinting'));
-  }
-
-  document.querySelector('.page-title').style.cursor = 'pointer';
-  document.querySelector('.page-title').addEventListener('click', triggerGlint);
+  });
+})();
 </script>
 {% endblock %}

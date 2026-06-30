@@ -142,6 +142,9 @@ def home(request):
             if c.delta > 0: player.doubles_streak += 1
             else: break
 
+        player.singles_last5 = [c.delta > 0 for c in singles[-5:]]
+        player.doubles_last5 = [c.delta > 0 for c in doubles[-5:]]
+
     singles_board = sorted(
         [p for p in players if p.singles_games_count > 0],
         key=lambda p: p.singles_ordinal, reverse=True,
