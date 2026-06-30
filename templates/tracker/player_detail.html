@@ -741,6 +741,25 @@
 </div>
 {% endif %}
 
+<!-- Skill Distribution -->
+<div class="chart-section fade-up delay-5" style="margin-bottom:2rem;">
+  <div class="chart-head">
+    <span class="chart-head-title">Skill Distribution</span>
+    <div class="chart-toggles">
+      <div class="view-toggle" id="toggle-dist-tab">
+        <div class="view-slider"></div>
+        <button class="view-btn" data-tab="singles">Singles</button>
+        <button class="view-btn active" data-tab="doubles">Doubles</button>
+      </div>
+    </div>
+  </div>
+  <div id="dist-plot" style="height:240px;"></div>
+  <div style="padding:0.55rem 1.25rem;font-size:0.74rem;color:var(--txt-3);border-top:1px solid var(--border);display:flex;align-items:center;gap:0.45rem;">
+    <i class="bi bi-info-circle" style="flex-shrink:0;"></i>
+    Skill distribution vs. field average. Dashed line marks your current rating.
+  </div>
+</div>
+
 <!-- ELO Chart -->
 <div class="chart-section fade-up {% if h2h_rows or teammate_rows %}delay-5{% elif h2h_rows %}delay-4{% else %}delay-3{% endif %}">
   <div class="chart-head">
@@ -1035,6 +1054,99 @@
       document.getElementById(target).classList.add('active');
       const plot = document.querySelector('#' + target + ' .js-plotly-plot');
       if (plot) Plotly.Plots.resize(plot);
+    });
+  });
+
+  // ── Skill distribution chart ───────────────────────────────────────────────
+  const distSingles = {{ dist_singles_json|safe }};
+  const distDoubles = {{ dist_doubles_json|safe }};
+
+  const FIELD_COLOR = '#5a7296';
+
+  function ordSuffix(n) {
+    const s = ['th','st','nd','rd'];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+  }
+
+  function renderDistChart(data, playerColor, playerFill) {
+    const xs = [...data.player.x, ...data.field.x];
+    const center = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const halfSpan = (Math.max(...xs) - Math.min(...xs)) / 2 * 1.08;
+
+    const traces = [
+      {
+        x: data.player.x, y: data.player.y,
+        mode: 'lines', fill: 'tozeroy', fillcolor: playerFill,
+        line: { color: playerColor, width: 2 },
+        name: data.player.name,
+        hovertemplate: data.player.name + ': %{x:.0f}<extra></extra>',
+      },
+      {
+        x: data.field.x, y: data.field.y,
+        mode: 'lines', fill: 'tozeroy', fillcolor: 'rgba(90,114,150,0.12)',
+        line: { color: FIELD_COLOR, width: 2, dash: 'dot' },
+        name: 'Field Average',
+        hovertemplate: 'Field Average: %{x:.0f}<extra></extra>',
+      },
+    ];
+
+    const layout = Object.assign({}, DARK, {
+      xaxis: Object.assign({}, DARK.xaxis, {
+        range: [center - halfSpan, center + halfSpan],
+        title: { text: 'Rating', font: { color: '#5a7296', size: 11 } },
+      }),
+      yaxis: { visible: false, fixedrange: true },
+      margin: { l: 20, r: 20, t: 30, b: 55 },
+      showlegend: true,
+      legend: {
+        orientation: 'h', x: 0.5, xanchor: 'center',
+        y: 1.02, yanchor: 'bottom',
+        bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#90a8c8', family: 'Figtree, sans-serif', size: 12 },
+      },
+      hovermode: 'x unified',
+      shapes: [
+        {
+          type: 'line',
+          x0: data.player.ordinal, x1: data.player.ordinal,
+          y0: 0, y1: 1, yref: 'paper',
+          line: { color: playerColor, width: 1.5, dash: 'dash' },
+        },
+        {
+          type: 'line',
+          x0: data.field.ordinal, x1: data.field.ordinal,
+          y0: 0, y1: 1, yref: 'paper',
+          line: { color: FIELD_COLOR, width: 1.5, dash: 'dot' },
+        },
+      ],
+      annotations: data.player.percentile != null ? [{
+        xref: 'paper', yref: 'paper',
+        x: 0.98, y: 0.96,
+        xanchor: 'right', yanchor: 'top',
+        text: data.player.percentile + ordSuffix(data.player.percentile) + ' %ile',
+        showarrow: false,
+        font: { color: playerColor, size: 17, family: 'Bebas Neue, sans-serif' },
+      }] : [],
+    });
+
+    Plotly.react('dist-plot', traces, layout, { responsive: true, displayModeBar: false });
+  }
+
+  const distTabPill = initSlider('toggle-dist-tab');
+  Plotly.newPlot('dist-plot', [], {}, { responsive: true, displayModeBar: false });
+  renderDistChart(distDoubles, '#4ade80', 'rgba(74,222,128,0.14)');
+
+  distTabPill.btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      distTabPill.btns.forEach(b => b.classList.toggle('active', b === btn));
+      distTabPill.move(btn);
+      const isSingles = btn.dataset.tab === 'singles';
+      renderDistChart(
+        isSingles ? distSingles : distDoubles,
+        isSingles ? '#60a5fa' : '#4ade80',
+        isSingles ? 'rgba(96,165,250,0.14)' : 'rgba(74,222,128,0.14)',
+      );
     });
   });
 

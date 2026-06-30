@@ -590,6 +590,60 @@ def player_detail(request, player_id):
     elif player_award is None and has_streak:
         player_award = 'streak'
 
+    # Skill distribution curves
+    px_s, py_s = elo_gaussian_curve(player.singles_mu, player.singles_sigma)
+    px_d, py_d = elo_gaussian_curve(player.doubles_mu, player.doubles_sigma)
+
+    def _field_avg(players, mu_attr, sigma_attr):
+        qualified = [
+            p for p in players
+            if abs(getattr(p, sigma_attr) - DEFAULT_MU / 3) > 1e-6
+        ]
+        if not qualified:
+            return DEFAULT_MU, DEFAULT_MU / 3
+        mus = [getattr(p, mu_attr) for p in qualified]
+        sigs = [getattr(p, sigma_attr) for p in qualified]
+        return sum(mus) / len(mus), sum(sigs) / len(sigs)
+
+    avg_s_mu, avg_s_sigma = _field_avg(singles_ranked, "singles_mu", "singles_sigma")
+    avg_d_mu, avg_d_sigma = _field_avg(doubles_ranked, "doubles_mu", "doubles_sigma")
+    ax_s, ay_s = elo_gaussian_curve(avg_s_mu, avg_s_sigma)
+    ax_d, ay_d = elo_gaussian_curve(avg_d_mu, avg_d_sigma)
+
+    s_n = len(singles_ranked)
+    d_n = len(doubles_ranked)
+    s_pct = round((s_n - singles_rank) / s_n * 100) if singles_rank and s_n > 0 else None
+    d_pct = round((d_n - doubles_rank) / d_n * 100) if doubles_rank and d_n > 0 else None
+
+    dist_singles_json = json.dumps({
+        "player": {
+            "name": player.display_name,
+            "x": [round(v, 1) for v in px_s],
+            "y": [round(v, 6) for v in py_s],
+            "ordinal": round(rating_ordinal(player.singles_mu, player.singles_sigma)),
+            "percentile": s_pct,
+        },
+        "field": {
+            "x": [round(v, 1) for v in ax_s],
+            "y": [round(v, 6) for v in ay_s],
+            "ordinal": round(rating_ordinal(avg_s_mu, avg_s_sigma)),
+        },
+    })
+    dist_doubles_json = json.dumps({
+        "player": {
+            "name": player.display_name,
+            "x": [round(v, 1) for v in px_d],
+            "y": [round(v, 6) for v in py_d],
+            "ordinal": round(rating_ordinal(player.doubles_mu, player.doubles_sigma)),
+            "percentile": d_pct,
+        },
+        "field": {
+            "x": [round(v, 1) for v in ax_d],
+            "y": [round(v, 6) for v in ay_d],
+            "ordinal": round(rating_ordinal(avg_d_mu, avg_d_sigma)),
+        },
+    })
+
     return render(request, "tracker/player_detail.html", {
         "best_teammate": best_teammate,
         "best_teammate_wins": best_teammate_wins,
@@ -626,4 +680,6 @@ def player_detail(request, player_id):
         "has_chemistry": has_chemistry,
         "default_rating": DEFAULT_DISPLAY_RATING,
         "default_mu": DEFAULT_MU,
+        "dist_singles_json": dist_singles_json,
+        "dist_doubles_json": dist_doubles_json,
     })
