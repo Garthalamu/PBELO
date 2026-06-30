@@ -36,6 +36,10 @@ def skill_range(mu: float, sigma: float) -> tuple[float, float, float]:
 
 _SCALE_FACTOR = 1500 / 60  # linear derivative of _display_scale w.r.t. raw ordinal
 
+def display_params(mu: float, sigma: float) -> tuple[float, float]:
+    """Return (display_mu, display_sigma) — μ and σ in the formatted_ordinal display space."""
+    return _display_scale(mu), sigma * _SCALE_FACTOR
+
 def gaussian_curve(mu: float, sigma: float, n: int = 200) -> tuple[list[float], list[float]]:
     """Gaussian PDF in formatted_ordinal display space (unclamped), centred on μ."""
     d_mu = _display_scale(mu)

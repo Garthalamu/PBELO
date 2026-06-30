@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve, display_params as elo_display_params
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -321,22 +321,25 @@ def compare_data_api(request):
             return f"{p.first_name} {p.last_name[0]}."
         return p.display_name
 
+    d_mu1, d_sigma1 = elo_display_params(mu1, sigma1)
+    d_mu2, d_sigma2 = elo_display_params(mu2, sigma2)
+
     return JsonResponse({
         "p1": {
             "name": p1.display_name,
             "short_name": _short(p1),
             "curve": {"x": [round(v, 2) for v in x1], "y": [round(v, 6) for v in y1]},
             "rating": round(rating_ordinal(mu1, sigma1)),
-            "mu": round(mu1, 2),
-            "sigma": round(sigma1, 2),
+            "mu": round(d_mu1),
+            "sigma": round(d_sigma1),
         },
         "p2": {
             "name": p2.display_name,
             "short_name": _short(p2),
             "curve": {"x": [round(v, 2) for v in x2], "y": [round(v, 6) for v in y2]},
             "rating": round(rating_ordinal(mu2, sigma2)),
-            "mu": round(mu2, 2),
-            "sigma": round(sigma2, 2),
+            "mu": round(d_mu2),
+            "sigma": round(d_sigma2),
         },
     })
 
