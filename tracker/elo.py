@@ -36,9 +36,61 @@ def skill_range(mu: float, sigma: float) -> tuple[float, float, float]:
 
 _SCALE_FACTOR = 1500 / 60  # linear derivative of _display_scale w.r.t. raw ordinal
 
+def display_scale(mu: float) -> float:
+    """Public alias for the display-scale transform."""
+    return _display_scale(mu)
+
+
+def ordinal_display(mu: float, sigma: float) -> float:
+    """Unclamped display-scale ordinal (mu - 3σ transformed). Use for charts."""
+    return _display_scale(ordinal(mu, sigma))
+
+
 def display_params(mu: float, sigma: float) -> tuple[float, float]:
     """Return (display_mu, display_sigma) — μ and σ in the formatted_ordinal display space."""
     return _display_scale(mu), sigma * _SCALE_FACTOR
+
+
+def _kde_on_values(values: list[float], n: int = 200) -> tuple[list[float], list[float], float]:
+    """Core KDE over pre-computed display-space values. Returns (xs, ys, bandwidth)."""
+    count = len(values)
+    if count == 0:
+        return [], [], 100.0
+    mean = sum(values) / count
+    var = sum((x - mean) ** 2 for x in values) / count if count > 1 else 0.0
+    std = math.sqrt(var) if var > 0 else 0.0
+    h = max(1.06 * std * count ** (-0.2), 100.0)
+    x_lo = min(values) - 3.5 * h
+    x_hi = max(values) + 3.5 * h
+    xs = [x_lo + (x_hi - x_lo) * i / (n - 1) for i in range(n)]
+    coeff = 1.0 / (count * h * math.sqrt(2.0 * math.pi))
+    ys = [coeff * sum(math.exp(-0.5 * ((x - xi) / h) ** 2) for xi in values) for x in xs]
+    return xs, ys, h
+
+
+def kde_curve(mu_values: list[float], n: int = 200) -> tuple[list[float], list[float]]:
+    """Gaussian KDE of raw mu values evaluated in display space. Returns (xs, ys)."""
+    xs, ys, _ = _kde_on_values([_display_scale(mu) for mu in mu_values], n)
+    return xs, ys
+
+
+def kde_ordinals(ratings: list[tuple[float, float]], n: int = 200) -> tuple[list[float], list[float]]:
+    """Gaussian KDE over display-scale ordinals for a list of (mu, sigma) pairs."""
+    xs, ys, _ = _kde_on_values([_display_scale(ordinal(mu, sigma)) for mu, sigma in ratings], n)
+    return xs, ys
+
+
+def kde_percentile(x_val: float, ratings: list[tuple[float, float]]) -> float:
+    """Fraction of field with ordinal below x_val, computed via exact Gaussian KDE CDF."""
+    values = [_display_scale(ordinal(mu, sigma)) for mu, sigma in ratings]
+    n = len(values)
+    if n == 0:
+        return 0.5
+    mean = sum(values) / n
+    var = sum((x - mean) ** 2 for x in values) / n if n > 1 else 0.0
+    std = math.sqrt(var) if var > 0 else 0.0
+    h = max(1.06 * std * n ** (-0.2), 100.0)
+    return sum(0.5 * (1 + math.erf((x_val - xi) / (h * math.sqrt(2)))) for xi in values) / n
 
 def gaussian_curve(mu: float, sigma: float, n: int = 200) -> tuple[list[float], list[float]]:
     """Gaussian PDF in formatted_ordinal display space (unclamped), centred on μ."""

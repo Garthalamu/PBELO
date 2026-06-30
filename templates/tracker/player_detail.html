@@ -756,7 +756,7 @@
   <div id="dist-plot" style="height:240px;"></div>
   <div style="padding:0.55rem 1.25rem;font-size:0.74rem;color:var(--txt-3);border-top:1px solid var(--border);display:flex;align-items:center;gap:0.45rem;">
     <i class="bi bi-info-circle" style="flex-shrink:0;"></i>
-    Skill distribution vs. field average. Dashed line marks your current rating.
+    Shaded area shows your position in the field's rating distribution. Dashed line = your rating; dotted line = field average.
   </div>
 </div>
 
@@ -1069,65 +1069,74 @@
     return s[(v - 20) % 10] || s[v] || s[0];
   }
 
+  function interpY(xs, ys, x) {
+    const i = xs.findIndex(v => v >= x);
+    if (i <= 0) return ys[0] || 0;
+    if (i >= xs.length) return ys[ys.length - 1] || 0;
+    const t = (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+    return ys[i - 1] + t * (ys[i] - ys[i - 1]);
+  }
+
   function renderDistChart(data, playerColor, playerFill) {
-    const xs = [...data.player.x, ...data.field.x];
-    const center = (Math.min(...xs) + Math.max(...xs)) / 2;
-    const halfSpan = (Math.max(...xs) - Math.min(...xs)) / 2 * 1.08;
+    const fx = data.field.x, fy = data.field.y;
+    const pOrd = data.player.ordinal;
+
+    // Split KDE at player ordinal for left fill
+    const splitI = fx.findIndex(x => x >= pOrd);
+    const yAtSplit = interpY(fx, fy, pOrd);
+    const leftX = splitI > 0 ? [...fx.slice(0, splitI), pOrd] : [pOrd, pOrd];
+    const leftY = splitI > 0 ? [...fy.slice(0, splitI), yAtSplit] : [0, 0];
 
     const traces = [
+      // Filled area to the left of the player's ordinal
       {
-        x: data.player.x, y: data.player.y,
+        x: leftX, y: leftY,
         mode: 'lines', fill: 'tozeroy', fillcolor: playerFill,
-        line: { color: playerColor, width: 2 },
-        name: data.player.name,
-        hovertemplate: data.player.name + ': %{x:.0f}<extra></extra>',
+        line: { color: 'transparent', width: 0 },
+        hoverinfo: 'skip', showlegend: false,
       },
+      // Full field KDE outline
       {
-        x: data.field.x, y: data.field.y,
-        mode: 'lines', fill: 'tozeroy', fillcolor: 'rgba(90,114,150,0.12)',
-        line: { color: FIELD_COLOR, width: 2, dash: 'dot' },
-        name: 'Field Average',
-        hovertemplate: 'Field Average: %{x:.0f}<extra></extra>',
+        x: fx, y: fy,
+        mode: 'lines',
+        line: { color: FIELD_COLOR, width: 2 },
+        hovertemplate: 'Rating: %{x:.0f}<extra></extra>',
+        showlegend: false,
       },
     ];
 
+    const xPad = (Math.max(...fx) - Math.min(...fx)) * 0.04;
+    const annotations = data.player.percentile != null ? [{
+      xref: 'paper', yref: 'paper',
+      x: 0.98, y: 0.96,
+      xanchor: 'right', yanchor: 'top',
+      text: data.player.percentile + ordSuffix(data.player.percentile) + ' %ile',
+      showarrow: false,
+      font: { color: playerColor, size: 17, family: 'Bebas Neue, sans-serif' },
+    }] : [];
+
     const layout = Object.assign({}, DARK, {
       xaxis: Object.assign({}, DARK.xaxis, {
-        range: [center - halfSpan, center + halfSpan],
+        range: [Math.min(...fx) - xPad, Math.max(...fx) + xPad],
         title: { text: 'Rating', font: { color: '#5a7296', size: 11 } },
       }),
       yaxis: { visible: false, fixedrange: true },
-      margin: { l: 20, r: 20, t: 30, b: 55 },
-      showlegend: true,
-      legend: {
-        orientation: 'h', x: 0.5, xanchor: 'center',
-        y: 1.02, yanchor: 'bottom',
-        bgcolor: 'rgba(0,0,0,0)',
-        font: { color: '#90a8c8', family: 'Figtree, sans-serif', size: 12 },
-      },
-      hovermode: 'x unified',
+      margin: { l: 20, r: 20, t: 20, b: 55 },
+      showlegend: false,
+      hovermode: 'x',
       shapes: [
         {
           type: 'line',
-          x0: data.player.ordinal, x1: data.player.ordinal,
-          y0: 0, y1: 1, yref: 'paper',
-          line: { color: playerColor, width: 1.5, dash: 'dash' },
+          x0: pOrd, x1: pOrd, y0: 0, y1: 1, yref: 'paper',
+          line: { color: playerColor, width: 2, dash: 'dash' },
         },
         {
           type: 'line',
-          x0: data.field.ordinal, x1: data.field.ordinal,
-          y0: 0, y1: 1, yref: 'paper',
+          x0: data.field.ordinal, x1: data.field.ordinal, y0: 0, y1: 1, yref: 'paper',
           line: { color: FIELD_COLOR, width: 1.5, dash: 'dot' },
         },
       ],
-      annotations: data.player.percentile != null ? [{
-        xref: 'paper', yref: 'paper',
-        x: 0.98, y: 0.96,
-        xanchor: 'right', yanchor: 'top',
-        text: data.player.percentile + ordSuffix(data.player.percentile) + ' %ile',
-        showarrow: false,
-        font: { color: playerColor, size: 17, family: 'Bebas Neue, sans-serif' },
-      }] : [],
+      annotations,
     });
 
     Plotly.react('dist-plot', traces, layout, { responsive: true, displayModeBar: false });

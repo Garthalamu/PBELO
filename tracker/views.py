@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve, display_params as elo_display_params, simulate_game as elo_simulate_game
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve, display_params as elo_display_params, simulate_game as elo_simulate_game, kde_ordinals as elo_kde_ordinals, ordinal_display as elo_ordinal_display, kde_percentile as elo_kde_percentile
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -590,57 +590,50 @@ def player_detail(request, player_id):
     elif player_award is None and has_streak:
         player_award = 'streak'
 
-    # Skill distribution curves
-    px_s, py_s = elo_gaussian_curve(player.singles_mu, player.singles_sigma)
-    px_d, py_d = elo_gaussian_curve(player.doubles_mu, player.doubles_sigma)
-
-    def _field_avg(players, mu_attr, sigma_attr):
-        qualified = [
-            p for p in players
+    # Skill distribution
+    def _qualified_ratings(players, mu_attr, sigma_attr):
+        return [
+            (getattr(p, mu_attr), getattr(p, sigma_attr)) for p in players
             if abs(getattr(p, sigma_attr) - DEFAULT_MU / 3) > 1e-6
         ]
-        if not qualified:
-            return DEFAULT_MU, DEFAULT_MU / 3
-        mus = [getattr(p, mu_attr) for p in qualified]
-        sigs = [getattr(p, sigma_attr) for p in qualified]
-        return sum(mus) / len(mus), sum(sigs) / len(sigs)
 
-    avg_s_mu, avg_s_sigma = _field_avg(singles_ranked, "singles_mu", "singles_sigma")
-    avg_d_mu, avg_d_sigma = _field_avg(doubles_ranked, "doubles_mu", "doubles_sigma")
-    ax_s, ay_s = elo_gaussian_curve(avg_s_mu, avg_s_sigma)
-    ax_d, ay_d = elo_gaussian_curve(avg_d_mu, avg_d_sigma)
+    s_field_ratings = _qualified_ratings(singles_ranked, "singles_mu", "singles_sigma")
+    d_field_ratings = _qualified_ratings(doubles_ranked, "doubles_mu", "doubles_sigma")
 
-    s_n = len(singles_ranked)
-    d_n = len(doubles_ranked)
-    s_pct = round((s_n - singles_rank) / s_n * 100) if singles_rank and s_n > 0 else None
-    d_pct = round((d_n - doubles_rank) / d_n * 100) if doubles_rank and d_n > 0 else None
+    ax_s, ay_s = elo_kde_ordinals(s_field_ratings)
+    ax_d, ay_d = elo_kde_ordinals(d_field_ratings)
+
+    s_field_ordinal = round(sum(elo_ordinal_display(mu, sigma) for mu, sigma in s_field_ratings) / len(s_field_ratings)) if s_field_ratings else DEFAULT_DISPLAY_RATING
+    d_field_ordinal = round(sum(elo_ordinal_display(mu, sigma) for mu, sigma in d_field_ratings) / len(d_field_ratings)) if d_field_ratings else DEFAULT_DISPLAY_RATING
+
+    s_player_ord = elo_ordinal_display(player.singles_mu, player.singles_sigma)
+    d_player_ord = elo_ordinal_display(player.doubles_mu, player.doubles_sigma)
+
+    s_pct = round(elo_kde_percentile(s_player_ord, s_field_ratings) * 100) if s_field_ratings and singles_rank else None
+    d_pct = round(elo_kde_percentile(d_player_ord, d_field_ratings) * 100) if d_field_ratings and doubles_rank else None
 
     dist_singles_json = json.dumps({
         "player": {
             "name": player.display_name,
-            "x": [round(v, 1) for v in px_s],
-            "y": [round(v, 6) for v in py_s],
-            "ordinal": round(rating_ordinal(player.singles_mu, player.singles_sigma)),
+            "ordinal": round(s_player_ord),
             "percentile": s_pct,
         },
         "field": {
             "x": [round(v, 1) for v in ax_s],
             "y": [round(v, 6) for v in ay_s],
-            "ordinal": round(rating_ordinal(avg_s_mu, avg_s_sigma)),
+            "ordinal": s_field_ordinal,
         },
     })
     dist_doubles_json = json.dumps({
         "player": {
             "name": player.display_name,
-            "x": [round(v, 1) for v in px_d],
-            "y": [round(v, 6) for v in py_d],
-            "ordinal": round(rating_ordinal(player.doubles_mu, player.doubles_sigma)),
+            "ordinal": round(d_player_ord),
             "percentile": d_pct,
         },
         "field": {
             "x": [round(v, 1) for v in ax_d],
             "y": [round(v, 6) for v in ay_d],
-            "ordinal": round(rating_ordinal(avg_d_mu, avg_d_sigma)),
+            "ordinal": d_field_ordinal,
         },
     })
 
