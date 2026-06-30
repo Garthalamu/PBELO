@@ -120,6 +120,7 @@
       .nav-links {
         list-style: none;
         display: flex;
+        align-items: center;
         gap: 0.2rem;
       }
 
@@ -159,6 +160,67 @@
         flex-shrink: 0;
       }
 
+      /* ── NAV DROPDOWN ────────────────────── */
+      .nav-dropdown { position: relative; }
+
+      .nav-drop-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.38rem 0.85rem;
+        border-radius: 7px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: var(--txt-2);
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-family: "Figtree", sans-serif;
+        line-height: 1.6;
+        letter-spacing: 0.01em;
+        transition: color 0.15s, background 0.15s;
+        white-space: nowrap;
+      }
+      .nav-drop-btn:hover,
+      .nav-drop-btn.open { color: var(--txt); background: var(--surface-hi); }
+      .nav-drop-btn.active { color: var(--accent); background: var(--accent-dim); }
+
+      .drop-chevron {
+        width: 10px; height: 10px;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+      }
+      .nav-drop-btn.open .drop-chevron { transform: rotate(180deg); }
+
+      .drop-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        list-style: none;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.35rem;
+        min-width: 190px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        z-index: 300;
+      }
+      .drop-menu.open { display: block; }
+      .drop-menu a {
+        display: block;
+        padding: 0.5rem 0.85rem;
+        border-radius: 7px;
+        color: var(--txt-2);
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        transition: color 0.15s, background 0.15s;
+      }
+      .drop-menu a:hover { color: var(--txt); background: var(--surface-hi); opacity: 1; }
+      .drop-menu a.active { color: var(--accent); background: var(--accent-dim); }
+
       @media (max-width: 680px) {
         .nav-toggle {
           display: block;
@@ -185,6 +247,23 @@
         .site-nav {
           position: relative;
         }
+        .nav-dropdown { width: 100%; }
+        .nav-drop-btn {
+          width: 100%;
+          padding: 0.65rem 1rem;
+          border-radius: 8px;
+          justify-content: space-between;
+        }
+        .drop-menu {
+          position: static;
+          box-shadow: none;
+          border: none;
+          border-radius: 0;
+          background: transparent;
+          padding: 0.1rem 0 0.1rem 0.75rem;
+          min-width: 0;
+        }
+        .drop-menu a { padding: 0.55rem 1rem; }
       }
 
       /* ── MAIN ────────────────────────────── */
@@ -574,20 +653,6 @@
         </li>
         <li>
           <a
-            href="{% url 'matchup_calculator' %}"
-            class="{% if request.path == '/matchup/' %}active{% endif %}"
-            >Matchup Calculator</a
-          >
-        </li>
-        <li>
-          <a
-            href="{% url 'player_compare' %}"
-            class="{% if request.path == '/compare/' %}active{% endif %}"
-            >Compare</a
-          >
-        </li>
-        <li>
-          <a
             href="{% url 'record_game' %}"
             class="{% if request.path == '/record/' %}active{% endif %}"
             >Record Game</a
@@ -599,6 +664,28 @@
             class="{% if request.path == '/players/create/' %}active{% endif %}"
             >Create Player</a
           >
+        </li>
+        <li class="nav-dropdown">
+          <button
+            class="nav-drop-btn {% if request.path == '/matchup/' or request.path == '/compare/' %}active{% endif %}"
+            id="tools-btn"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Tools
+            <svg class="drop-chevron" viewBox="0 0 10 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1.5L5 5.5L9 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <ul class="drop-menu" id="tools-menu">
+            <li>
+              <a href="{% url 'matchup_calculator' %}" class="{% if request.path == '/matchup/' %}active{% endif %}">Matchup Calculator</a>
+            </li>
+            <li>
+              <a href="{% url 'player_compare' %}" class="{% if request.path == '/compare/' %}active{% endif %}">Compare</a>
+            </li>
+          </ul>
         </li>
         <li>
           <a href="{% url 'logout' %}" style="color: var(--txt-3);">Logout</a>
@@ -617,6 +704,22 @@
       const links = document.getElementById("nav-links");
       if (toggle)
         toggle.addEventListener("click", () => links.classList.toggle("open"));
+
+      const toolsBtn  = document.getElementById("tools-btn");
+      const toolsMenu = document.getElementById("tools-menu");
+      if (toolsBtn) {
+        toolsBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const open = toolsBtn.classList.toggle("open");
+          toolsMenu.classList.toggle("open", open);
+          toolsBtn.setAttribute("aria-expanded", open);
+        });
+        document.addEventListener("click", () => {
+          toolsBtn.classList.remove("open");
+          toolsMenu.classList.remove("open");
+          toolsBtn.setAttribute("aria-expanded", "false");
+        });
+      }
     </script>
 
     {% block extra_js %}{% endblock %}
