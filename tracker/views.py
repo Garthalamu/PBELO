@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve, display_params as elo_display_params
+from .elo import formatted_ordinal as rating_ordinal, process_game, DEFAULT_DISPLAY_RATING, DEFAULT_MU, predict_win as elo_predict_win, skill_range, gaussian_curve as elo_gaussian_curve, display_params as elo_display_params, simulate_game as elo_simulate_game
 from .forms import RecordGameForm, CreatePlayerForm
 from .models import RatingChange, Game, Player
 
@@ -280,6 +280,51 @@ def predict_win_api(request):
 
     p1, p2 = elo_predict_win(team1, team2)
     return JsonResponse({"t1": p1, "t2": p2})
+
+
+def simulate_outcome_api(request):
+    if not request.session.get("authenticated"):
+        return JsonResponse({"error": "Not authenticated"}, status=401)
+
+    t1_param = request.GET.get("t1", "")
+    t2_param = request.GET.get("t2", "")
+    game_type = request.GET.get("type", "singles")
+
+    try:
+        t1_ids = [int(x) for x in t1_param.split(",") if x.strip()]
+        t2_ids = [int(x) for x in t2_param.split(",") if x.strip()]
+        s1 = int(request.GET.get("s1", ""))
+        s2 = int(request.GET.get("s2", ""))
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Invalid parameters"}, status=400)
+
+    if not t1_ids or not t2_ids:
+        return JsonResponse({"error": "Teams must have at least one player"}, status=400)
+    if s1 == s2:
+        return JsonResponse({"error": "Tied scores not allowed"}, status=400)
+
+    players = {p.pk: p for p in Player.objects.filter(pk__in=t1_ids + t2_ids)}
+    if len(players) < len(set(t1_ids + t2_ids)):
+        return JsonResponse({"error": "One or more players not found"}, status=404)
+
+    mu_field = "doubles_mu" if game_type == "doubles" else "singles_mu"
+    sigma_field = "doubles_sigma" if game_type == "doubles" else "singles_sigma"
+
+    team1 = [(getattr(players[pid], mu_field), getattr(players[pid], sigma_field)) for pid in t1_ids]
+    team2 = [(getattr(players[pid], mu_field), getattr(players[pid], sigma_field)) for pid in t2_ids]
+
+    new_t1, new_t2 = elo_simulate_game(team1, team2, s1, s2)
+
+    def _entry(pid, old_mu_sigma, new_mu_sigma):
+        p = players[pid]
+        before = round(rating_ordinal(*old_mu_sigma))
+        after = round(rating_ordinal(*new_mu_sigma))
+        return {"name": p.display_name, "before": before, "delta": after - before, "after": after}
+
+    return JsonResponse({
+        "t1": [_entry(pid, old, new) for pid, old, new in zip(t1_ids, team1, new_t1)],
+        "t2": [_entry(pid, old, new) for pid, old, new in zip(t2_ids, team2, new_t2)],
+    })
 
 
 def player_compare(request):

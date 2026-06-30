@@ -131,6 +131,22 @@ def process_doubles(game) -> list[dict]:
     return changes
 
 
+def simulate_game(
+    team1: list[tuple[float, float]],
+    team2: list[tuple[float, float]],
+    score1: int,
+    score2: int,
+) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """Return new (mu, sigma) pairs for each team after a simulated game, without persisting."""
+    r1 = [_r(mu, sigma) for mu, sigma in team1]
+    r2 = [_r(mu, sigma) for mu, sigma in team2]
+    [new_r1, new_r2] = _model.rate([r1, r2], scores=[score1, score2])
+    return (
+        [(r.mu, r.sigma) for r in new_r1],
+        [(r.mu, r.sigma) for r in new_r2],
+    )
+
+
 def process_game(game) -> None:
     from .models import RatingChange
 

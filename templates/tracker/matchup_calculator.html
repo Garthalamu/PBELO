@@ -342,8 +342,8 @@
   .sim-divider.t1-div td { color: #60a5fa; }
   .sim-divider.t2-div td { color: #f87171; }
 
-  .delta-pos { color: var(--win); font-weight: 700; }
-  .delta-neg { color: var(--loss); font-weight: 700; }
+  .sim-table td.delta-pos { color: var(--win); font-weight: 700; }
+  .sim-table td.delta-neg { color: var(--loss); font-weight: 700; }
 
   .hidden { display: none !important; }
 
@@ -511,8 +511,9 @@
 
   function teamLabel(players) { return players.map(p => p.display_name).join(' & '); }
 
-  let _lastP1win = null;
   let _pendingFetch = null;
+  let _simController = null;
+  let _simDebounce = null;
 
   async function updateCalc() {
     const t1 = teamPlayers(1);
@@ -527,7 +528,7 @@
     if (!t1ok || !t2ok) {
       show('match-card', false);
       show('sim-card', false);
-      _lastP1win = null;
+      document.getElementById('sim-result').replaceChildren();
       return;
     }
 
@@ -552,13 +553,12 @@
 
     try {
       const resp = await fetch(
-        `/matchup/predict/?t1=${t1.map(p => p.id).join(',')}&t2=${t2.map(p => p.id).join(',')}&type=${type}`,
+        `{% url 'predict_win_api' %}?t1=${t1.map(p => p.id).join(',')}&t2=${t2.map(p => p.id).join(',')}&type=${type}`,
         { signal: controller.signal }
       );
       if (!resp.ok) return;
       const data = await resp.json();
       _pendingFetch = null;
-      _lastP1win = data.t1;
 
       document.getElementById('prob-pct1').textContent = (data.t1 * 100).toFixed(1) + '%';
       document.getElementById('prob-pct2').textContent = (data.t2 * 100).toFixed(1) + '%';
@@ -571,20 +571,41 @@
   }
 
   function updateRatingPreview() {
-    const t1    = teamPlayers(1);
-    const t2    = teamPlayers(2);
-    const field = ratingField();
-    const s1    = parseInt(document.getElementById('score-t1').value);
-    const s2    = parseInt(document.getElementById('score-t2').value);
-    const el    = document.getElementById('sim-result');
-    el.replaceChildren();
-    if (_lastP1win === null || isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) return;
+    const t1 = teamPlayers(1);
+    const t2 = teamPlayers(2);
+    const s1 = parseInt(document.getElementById('score-t1').value);
+    const s2 = parseInt(document.getElementById('score-t2').value);
+    const el = document.getElementById('sim-result');
 
-    const K    = 24;
-    const mov  = Math.log2(Math.abs(s1 - s2) + 1);
-    const res1 = s1 > s2 ? 1 : 0;
-    const d1   = K * mov * (res1 - _lastP1win);
-    const d2   = K * mov * ((1 - res1) - (1 - _lastP1win));
+    if (isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) {
+      el.replaceChildren();
+      return;
+    }
+
+    clearTimeout(_simDebounce);
+    _simDebounce = setTimeout(() => fetchSimulate(t1, t2, s1, s2), 250);
+  }
+
+  async function fetchSimulate(t1, t2, s1, s2) {
+    const type = gameType();
+    if (_simController) _simController.abort();
+    _simController = new AbortController();
+
+    try {
+      const resp = await fetch(
+        `{% url 'simulate_outcome_api' %}?t1=${t1.map(p => p.id).join(',')}&t2=${t2.map(p => p.id).join(',')}&type=${type}&s1=${s1}&s2=${s2}`,
+        { signal: _simController.signal }
+      );
+      if (!resp.ok) return;
+      const data = await resp.json();
+      renderSimResult(data);
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error('simulate fetch failed', e);
+    }
+  }
+
+  function renderSimResult(data) {
+    const el = document.getElementById('sim-result');
 
     const table = document.createElement('table');
     table.className = 'sim-table';
@@ -611,28 +632,27 @@
       tbody.appendChild(tr);
     }
 
-    function addPlayerRow(p, delta) {
-      const before = p[field];
+    function addPlayerRow(entry) {
       const tr = document.createElement('tr');
-      [p.display_name, Math.round(before),
-       (delta >= 0 ? '+' : '') + Math.round(delta),
-       Math.round(before + delta)
+      [entry.name, entry.before,
+       (entry.delta >= 0 ? '+' : '') + entry.delta,
+       entry.after
       ].forEach((val, i) => {
         const td = document.createElement('td');
         td.textContent = val;
-        if (i === 2) td.className = delta >= 0 ? 'delta-pos' : 'delta-neg';
+        if (i === 2) td.className = entry.delta >= 0 ? 'delta-pos' : 'delta-neg';
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
     }
 
     addDivider('Team 1', 't1-div');
-    t1.forEach(p => addPlayerRow(p, d1));
+    data.t1.forEach(addPlayerRow);
     addDivider('Team 2', 't2-div');
-    t2.forEach(p => addPlayerRow(p, d2));
+    data.t2.forEach(addPlayerRow);
 
     table.appendChild(tbody);
-    el.appendChild(table);
+    el.replaceChildren(table);
   }
 
   function refresh() {
