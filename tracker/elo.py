@@ -59,7 +59,7 @@ def _kde_on_values(values: list[float], n: int = 200) -> tuple[list[float], list
     mean = sum(values) / count
     var = sum((x - mean) ** 2 for x in values) / count if count > 1 else 0.0
     std = math.sqrt(var) if var > 0 else 0.0
-    h = max(1.06 * std * count ** (-0.2), 100.0)
+    h = max(1.06 * std * count ** (-0.2), 30.0)
     x_lo = min(values) - 3.5 * h
     x_hi = max(values) + 3.5 * h
     xs = [x_lo + (x_hi - x_lo) * i / (n - 1) for i in range(n)]
@@ -89,7 +89,7 @@ def kde_percentile(x_val: float, ratings: list[tuple[float, float]]) -> float:
     mean = sum(values) / n
     var = sum((x - mean) ** 2 for x in values) / n if n > 1 else 0.0
     std = math.sqrt(var) if var > 0 else 0.0
-    h = max(1.06 * std * n ** (-0.2), 100.0)
+    h = max(1.06 * std * n ** (-0.2), 30.0)
     return sum(0.5 * (1 + math.erf((x_val - xi) / (h * math.sqrt(2)))) for xi in values) / n
 
 def gaussian_curve(mu: float, sigma: float, n: int = 200) -> tuple[list[float], list[float]]:

@@ -622,6 +622,7 @@ def player_detail(request, player_id):
             "x": [round(v, 1) for v in ax_s],
             "y": [round(v, 6) for v in ay_s],
             "ordinal": s_field_ordinal,
+            "raw": [round(elo_ordinal_display(mu, sigma)) for mu, sigma in s_field_ratings],
         },
     })
     dist_doubles_json = json.dumps({
@@ -634,6 +635,7 @@ def player_detail(request, player_id):
             "x": [round(v, 1) for v in ax_d],
             "y": [round(v, 6) for v in ay_d],
             "ordinal": d_field_ordinal,
+            "raw": [round(elo_ordinal_display(mu, sigma)) for mu, sigma in d_field_ratings],
         },
     })
 
