@@ -677,4 +677,7 @@ def player_detail(request, player_id):
         "default_mu": DEFAULT_MU,
         "dist_singles_json": dist_singles_json,
         "dist_doubles_json": dist_doubles_json,
+        "heatmap_json": json.dumps(dict(
+            Counter(row["game"].played_at.strftime("%Y-%m-%d") for row in game_rows)
+        )),
     })

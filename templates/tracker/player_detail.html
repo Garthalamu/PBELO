@@ -81,12 +81,16 @@
     margin-bottom: 1rem;
   }
 
-  .stat-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  .kpi-heatmap-row {
+    display: flex;
     gap: 1rem;
     margin-bottom: 1.75rem;
+    align-items: stretch;
   }
+  .kpi-heatmap-row > * { flex: 1; }
+  .kpi-heatmap-row .stat-card { text-align: center; display: flex; flex-direction: column; }
+  .kpi-heatmap-row .stat-card .stat-sub { margin-top: auto; padding-top: 0.5rem; }
+  @media (max-width: 680px) { .kpi-heatmap-row { flex-direction: column; } }
 
   @media (max-width: 680px) {
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -559,6 +563,46 @@
     font-size: 0.85rem;
     font-weight: 600;
   }
+
+  /* ── HEATMAP ──────────────────────── */
+  .hm-months {
+    position: relative;
+    height: 14px;
+    margin-left: 18px;
+    margin-bottom: 3px;
+  }
+  .hm-months span {
+    position: absolute;
+    font-size: 0.58rem;
+    color: var(--txt-3);
+    white-space: nowrap;
+  }
+  .hm-body { display: flex; gap: 4px; }
+  .hm-days {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 10px;
+  }
+  .hm-days span {
+    font-size: 0.58rem;
+    color: var(--txt-3);
+    height: 9px;
+    line-height: 9px;
+    text-align: right;
+  }
+  .hm-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 9px);
+    grid-auto-flow: column;
+    gap: 2px;
+  }
+  .hm-cell {
+    width: 9px;
+    height: 9px;
+    border-radius: 1.5px;
+    background: var(--surface-hi);
+  }
 </style>
 {% endblock %}
 
@@ -643,8 +687,19 @@
 
 </div>
 
-<!-- Stat Cards Row 2 -->
-<div class="stat-grid-2 fade-up delay-2">
+<!-- Stat Cards Row 2 + Activity Heatmap -->
+<div class="kpi-heatmap-row fade-up delay-2">
+
+  <!-- Activity Heatmap -->
+  <div class="stat-card" style="overflow:visible;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="hm-months" id="hm-months"></div>
+    <div class="hm-body">
+      <div class="hm-days">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+      <div class="hm-grid" id="hm-grid"></div>
+    </div>
+  </div>
 
   <div class="stat-card ally {% if has_chemistry %}rank-chemistry{% endif %}">
     {% if has_chemistry %}<span class="award-corner chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
@@ -1057,6 +1112,60 @@
     });
   });
 
+  // ── Activity heatmap ──────────────────────────────────────────────────────
+  (function () {
+    const CELL = 9, GAP = 2, S = CELL + GAP;
+    const WEEKS = 20;
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const counts = {{ heatmap_json|safe }};
+
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(start.getDate() - WEEKS * 7 + 1);
+    start.setDate(start.getDate() - start.getDay()); // back to Sunday
+
+    const weeks = [];
+    const cur = new Date(start);
+    while (cur <= today) {
+      const week = [];
+      for (let d = 0; d < 7; d++) {
+        const ds = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+        week.push(cur > today ? null : { date: ds, n: counts[ds] || 0 });
+        cur.setDate(cur.getDate() + 1);
+      }
+      weeks.push(week);
+    }
+
+    // Month labels
+    const monthsEl = document.getElementById('hm-months');
+    monthsEl.style.width = `${weeks.length * S - GAP}px`;
+    weeks.forEach((week, wi) => {
+      if (!week[0]) return;
+      const d = new Date(week[0].date + 'T00:00:00');
+      if (wi === 0 || d.getDate() <= 7) {
+        const span = document.createElement('span');
+        span.textContent = MONTHS[d.getMonth()];
+        span.style.left = `${wi * S}px`;
+        monthsEl.appendChild(span);
+      }
+    });
+
+    // Cells
+    const gridEl = document.getElementById('hm-grid');
+    weeks.forEach(week => {
+      week.forEach(day => {
+        const cell = document.createElement('div');
+        cell.className = 'hm-cell';
+        if (day && day.n > 0) {
+          const alpha = day.n >= 5 ? 1 : day.n >= 3 ? 0.65 : 0.35;
+          cell.style.background = `rgba(74,222,128,${alpha})`;
+          cell.title = `${day.date}: ${day.n} game${day.n > 1 ? 's' : ''}`;
+        }
+        gridEl.appendChild(cell);
+      });
+    });
+  })();
+
   // ── Skill distribution chart ───────────────────────────────────────────────
   const distSingles = {{ dist_singles_json|safe }};
   const distDoubles = {{ dist_doubles_json|safe }};
@@ -1077,17 +1186,7 @@
     return ys[i - 1] + t * (ys[i] - ys[i - 1]);
   }
 
-  function scottsNbins(values) {
-    const n = values.length;
-    if (n < 2) return 5;
-    const mean = values.reduce((a, b) => a + b, 0) / n;
-    const std = Math.sqrt(values.reduce((s, x) => s + (x - mean) ** 2, 0) / n);
-    const binWidth = 3.5 * std * Math.pow(n, -1 / 3);
-    const range = Math.max(...values) - Math.min(...values);
-    return Math.max(5, Math.round(range / binWidth));
-  }
-
-  function renderDistChart(data, playerColor, playerFill) {
+function renderDistChart(data, playerColor, playerFill) {
     const fx = data.field.x, fy = data.field.y;
     const pOrd = data.player.ordinal;
 
@@ -1098,13 +1197,12 @@
     const leftY = splitI > 0 ? [...fy.slice(0, splitI), yAtSplit] : [0, 0];
 
     const traces = [
-      // Histogram of field ordinals (normalized to density to match KDE scale)
+      // Rug plot — one tick mark per player along the baseline
       {
         x: data.field.raw,
-        type: 'histogram',
-        histnorm: 'probability density',
-        nbinsx: scottsNbins(data.field.raw),
-        marker: { color: 'rgba(90,114,150,0.18)', line: { color: 'rgba(90,114,150,0.4)', width: 1 } },
+        y: new Array(data.field.raw.length).fill(0),
+        mode: 'markers',
+        marker: { symbol: 'line-ns', size: 10, color: 'rgba(90,114,150,0.7)', line: { color: 'rgba(90,114,150,0.7)', width: 1.5 } },
         hoverinfo: 'skip', showlegend: false,
       },
       // Filled area to the left of the player's ordinal
@@ -1118,7 +1216,7 @@
       {
         x: fx, y: fy,
         mode: 'lines',
-        line: { color: FIELD_COLOR, width: 2 },
+        line: { color: '#cbd5e1', width: 2.5 },
         hovertemplate: 'Rating: %{x:.0f}<extra></extra>',
         showlegend: false,
       },
@@ -1147,7 +1245,7 @@
         {
           type: 'line',
           x0: pOrd, x1: pOrd, y0: 0, y1: 1, yref: 'paper',
-          line: { color: playerColor, width: 2, dash: 'dash' },
+          line: { color: playerColor, width: 2.5, dash: 'dash' },
         },
         {
           type: 'line',
@@ -1163,7 +1261,7 @@
 
   const distTabPill = initSlider('toggle-dist-tab');
   Plotly.newPlot('dist-plot', [], {}, { responsive: true, displayModeBar: false });
-  renderDistChart(distDoubles, '#4ade80', 'rgba(74,222,128,0.14)');
+  renderDistChart(distDoubles, '#4ade80', 'rgba(74,222,128,0.28)');
 
   distTabPill.btns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1173,7 +1271,7 @@
       renderDistChart(
         isSingles ? distSingles : distDoubles,
         isSingles ? '#60a5fa' : '#4ade80',
-        isSingles ? 'rgba(96,165,250,0.14)' : 'rgba(74,222,128,0.14)',
+        isSingles ? 'rgba(96,165,250,0.28)' : 'rgba(74,222,128,0.28)',
       );
     });
   });
