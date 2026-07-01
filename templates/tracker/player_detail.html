@@ -6,185 +6,204 @@
 <style>
   {% if player_award == 'gold' %}
   body { background-image: radial-gradient(ellipse at 50% -5%, rgba(251,191,36,0.18) 0%, transparent 75%); }
-  .player-hero-name {
+  .strip-name {
     background: linear-gradient(135deg, #d97706 0%, #fbbf24 30%, #fde68a 52%, #fbbf24 70%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   {% elif player_award == 'silver' %}
   body { background-image: radial-gradient(ellipse at 50% -5%, rgba(148,163,184,0.18) 0%, transparent 75%); }
-  .player-hero-name {
+  .strip-name {
     background: linear-gradient(135deg, #64748b 0%, #94a3b8 30%, #e2e8f0 52%, #94a3b8 70%, #64748b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   {% elif player_award == 'bronze' %}
   body { background-image: radial-gradient(ellipse at 50% -5%, rgba(200,121,65,0.18) 0%, transparent 75%); }
-  .player-hero-name {
+  .strip-name {
     background: linear-gradient(135deg, #92400e 0%, #c87941 30%, #e8a876 52%, #c87941 70%, #92400e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   {% elif player_award == 'chemistry' %}
   body { background-image: radial-gradient(ellipse at 50% -5%, rgba(74,222,128,0.15) 0%, transparent 75%); }
-  .player-hero-name {
+  .strip-name {
     background: linear-gradient(135deg, #15803d 0%, #4ade80 30%, #bbf7d0 52%, #4ade80 70%, #15803d 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   {% elif player_award == 'streak' %}
   body { background-image: radial-gradient(ellipse at 50% -5%, rgba(249,115,22,0.15) 0%, transparent 75%); }
   {% endif %}
 
-  /* ── HERO ─────────────────────────── */
-  .player-hero {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
+  .singles-color { color: #60a5fa; }
+  .doubles-color { color: #4ade80; }
+
+  /* ── PLAYER STRIP (no card) ───────── */
+  .player-strip {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0 0 1.1rem;
   }
 
-  .player-hero-name {
+  .strip-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 3.5rem;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .strip-fullname {
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--txt-3);
+    margin-bottom: 0.1rem;
+  }
+
+  .strip-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4.5rem;
     letter-spacing: 0.04em;
     line-height: 1;
     color: var(--txt);
   }
 
-  .player-hero-since {
-    font-size: 0.78rem;
-    color: var(--txt-3);
-    margin-top: 0.35rem;
-  }
-
-  .player-hero-fullname {
-    font-family: 'Figtree', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--txt-3);
-    letter-spacing: 0;
-    margin-bottom: 0.15rem;
-  }
-
-  /* ── STAT GRID ────────────────────── */
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .kpi-heatmap-row {
+  .strip-meta {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-    align-items: stretch;
-  }
-  .kpi-heatmap-row > * { flex: 1; }
-  .kpi-heatmap-row .stat-card { text-align: center; display: flex; flex-direction: column; }
-  .kpi-heatmap-row .stat-card .stat-sub { margin-top: auto; padding-top: 0.5rem; }
-  @media (max-width: 680px) { .kpi-heatmap-row { flex-direction: column; } }
-
-  @media (max-width: 680px) {
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
-    .player-hero-name { font-size: 2.6rem; }
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+    flex-wrap: wrap;
   }
 
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.1rem 1.25rem;
-    position: relative;
-    overflow: hidden;
+  .strip-since { font-size: 0.74rem; color: var(--txt-3); }
+
+  /* ── STATS STRIP ─────────────────────── */
+  .stats-strip {
+    display: flex;
+    gap: 0;
+    padding: 0.75rem 0 0.9rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 0;
   }
 
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
+  .stat-col { flex: 1; min-width: 0; }
+  .stat-col.right-align .stat-rating { text-align: right; }
+  .stat-col.right-align .stat-wl     { text-align: right; }
+  .stat-col.right-align .stat-streak { text-align: right; }
+  .stat-col.right-align .stat-header { flex-direction: row-reverse; }
+
+  .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+    gap: 0.5rem;
   }
 
-  .stat-card.singles::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
-  .stat-card.doubles::before { background: linear-gradient(90deg, #34d399, #10b981); }
-  .stat-card.ally::before    { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
-  .stat-card.nemesis::before { background: linear-gradient(90deg, #f87171, #dc2626); }
-
-  .stat-card.rank-gold {
-    background:
-      linear-gradient(rgba(251,191,36,0.07), rgba(251,191,36,0.07)),
-      linear-gradient(110deg, transparent 44%, rgba(251,191,36,0.05) 55%, rgba(251,191,36,0.11) 60%, rgba(251,191,36,0.05) 65%, transparent 74%),
-      linear-gradient(112deg, transparent 12%, rgba(251,191,36,0.03) 19%, rgba(251,191,36,0.06) 23%, rgba(251,191,36,0.03) 27%, transparent 34%),
-      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-      var(--surface);
-    border-color: rgba(251,191,36,0.55);
-    box-shadow: 0 0 20px rgba(251,191,36,0.30), 0 0 6px rgba(251,191,36,0.15), inset 0 1px 0 rgba(255,255,255,0.16);
-  }
-  .stat-card.rank-silver {
-    background:
-      linear-gradient(rgba(148,163,184,0.07), rgba(148,163,184,0.07)),
-      linear-gradient(110deg, transparent 44%, rgba(148,163,184,0.05) 55%, rgba(148,163,184,0.11) 60%, rgba(148,163,184,0.05) 65%, transparent 74%),
-      linear-gradient(112deg, transparent 12%, rgba(148,163,184,0.03) 19%, rgba(148,163,184,0.06) 23%, rgba(148,163,184,0.03) 27%, transparent 34%),
-      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-      var(--surface);
-    border-color: rgba(148,163,184,0.55);
-    box-shadow: 0 0 20px rgba(148,163,184,0.28), 0 0 6px rgba(148,163,184,0.12), inset 0 1px 0 rgba(255,255,255,0.16);
-  }
-  .stat-card.rank-bronze {
-    background:
-      linear-gradient(rgba(200,121,65,0.07), rgba(200,121,65,0.07)),
-      linear-gradient(110deg, transparent 44%, rgba(200,121,65,0.05) 55%, rgba(200,121,65,0.11) 60%, rgba(200,121,65,0.05) 65%, transparent 74%),
-      linear-gradient(112deg, transparent 12%, rgba(200,121,65,0.03) 19%, rgba(200,121,65,0.06) 23%, rgba(200,121,65,0.03) 27%, transparent 34%),
-      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-      var(--surface);
-    border-color: rgba(200,121,65,0.55);
-    box-shadow: 0 0 20px rgba(200,121,65,0.30), 0 0 6px rgba(200,121,65,0.15), inset 0 1px 0 rgba(255,255,255,0.16);
+  .stat-mode-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--txt-3);
   }
 
-  .stat-card.rank-gold::before      { background: linear-gradient(90deg, var(--gold), rgba(251,191,36,0.3)); }
-  .stat-card.rank-silver::before    { background: linear-gradient(90deg, var(--silver), rgba(148,163,184,0.3)); }
-  .stat-card.rank-bronze::before    { background: linear-gradient(90deg, var(--bronze), rgba(200,121,65,0.3)); }
-  .stat-card.rank-chemistry {
-    background:
-      linear-gradient(rgba(74,222,128,0.07), rgba(74,222,128,0.07)),
-      linear-gradient(110deg, transparent 44%, rgba(74,222,128,0.05) 55%, rgba(74,222,128,0.11) 60%, rgba(74,222,128,0.05) 65%, transparent 74%),
-      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-      var(--surface);
-    border-color: rgba(74,222,128,0.45);
-    box-shadow: 0 0 20px rgba(74,222,128,0.22), 0 0 6px rgba(74,222,128,0.1), inset 0 1px 0 rgba(255,255,255,0.12);
+  .stat-rank-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    white-space: nowrap;
   }
-  .stat-card.rank-chemistry::before { background: linear-gradient(90deg, #4ade80, rgba(74,222,128,0.3)); }
-  .stat-card.rank-streak {
-    background:
-      linear-gradient(rgba(249,115,22,0.07), rgba(249,115,22,0.07)),
-      linear-gradient(110deg, transparent 44%, rgba(249,115,22,0.05) 55%, rgba(249,115,22,0.11) 60%, rgba(249,115,22,0.05) 65%, transparent 74%),
-      linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-      var(--surface);
-    border-color: rgba(249,115,22,0.45);
-    box-shadow: 0 0 20px rgba(249,115,22,0.22), 0 0 6px rgba(249,115,22,0.1), inset 0 1px 0 rgba(255,255,255,0.12);
-  }
-  .stat-card.rank-streak::before { background: linear-gradient(90deg, #f97316, rgba(249,115,22,0.3)); }
-  @keyframes ember-pulse {
-    0%   { box-shadow: 0 0 18px rgba(249,115,22,0.18), 0 0 5px rgba(249,115,22,0.08),  inset 0 1px 0 rgba(255,255,255,0.12); }
-    18%  { box-shadow: 0 0 30px rgba(249,115,22,0.42), 0 0 12px rgba(249,115,22,0.22), inset 0 1px 0 rgba(255,255,255,0.12); }
-    33%  { box-shadow: 0 0 22px rgba(249,115,22,0.26), 0 0 7px rgba(249,115,22,0.11),  inset 0 1px 0 rgba(255,255,255,0.12); }
-    52%  { box-shadow: 0 0 38px rgba(249,115,22,0.52), 0 0 16px rgba(249,115,22,0.30), inset 0 1px 0 rgba(255,255,255,0.12); }
-    67%  { box-shadow: 0 0 24px rgba(249,115,22,0.28), 0 0 8px rgba(249,115,22,0.13),  inset 0 1px 0 rgba(255,255,255,0.12); }
-    83%  { box-shadow: 0 0 32px rgba(249,115,22,0.40), 0 0 11px rgba(249,115,22,0.20), inset 0 1px 0 rgba(255,255,255,0.12); }
-    100% { box-shadow: 0 0 18px rgba(249,115,22,0.18), 0 0 5px rgba(249,115,22,0.08),  inset 0 1px 0 rgba(255,255,255,0.12); }
-  }
-  .stat-card.rank-streak { animation: ember-pulse 5.5s ease-in-out infinite; }
+  .stat-rank-badge.gold   { color: var(--gold); }
+  .stat-rank-badge.silver { color: var(--silver); }
+  .stat-rank-badge.bronze { color: var(--bronze); }
+  .stat-rank-badge.other  { color: var(--txt-3); }
 
-  .stat-label {
-    font-size: 0.7rem;
+  .stat-rating {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .stat-wl { font-size: 0.82rem; color: var(--txt-2); }
+
+  .stat-streak {
+    font-size: 0.65rem;
+    color: var(--txt-3);
+    margin-top: 0.2rem;
+  }
+
+
+  /* ── SPARKLINES ─────────────────────── */
+  .sparklines {
+    display: flex;
+    gap: 0;
+    padding: 0.75rem 0 0.9rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .spark-col { flex: 1; min-width: 0; }
+
+  .spark-sep {
+    width: 1px;
+    background: var(--border);
+    margin: 0 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .spark-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+    gap: 0.5rem;
+  }
+
+  .spark-mode-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--txt-3);
+  }
+
+  .spark-delta-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .spark-delta-val.pos { color: var(--win); }
+  .spark-delta-val.neg { color: var(--loss); }
+
+  .spark-chart { height: 68px; overflow: hidden; }
+
+  /* ── ACTIVITY STRIP ─────────────────── */
+  .activity-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    padding: 0.75rem 0 1.25rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .activity-hm { flex-shrink: 0; }
+
+  .activity-label {
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.09em;
@@ -192,112 +211,62 @@
     margin-bottom: 0.5rem;
   }
 
-  .stat-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    color: var(--txt);
+  .activity-sep {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    flex-shrink: 0;
   }
 
-  .stat-val.singles-color { color: #60a5fa; }
-  .stat-val.doubles-color { color: #34d399; }
+  .activity-social { flex: 1; display: flex; gap: 2.5rem; flex-wrap: wrap; }
 
-  .stat-sub {
-    font-size: 0.75rem;
+  .social-col { flex: 1; min-width: 110px; }
+
+  .social-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
     color: var(--txt-3);
-    margin-top: 0.3rem;
-  }
-
-  .stat-rank {
-    display: inline-flex;
+    margin-bottom: 0.35rem;
+    display: flex;
     align-items: center;
     gap: 0.3rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.95rem;
-    font-weight: 700;
-    padding: 0.2rem 0.35rem;
-    border-radius: 6px;
-    margin-left: 0.5rem;
-    vertical-align: middle;
   }
-  .stat-rank i { font-size: 1rem; }
 
-  .stat-rank.gold   { background: rgba(251,191,36,0.18); color: var(--gold);   border: 1px solid rgba(251,191,36,0.35); }
-  .stat-rank.silver { background: rgba(148,163,184,0.15); color: var(--silver); border: 1px solid rgba(148,163,184,0.3); }
-  .stat-rank.bronze { background: rgba(200,121,65,0.18); color: var(--bronze);  border: 1px solid rgba(200,121,65,0.35); }
-  .stat-rank.other  { background: var(--surface-hi); color: var(--txt-2); }
-
-  .award-corner {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.7rem;
-    font-size: 1.5rem;
-    line-height: 1;
-    opacity: 0.9;
-  }
-  .award-corner.gold      { color: var(--gold); }
-  .award-corner.silver    { color: var(--silver); }
-  .award-corner.bronze    { color: var(--bronze); }
-  .award-corner.chemistry { color: #4ade80; }
-  .award-corner.streak    { color: #f97316; display: flex; align-items: center; gap: 0.1rem; font-size: 1.2rem; }
-  .award-corner.streak .streak-num { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700; }
-
-  .social-name {
-    font-size: 1.1rem;
+  .social-name-link {
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--txt);
     text-decoration: none;
-    display: inline-block;
-    margin-bottom: 0.25rem;
+    display: block;
+    margin-bottom: 0.15rem;
+    line-height: 1.2;
   }
-  .social-name:hover { color: var(--accent); opacity: 1; }
+  .social-name-link:hover { color: var(--accent); opacity: 1; }
+  .social-name-link.nemesis { color: var(--loss); }
 
-  .stat-card.ally,
-  .stat-card.nemesis {
-    padding: 0.65rem 1rem;
-  }
-  .stat-card.ally .stat-label,
-  .stat-card.nemesis .stat-label {
-    margin-bottom: 0.2rem;
-  }
-  .stat-card.ally .social-name,
-  .stat-card.nemesis .social-name {
-    margin-bottom: 0.05rem;
-  }
-  .stat-card.ally .stat-sub,
-  .stat-card.nemesis .stat-sub {
-    font-size: 0.7rem;
-  }
+  .social-detail { font-size: 0.74rem; color: var(--txt-3); }
 
-  /* ── WIN STREAK ─────────────────────*/
-  .wl-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .streak-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.15rem;
-    line-height: 1;
-  }
-  .streak-badge i {
-    color: #fb923c;
-    font-size: 1rem;
-  }
-  .streak-badge .streak-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--txt-2);
-  }
+  /* ── TABLES ROW ─────────────────────── */
+  .tables-row { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+  .tables-row.two-col { grid-template-columns: 1fr 1fr; }
 
-  /* ── NAME ABBREVIATION ──────────────*/
+  /* ── NAME ABBREVIATION ──────────────── */
   .name-short { display: none; }
   @media (max-width: 480px) {
     .name-full  { display: none; }
     .name-short { display: inline; }
+  }
+
+  /* ── MOBILE ─────────────────────────── */
+  @media (max-width: 700px) {
+    .strip-name   { font-size: 3rem; }
+    .strip-avatar { width: 64px; height: 64px; font-size: 1.6rem; }
+    .stat-rating  { font-size: 2.4rem; }
+    .activity-sep   { display: none; }
+    .activity-social { gap: 1rem; }
+    .tables-row.two-col { grid-template-columns: 1fr; }
   }
 
   /* ── CHART SECTION ────────────────── */
@@ -319,19 +288,10 @@
     gap: 1rem;
   }
 
-  .chart-toggles {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    margin-left: auto;
-  }
+  .chart-toggles { display: flex; gap: 0.6rem; align-items: center; margin-left: auto; }
 
   @media (max-width: 500px) {
-    .chart-toggles {
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.4rem;
-    }
+    .chart-toggles { flex-direction: column; align-items: flex-end; gap: 0.4rem; }
   }
 
   .chart-head-title {
@@ -347,55 +307,35 @@
   .tab-btn {
     padding: 0.3rem 0.8rem;
     border-radius: 6px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    background: none;
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; background: none;
     border: 1px solid var(--border);
-    color: var(--txt-2);
-    transition: all 0.15s;
+    color: var(--txt-2); transition: all 0.15s;
   }
-  .tab-btn.active, .tab-btn:hover {
-    background: var(--accent-dim);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+  .tab-btn.active, .tab-btn:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-  /* Sliding pill toggle */
   .view-toggle {
-    position: relative;
-    display: inline-flex;
-    gap: 2px;
-    background: var(--surface-hi);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 3px;
+    position: relative; display: inline-flex; gap: 2px;
+    background: var(--surface-hi); border: 1px solid var(--border);
+    border-radius: 8px; padding: 3px;
   }
   .view-btn {
-    position: relative;
-    z-index: 1;
+    position: relative; z-index: 1;
     padding: 0.25rem 0.75rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    border: none;
-    background: none;
-    color: var(--txt-2);
-    cursor: pointer;
-    border-radius: 6px;
-    transition: color 0.22s;
-    white-space: nowrap;
+    font-size: 0.78rem; font-weight: 700;
+    border: none; background: none;
+    color: var(--txt-2); cursor: pointer;
+    border-radius: 6px; transition: color 0.22s; white-space: nowrap;
   }
   .view-btn.active { color: var(--accent); }
   .view-slider {
-    position: absolute;
-    top: 3px;
+    position: absolute; top: 3px;
     height: calc(100% - 6px);
     border-radius: 6px;
     background: var(--accent-dim);
     border: 1px solid var(--accent);
     pointer-events: none;
-    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
-                width 0.22s cubic-bezier(0.4,0,0.2,1);
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1), width 0.22s cubic-bezier(0.4,0,0.2,1);
   }
 
   .tab-pane { display: none; padding: 1.25rem; }
@@ -404,51 +344,34 @@
   /* ── GAME HISTORY FEED ───────────────*/
   .history-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 0.04em;
-    color: var(--txt);
-    margin-bottom: 1.25rem;
+    font-size: 1.5rem; letter-spacing: 0.04em;
+    color: var(--txt); margin-bottom: 1.25rem;
   }
 
-  .history-filter-bar {
-    display: flex;
-    gap: 0.4rem;
-    margin-bottom: 1rem;
-  }
+  .history-filter-bar { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
 
   .filter-btn {
-    padding: 0.35rem 0.9rem;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--txt-2);
-    transition: all 0.15s;
+    padding: 0.35rem 0.9rem; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--border); background: none;
+    color: var(--txt-2); transition: all 0.15s;
     font-family: 'Figtree', sans-serif;
   }
   .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
   .filter-btn:hover:not(.active) { border-color: var(--border-hi); color: var(--txt); background: var(--surface-hi); }
 
   .type-pill {
-    font-size: 0.6rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    flex-shrink: 0;
+    font-size: 0.6rem; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.15rem 0.5rem; border-radius: 4px; flex-shrink: 0;
   }
   .type-pill.singles { background: rgba(96,165,250,0.15); color: #60a5fa; }
   .type-pill.doubles { background: rgba(74,222,128,0.15); color: #4ade80; }
 
   /* ── H2H SCROLL ────────────────────── */
   .h2h-scroll {
-    max-height: 13rem;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-hi) transparent;
+    max-height: 13rem; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--border-hi) transparent;
   }
   .h2h-scroll::-webkit-scrollbar { width: 4px; }
   .h2h-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -460,17 +383,13 @@
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 14px;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    padding: 0.5rem 0.75rem;
-    overflow: hidden;
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 0.5rem 0.75rem; overflow: hidden;
   }
 
   .hist-date-header {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.08em;
-    color: var(--txt);
+    font-size: 1rem; letter-spacing: 0.08em; color: var(--txt);
     background: rgba(255,255,255,0.06);
     border-top: 1px solid rgba(255,255,255,0.08);
     border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -481,36 +400,27 @@
   .hist-date-header:last-child  { margin-bottom: -0.5rem; border-bottom: none; }
 
   .hist-entry {
-    padding: 0.45rem 0.5rem;
-    border-radius: 10px;
-    margin-bottom: 0.15rem;
-    transition: background 0.15s;
+    padding: 0.45rem 0.5rem; border-radius: 10px;
+    margin-bottom: 0.15rem; transition: background 0.15s;
   }
   .hist-entry:hover { background: var(--surface-hi); }
-
-
 
   .hist-versus {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 0.35rem 0.65rem;
+    align-items: center; gap: 0.35rem 0.65rem;
   }
 
   .hteam { display: flex; flex-direction: column; gap: 0.15rem; }
   .hteam-left  { align-items: flex-start; }
   .hteam-right { align-items: flex-end; }
-
   .hplayers { display: flex; flex-direction: column; gap: 0.05rem; }
   .hteam-right .hplayers { align-items: flex-end; }
 
   .hplayer-name, .hplayer-self {
-    font-size: 0.88rem;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: color 0.12s;
-    line-height: 1.3;
-    color: var(--txt);
+    font-size: 0.88rem; font-weight: 600;
+    white-space: nowrap; transition: color 0.12s;
+    line-height: 1.3; color: var(--txt);
   }
   .hplayer-name { text-decoration: none; }
   .hplayer-name:hover { color: var(--accent); opacity: 1; }
@@ -518,24 +428,15 @@
   .hloss .hplayer-name, .hloss .hplayer-self { color: var(--loss); }
   .hloser .hplayer-name { color: var(--txt-2); }
 
-  .helo {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 700;
-    line-height: 1;
-  }
+  .helo { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700; line-height: 1; }
   .helo.pos { color: var(--win); }
   .helo.neg { color: var(--loss); }
 
   .hscore {
-    display: flex;
-    align-items: center;
-    gap: 0.15rem;
+    display: flex; align-items: center; gap: 0.15rem;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.55rem;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    white-space: nowrap;
+    font-size: 1.55rem; letter-spacing: 0.04em;
+    line-height: 1; white-space: nowrap;
   }
   .hscore-num { color: var(--txt-3); min-width: 1.05rem; text-align: center; }
   .hscore-num.win-score  { color: var(--win); }
@@ -543,261 +444,188 @@
   .hscore-sep { color: var(--txt-3); font-size: 1rem; }
 
   /* ── H2H COMPACT TABLE ───────────────*/
-  .h2h-sticky-head th {
-    position: sticky;
-    top: 0;
-    background: var(--surface);
-    z-index: 1;
-  }
-  .h2h-table th {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.62rem;
-  }
-  .h2h-table td {
-    padding: 0.38rem 0.75rem;
-    font-size: 0.8rem;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .h2h-table td:first-child {
-    font-family: 'Figtree', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
+  .h2h-sticky-head th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .h2h-table th { padding: 0.35rem 0.75rem; font-size: 0.62rem; }
+  .h2h-table td { padding: 0.38rem 0.75rem; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+  .h2h-table td:first-child { font-family: 'Figtree', sans-serif; font-size: 0.85rem; font-weight: 600; }
 
   /* ── HEATMAP ──────────────────────── */
-  .hm-months {
-    position: relative;
-    height: 14px;
-    margin-left: 18px;
-    margin-bottom: 3px;
-  }
-  .hm-months span {
-    position: absolute;
-    font-size: 0.58rem;
-    color: var(--txt-3);
-    white-space: nowrap;
-  }
+  .hm-months { position: relative; height: 14px; margin-left: 18px; margin-bottom: 3px; }
+  .hm-months span { position: absolute; font-size: 0.58rem; color: var(--txt-3); white-space: nowrap; }
   .hm-body { display: flex; gap: 4px; }
-  .hm-days {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    width: 10px;
-  }
-  .hm-days span {
-    font-size: 0.58rem;
-    color: var(--txt-3);
-    height: 9px;
-    line-height: 9px;
-    text-align: right;
-  }
-  .hm-grid {
-    display: grid;
-    grid-template-rows: repeat(7, 9px);
-    grid-auto-flow: column;
-    gap: 2px;
-  }
-  .hm-cell {
-    width: 9px;
-    height: 9px;
-    border-radius: 1.5px;
-    background: var(--surface-hi);
-  }
+  .hm-days { display: flex; flex-direction: column; gap: 2px; width: 10px; }
+  .hm-days span { font-size: 0.58rem; color: var(--txt-3); height: 9px; line-height: 9px; text-align: right; }
+  .hm-grid { display: grid; grid-template-rows: repeat(7, 9px); grid-auto-flow: column; gap: 2px; }
+  .hm-cell { width: 9px; height: 9px; border-radius: 1.5px; background: var(--surface-hi); }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Hero -->
-<div class="player-hero fade-up">
-  <div>
-    {% if player.nickname and player.first_name %}<div class="player-hero-fullname">{{ player.first_name }} {{ player.last_name }}</div>{% endif %}
-    <div class="player-hero-name" id="hero-name" {% if player_award %}style="cursor:pointer;"{% endif %}>{{ player.display_name }}</div>
-    <div class="player-hero-since">{% if first_game_date %}First game {{ first_game_date|date:"F j, Y" }}{% endif %}</div>
+<!-- Player Strip -->
+<div class="player-strip fade-up">
+  <div class="strip-avatar" data-name="{{ player.display_name }}"></div>
+  <div class="strip-identity">
+    {% if player.nickname and player.first_name %}<div class="strip-fullname">{{ player.first_name }} {{ player.last_name }}</div>{% endif %}
+    <div class="strip-name" id="hero-name" {% if player_award %}style="cursor:pointer;"{% endif %}>{{ player.display_name }}</div>
+    <div class="strip-meta">
+      {% if first_game_date %}<span class="strip-since">Since {{ first_game_date|date:"M j, Y" }}</span>{% endif %}
+    </div>
   </div>
-  <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">← Leaderboard</a>
 </div>
 
-<!-- Stat Cards Row 1 -->
-<div class="stat-grid fade-up delay-1">
-
-  <div class="stat-card singles {% if singles_rank == 1 %}rank-gold{% elif singles_rank == 2 %}rank-silver{% elif singles_rank == 3 %}rank-bronze{% endif %}">
-    {% if singles_rank == 1 %}<span class="award-corner gold"><i class="bi bi-award-fill"></i></span>
-    {% elif singles_rank == 2 %}<span class="award-corner silver"><i class="bi bi-award-fill"></i></span>
-    {% elif singles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
-    {% endif %}
-    <div class="stat-label">Singles ELO</div>
+<!-- Stats Strip -->
+<div class="stats-strip fade-up delay-1">
+  <div class="stat-col right-align">
+    <div class="stat-header">
+      <span class="stat-mode-lbl">Singles</span>
+      {% if singles_wins or singles_losses %}
+      <span class="stat-rank-badge {% if singles_rank == 1 %}gold{% elif singles_rank == 2 %}silver{% elif singles_rank == 3 %}bronze{% else %}other{% endif %}">
+        {% if singles_rank <= 3 %}<i class="bi bi-trophy-fill"></i>{% endif %}
+        #{{ singles_rank }}
+      </span>
+      {% endif %}
+    </div>
     {% if singles_wins or singles_losses %}
-      <div class="stat-val singles-color">
-        <span class="elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:1 }}</span>
-        {% if singles_rank > 3 %}<span class="stat-rank other">#{{ singles_rank }}</span>{% endif %}
-      </div>
-      {% if singles_show_peak %}<div class="stat-sub">Peak {{ singles_peak_ordinal }}</div>{% endif %}
+      <div class="stat-rating singles-color"><span class="elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span></div>
+      <div class="stat-wl"><span class="win-color">{{ singles_wins }}W</span><span style="color:var(--txt-3)"> – </span><span class="loss-color">{{ singles_losses }}L</span></div>
+      {% if singles_streak >= 3 %}<div class="stat-streak"><i class="bi bi-fire" style="color:#fb923c;"></i> {{ singles_streak }} win streak</div>{% endif %}
     {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No singles games</div>
+      <div class="stat-rating" style="color:var(--txt-3);">—</div>
+      <div class="stat-wl" style="color:var(--txt-3)">No games</div>
     {% endif %}
   </div>
-
-  <div class="stat-card singles {% if singles_streak >= 3 %}rank-streak{% endif %}">
-    {% if singles_streak >= 3 %}<span class="award-corner streak"><span class="streak-num">{{ singles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
-    <div class="stat-label">Singles W/L</div>
-    {% if singles_wins or singles_losses %}
-      <div class="stat-val wl-row">
-        <span><span class="win-color">{{ singles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ singles_losses }}</span></span>
-      </div>
-      {% if singles_show_best_streak %}<div class="stat-sub">Best streak {{ singles_best_streak }}</div>{% endif %}
-    {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No singles games</div>
-    {% endif %}
-  </div>
-
-  <div class="stat-card doubles {% if doubles_rank == 1 %}rank-gold{% elif doubles_rank == 2 %}rank-silver{% elif doubles_rank == 3 %}rank-bronze{% endif %}">
-    {% if doubles_rank == 1 %}<span class="award-corner gold"><i class="bi bi-award-fill"></i></span>
-    {% elif doubles_rank == 2 %}<span class="award-corner silver"><i class="bi bi-award-fill"></i></span>
-    {% elif doubles_rank == 3 %}<span class="award-corner bronze"><i class="bi bi-award-fill"></i></span>
-    {% endif %}
-    <div class="stat-label">Doubles ELO</div>
+  <div class="spark-sep"></div>
+  <div class="stat-col">
+    <div class="stat-header">
+      <span class="stat-mode-lbl">Doubles</span>
+      {% if doubles_wins or doubles_losses %}
+      <span class="stat-rank-badge {% if doubles_rank == 1 %}gold{% elif doubles_rank == 2 %}silver{% elif doubles_rank == 3 %}bronze{% else %}other{% endif %}">
+        {% if doubles_rank <= 3 %}<i class="bi bi-trophy-fill"></i>{% endif %}
+        #{{ doubles_rank }}
+      </span>
+      {% endif %}
+    </div>
     {% if doubles_wins or doubles_losses %}
-      <div class="stat-val doubles-color">
-        <span class="elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:1 }}</span>
-        {% if doubles_rank > 3 %}<span class="stat-rank other">#{{ doubles_rank }}</span>{% endif %}
-      </div>
-      {% if doubles_show_peak %}<div class="stat-sub">Peak {{ doubles_peak_ordinal }}</div>{% endif %}
+      <div class="stat-rating doubles-color"><span class="elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span></div>
+      <div class="stat-wl"><span class="win-color">{{ doubles_wins }}W</span><span style="color:var(--txt-3)"> – </span><span class="loss-color">{{ doubles_losses }}L</span></div>
+      {% if doubles_streak >= 3 %}<div class="stat-streak"><i class="bi bi-fire" style="color:#fb923c;"></i> {{ doubles_streak }} win streak</div>{% endif %}
     {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No doubles games</div>
+      <div class="stat-rating" style="color:var(--txt-3);">—</div>
+      <div class="stat-wl" style="color:var(--txt-3)">No games</div>
     {% endif %}
   </div>
-
-  <div class="stat-card doubles {% if doubles_streak >= 3 %}rank-streak{% endif %}">
-    {% if doubles_streak >= 3 %}<span class="award-corner streak"><span class="streak-num">{{ doubles_streak }}</span><i class="bi bi-fire"></i></span>{% endif %}
-    <div class="stat-label">Doubles W/L</div>
-    {% if doubles_wins or doubles_losses %}
-      <div class="stat-val wl-row">
-        <span><span class="win-color">{{ doubles_wins }}</span><span style="color:var(--txt-3);font-size:1.4rem;">–</span><span class="loss-color">{{ doubles_losses }}</span></span>
-      </div>
-      {% if doubles_show_best_streak %}<div class="stat-sub">Best streak {{ doubles_best_streak }}</div>{% endif %}
-    {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No doubles games</div>
-    {% endif %}
-  </div>
-
 </div>
 
-<!-- Stat Cards Row 2 + Activity Heatmap -->
-<div class="kpi-heatmap-row fade-up delay-2">
+<!-- Sparklines -->
+<div class="sparklines fade-up delay-2">
+  <div class="spark-col">
+    <div class="spark-label-row">
+      <span class="spark-mode-lbl">Singles</span>
+      <span id="spark-singles-delta"></span>
+    </div>
+    <div class="spark-chart" id="spark-singles"></div>
+  </div>
+  <div class="spark-sep"></div>
+  <div class="spark-col">
+    <div class="spark-label-row">
+      <span class="spark-mode-lbl">Doubles</span>
+      <span id="spark-doubles-delta"></span>
+    </div>
+    <div class="spark-chart" id="spark-doubles"></div>
+  </div>
+</div>
 
-  <!-- Activity Heatmap -->
-  <div class="stat-card" style="overflow:visible;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+<!-- Activity Strip -->
+<div class="activity-strip fade-up delay-3">
+  <div class="activity-hm">
+    <div class="activity-label">Activity</div>
     <div class="hm-months" id="hm-months"></div>
     <div class="hm-body">
-      <div class="hm-days">
-        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-      </div>
+      <div class="hm-days"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
       <div class="hm-grid" id="hm-grid"></div>
     </div>
   </div>
-
-  <div class="stat-card ally {% if has_chemistry %}rank-chemistry{% endif %}">
-    {% if has_chemistry %}<span class="award-corner chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
-    <div class="stat-label">Best Teammate</div>
-    {% if best_teammate %}
-      <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name">{{ best_teammate.display_name }}</a>
-      <div class="stat-sub">{{ best_teammate_wins }}W – {{ best_teammate_games|subtract:best_teammate_wins }}L · {{ best_teammate_adj_pct }}% adj</div>
-    {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">{% if doubles_wins or doubles_losses %}Not enough team data{% else %}No doubles games yet{% endif %}</div>
-    {% endif %}
-  </div>
-
-  <div class="stat-card nemesis">
-    <div class="stat-label">Nemesis</div>
-    {% if nemesis %}
-      <a href="{% url 'player_detail' nemesis.pk %}" class="social-name" style="color:var(--loss);">{{ nemesis.display_name }}</a>
-      <div class="stat-sub">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
-    {% else %}
-      <div class="stat-val" style="color:var(--txt-3)">—</div>
-      <div class="stat-sub">No losses yet</div>
-    {% endif %}
-  </div>
-
-</div>
-
-<!-- Head-to-Head -->
-{% if h2h_rows %}
-<div class="card fade-up delay-3" style="margin-bottom:2rem;">
-  <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Head to Head</span>
-  </div>
-  <div {% if h2h_rows|length > 8 %}class="h2h-scroll"{% endif %}>
-  <table class="data-table h2h-table">
-    <thead {% if h2h_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
-      <tr>
-        <th>Opponent</th>
-        <th class="text-center">Singles</th>
-        <th class="text-center">Doubles</th>
-        <th class="text-center">Overall</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in h2h_rows %}
-      <tr>
-        <td><a href="{% url 'player_detail' row.opponent.pk %}"><span class="name-full">{{ row.opponent.display_name }}</span><span class="name-short">{{ row.opponent.display_name|abbreviate_name }}</span></a></td>
-        <td class="text-center">
-          {% if row.singles_wins or row.singles_losses %}<span class="win-color">{{ row.singles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.singles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
-        </td>
-        <td class="text-center">
-          {% if row.doubles_wins or row.doubles_losses %}<span class="win-color">{{ row.doubles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.doubles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}
-        </td>
-        <td class="text-center">
-          {% with ow=row.singles_wins|add:row.doubles_wins ol=row.singles_losses|add:row.doubles_losses %}<span class="win-color">{{ ow }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ ol }}</span>{% endwith %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="activity-sep"></div>
+  <div class="activity-social">
+    <div class="social-col">
+      <div class="social-lbl">Best Teammate{% if has_chemistry %} <i class="bi bi-people-fill" style="color:#4ade80;"></i>{% endif %}</div>
+      {% if best_teammate %}
+        <a href="{% url 'player_detail' best_teammate.pk %}" class="social-name-link">{{ best_teammate.display_name }}</a>
+        <div class="social-detail">{{ best_teammate_wins }}W – {{ best_teammate_games|subtract:best_teammate_wins }}L · {{ best_teammate_adj_pct }}% adj</div>
+      {% else %}
+        <div class="social-detail" style="margin-top:0.2rem;">{% if doubles_wins or doubles_losses %}Not enough data{% else %}No doubles yet{% endif %}</div>
+      {% endif %}
+    </div>
+    <div class="social-col">
+      <div class="social-lbl">Nemesis</div>
+      {% if nemesis %}
+        <a href="{% url 'player_detail' nemesis.pk %}" class="social-name-link nemesis">{{ nemesis.display_name }}</a>
+        <div class="social-detail">{{ nemesis_loss_count }} loss{{ nemesis_loss_count|pluralize:"es" }} against them</div>
+      {% else %}
+        <div class="social-detail" style="margin-top:0.2rem;">No losses yet</div>
+      {% endif %}
+    </div>
   </div>
 </div>
-{% endif %}
 
-<!-- Teammates -->
-{% if teammate_rows %}
-<div class="card fade-up {% if h2h_rows %}delay-4{% else %}delay-3{% endif %}" style="margin-bottom:2rem;">
-  <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Teammates</span>
+<!-- H2H + Teammates -->
+{% if h2h_rows or teammate_rows %}
+<div class="tables-row {% if h2h_rows and teammate_rows %}two-col{% endif %} fade-up delay-4">
+  {% if h2h_rows %}
+  <div class="card">
+    <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Head to Head</span>
+    </div>
+    <div {% if h2h_rows|length > 8 %}class="h2h-scroll"{% endif %}>
+    <table class="data-table h2h-table">
+      <thead {% if h2h_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
+        <tr><th>Opponent</th><th class="text-center">Singles</th><th class="text-center">Doubles</th><th class="text-center">Overall</th></tr>
+      </thead>
+      <tbody>
+        {% for row in h2h_rows %}
+        <tr>
+          <td><a href="{% url 'player_detail' row.opponent.pk %}"><span class="name-full">{{ row.opponent.display_name }}</span><span class="name-short">{{ row.opponent.display_name|abbreviate_name }}</span></a></td>
+          <td class="text-center">{% if row.singles_wins or row.singles_losses %}<span class="win-color">{{ row.singles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.singles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}</td>
+          <td class="text-center">{% if row.doubles_wins or row.doubles_losses %}<span class="win-color">{{ row.doubles_wins }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ row.doubles_losses }}</span>{% else %}<span style="color:var(--txt-3);">—</span>{% endif %}</td>
+          <td class="text-center">{% with ow=row.singles_wins|add:row.doubles_wins ol=row.singles_losses|add:row.doubles_losses %}<span class="win-color">{{ ow }}</span><span style="color:var(--txt-3);">–</span><span class="loss-color">{{ ol }}</span>{% endwith %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
   </div>
-  <div {% if teammate_rows|length > 8 %}class="h2h-scroll"{% endif %}>
-  <table class="data-table h2h-table">
-    <thead {% if teammate_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
-      <tr>
-        <th>Teammate</th>
-        <th class="text-center">W</th>
-        <th class="text-center">L</th>
-        <th class="text-center">Win %</th>
-        <th class="text-center">Adj %</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in teammate_rows %}
-      <tr>
-        <td><a href="{% url 'player_detail' row.teammate.pk %}"><span class="name-full">{{ row.teammate.display_name }}</span><span class="name-short">{{ row.teammate.display_name|abbreviate_name }}</span></a></td>
-        <td class="text-center win-color">{{ row.wins }}</td>
-        <td class="text-center loss-color">{{ row.losses }}</td>
-        <td class="text-center">{{ row.win_pct }}%</td>
-        <td class="text-center mono" style="color:var(--txt-2);">{{ row.adj_win_pct }}%</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% endif %}
+  {% if teammate_rows %}
+  <div class="card">
+    <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--txt);">Teammates</span>
+    </div>
+    <div {% if teammate_rows|length > 8 %}class="h2h-scroll"{% endif %}>
+    <table class="data-table h2h-table">
+      <thead {% if teammate_rows|length > 8 %}class="h2h-sticky-head"{% endif %}>
+        <tr><th>Teammate</th><th class="text-center">W</th><th class="text-center">L</th><th class="text-center">Win %</th><th class="text-center">Adj %</th></tr>
+      </thead>
+      <tbody>
+        {% for row in teammate_rows %}
+        <tr>
+          <td><a href="{% url 'player_detail' row.teammate.pk %}"><span class="name-full">{{ row.teammate.display_name }}</span><span class="name-short">{{ row.teammate.display_name|abbreviate_name }}</span></a></td>
+          <td class="text-center win-color">{{ row.wins }}</td>
+          <td class="text-center loss-color">{{ row.losses }}</td>
+          <td class="text-center">{{ row.win_pct }}%</td>
+          <td class="text-center mono" style="color:var(--txt-2);">{{ row.adj_win_pct }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
   </div>
+  {% endif %}
 </div>
 {% endif %}
 
 <!-- Skill Distribution -->
-<div class="chart-section fade-up delay-5" style="margin-bottom:2rem;">
+<div class="chart-section fade-up delay-4" style="margin-bottom:2rem;">
   <div class="chart-head">
     <span class="chart-head-title">Skill Distribution</span>
     <div class="chart-toggles">
@@ -815,43 +643,6 @@
   </div>
 </div>
 
-<!-- ELO Chart -->
-<div class="chart-section fade-up {% if h2h_rows or teammate_rows %}delay-5{% elif h2h_rows %}delay-4{% else %}delay-3{% endif %}">
-  <div class="chart-head">
-    <span class="chart-head-title">ELO History</span>
-    <div class="chart-toggles">
-      <div class="view-toggle" id="toggle-metric">
-        <div class="view-slider"></div>
-        <button class="view-btn active" data-metric="rating">Rating</button>
-        <button class="view-btn" data-metric="skill">Skill Range</button>
-      </div>
-      <div class="view-toggle" id="toggle-view">
-        <div class="view-slider"></div>
-        <button class="view-btn" data-view="days">Days</button>
-        <button class="view-btn active" data-view="games">Games</button>
-      </div>
-      <div class="view-toggle" id="toggle-tab">
-        <div class="view-slider"></div>
-        <button class="view-btn" data-tab="chart-singles">Singles</button>
-        <button class="view-btn active" data-tab="chart-doubles">Doubles</button>
-      </div>
-    </div>
-  </div>
-  <div class="tab-pane" id="chart-singles">
-    {% if singles_chart != "null" %}
-      <div id="plot-singles" style="height:300px;"></div>
-    {% else %}
-      <div class="empty-state">No singles games recorded yet.</div>
-    {% endif %}
-  </div>
-  <div class="tab-pane active" id="chart-doubles">
-    {% if doubles_chart != "null" %}
-      <div id="plot-doubles" style="height:300px;"></div>
-    {% else %}
-      <div class="empty-state">No doubles games recorded yet.</div>
-    {% endif %}
-  </div>
-</div>
 
 <!-- Game History -->
 <div class="fade-up delay-5">
@@ -871,9 +662,7 @@
     {% endifchanged %}
 
     <div class="hist-entry {% if row.won %}win{% else %}loss{% endif %}" data-gtype="{{ row.game.game_type }}">
-
       <div class="hist-versus">
-
         <!-- Player's team — left -->
         <div class="hteam hteam-left {% if row.won %}hwin{% else %}hloss{% endif %}">
           <div class="hplayers">
@@ -886,14 +675,12 @@
             <span class="helo {% if row.rating_delta >= 0 %}pos{% else %}neg{% endif %}">{% if row.rating_delta >= 0 %}+{% endif %}{{ row.rating_delta|floatformat:1 }}</span>
           {% endif %}
         </div>
-
         <!-- Score -->
         <div class="hscore">
           <span class="hscore-num {% if row.won %}win-score{% else %}loss-score{% endif %}">{{ row.player_score }}</span>
           <span class="hscore-sep">–</span>
           <span class="hscore-num">{{ row.opp_score }}</span>
         </div>
-
         <!-- Opponents — right -->
         <div class="hteam hteam-right hloser">
           <div class="hplayers">
@@ -902,7 +689,6 @@
             {% endfor %}
           </div>
         </div>
-
       </div>
     </div>
     {% endfor %}
@@ -918,8 +704,100 @@
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
+  // ── Avatar ────────────────────────────────────────────────────────────────
+  const PALETTE = [
+    ['rgba(96,165,250,0.2)',  '#60a5fa'],
+    ['rgba(167,139,250,0.2)', '#a78bfa'],
+    ['rgba(74,222,128,0.2)',  '#4ade80'],
+    ['rgba(244,114,182,0.2)', '#f472b6'],
+    ['rgba(251,191,36,0.2)',  '#fbbf24'],
+    ['rgba(56,189,248,0.2)',  '#38bdf8'],
+    ['rgba(251,146,60,0.2)',  '#fb923c'],
+    ['rgba(192,132,252,0.2)', '#c084fc'],
+  ];
+  function nameHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+  }
+  document.querySelectorAll('[data-name]').forEach(el => {
+    const name = el.dataset.name;
+    const [bg, fg] = PALETTE[nameHash(name) % PALETTE.length];
+    el.style.background = bg;
+    el.style.color = fg;
+    el.textContent = initials(name);
+  });
+
+  // ── Sparklines ────────────────────────────────────────────────────────────
+  function drawSparkline(containerId, deltaId, data, color, baseRating) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!data || data.length === 0) {
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.innerHTML = `<span style="font-size:0.75rem;color:var(--txt-3);">No games yet</span>`;
+      return;
+    }
+
+    const deltaEl = deltaId ? document.getElementById(deltaId) : null;
+    if (deltaEl && data.length >= 2) {
+      const recent = data.slice(-5);
+      const delta = Math.round(recent[recent.length - 1].rating - recent[0].rating);
+      const sign = delta >= 0 ? '+' : '';
+      const cls  = delta >= 0 ? 'pos' : 'neg';
+      const n    = Math.min(5, recent.length);
+      deltaEl.innerHTML = `<span class="spark-delta-val ${cls}">${sign}${delta} last ${n}</span>`;
+    }
+
+    const data12 = data.slice(-15);
+
+    const W = container.offsetWidth || 200;
+    const H = container.offsetHeight || 68;
+    const pad = 5;
+
+    const ratings  = data12.map(g => g.rating);
+    const allVals  = [...ratings, baseRating];
+    const minR     = Math.min(...allVals) - 15;
+    const maxR     = Math.max(...allVals) + 15;
+    const range    = maxR - minR;
+    const n        = data12.length;
+    const xScale   = i => pad + (n < 2 ? (W - 2*pad)/2 : i / (n-1) * (W - 2*pad));
+    const yScale   = r => H - pad - ((r - minR) / range) * (H - 2*pad);
+
+    const pts      = data12.map((g, i) => [xScale(i), yScale(g.rating)]);
+    const ptsStr   = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const baseY    = yScale(baseRating).toFixed(1);
+    const lastX    = pts[pts.length-1][0].toFixed(1);
+    const lastY    = pts[pts.length-1][1].toFixed(1);
+    const areaD    = `M ${pts[0][0].toFixed(1)},${(H-pad).toFixed(1)} ` +
+                     pts.map(p => `L ${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ') +
+                     ` L ${pts[pts.length-1][0].toFixed(1)},${(H-pad).toFixed(1)} Z`;
+
+    container.innerHTML = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+      <defs>
+        <linearGradient id="sg-${containerId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+      <line x1="${pad}" y1="${baseY}" x2="${W-pad}" y2="${baseY}" stroke="#2c3d56" stroke-width="1" stroke-dasharray="3,3"/>
+      <path d="${areaD}" fill="url(#sg-${containerId})"/>
+      <polyline points="${ptsStr}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${lastX}" cy="${lastY}" r="3.5" fill="${color}" stroke="var(--bg,#0d1b2a)" stroke-width="1.5"/>
+    </svg>`;
+  }
+
   const singlesData = {{ singles_games_json|safe }};
   const doublesData = {{ doubles_games_json|safe }};
+
+  requestAnimationFrame(() => {
+    drawSparkline('spark-singles', 'spark-singles-delta', singlesData,  '#60a5fa', {{ default_rating }});
+    drawSparkline('spark-doubles', 'spark-doubles-delta', doublesData,  '#4ade80', {{ default_rating }});
+  });
 
   const BASE_COLOR = '#2c3d56';
   const DARK = {
@@ -930,139 +808,6 @@
     yaxis:  { gridcolor: BASE_COLOR, linecolor: BASE_COLOR, tickfont: { color: '#5a7296' }, zerolinecolor: BASE_COLOR, title: 'Rating' },
     margin: { t: 16, r: 16, b: 44, l: 56 },
   };
-
-  function fmtDate(iso) {
-    const [y, m, d] = iso.split('-');
-    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${mon[+m-1]} ${+d}, ${y}`;
-  }
-
-  // ── Rating traces ──────────────────────────────────────────────────────────
-  function tracesDays(games, color) {
-    const daily = {};
-    games.forEach(g => { daily[g.date] = g.rating; });
-    const dates = Object.keys(daily).sort();
-    const ratings = dates.map(d => daily[d]);
-    return [
-      { x: dates, y: ratings, mode: 'lines+markers',
-        line: { color, width: 2 }, marker: { color, size: 5 },
-        hovertemplate: '%{customdata}<br>Rating: %{y}<extra></extra>',
-        customdata: dates.map(fmtDate), showlegend: false },
-      { x: [dates[0], dates[dates.length - 1]], y: [{{ default_rating }}, {{ default_rating }}],
-        mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
-        hoverinfo: 'skip', showlegend: false },
-    ];
-  }
-
-  function tracesGames(games, color) {
-    const xs = games.map((_, i) => i + 1);
-    return [
-      { x: xs, y: games.map(g => g.rating), mode: 'lines+markers',
-        line: { color, width: 2 }, marker: { color, size: 5 },
-        customdata: games.map(g => fmtDate(g.date)),
-        hovertemplate: 'Game %{x} · %{customdata}<br>Rating: %{y}<extra></extra>',
-        showlegend: false },
-      { x: [1, games.length], y: [{{ default_rating }}, {{ default_rating }}],
-        mode: 'lines', line: { color: BASE_COLOR, width: 2.5, dash: 'dot' },
-        hoverinfo: 'skip', showlegend: false },
-    ];
-  }
-
-  // ── Skill range traces (μ ± 3σ band) ──────────────────────────────────────
-
-  function skillFill(color) {
-    return color === '#60a5fa' ? 'rgba(96,165,250,0.13)' : 'rgba(74,222,128,0.13)';
-  }
-  function skillBand(color) {
-    return color === '#60a5fa' ? 'rgba(96,165,250,0.28)' : 'rgba(74,222,128,0.28)';
-  }
-
-  function buildSkillTraces(xs, center, upper, lower, customdata, htmpl, color) {
-    return [
-      // Upper bound — invisible anchor for tonexty fill
-      { x: xs, y: upper, mode: 'lines', line: { width: 0, color: 'transparent' },
-        hoverinfo: 'skip', showlegend: false },
-      // Lower bound — shaded fill to upper
-      { x: xs, y: lower, mode: 'lines', fill: 'tonexty', fillcolor: skillFill(color),
-        line: { width: 1, color: skillBand(color), dash: 'dot' },
-        hoverinfo: 'skip', showlegend: false },
-      // Center (scaled μ) line
-      { x: xs, y: center, mode: 'lines+markers',
-        line: { color, width: 2 }, marker: { color, size: 5 },
-        customdata, hovertemplate: htmpl, showlegend: false },
-    ];
-  }
-
-  function tracesSkillGames(games, color) {
-    const xs     = games.map((_, i) => i + 1);
-    const center = games.map(g => g.center);
-    const upper  = games.map(g => g.upper);
-    const lower  = games.map(g => g.lower);
-    const cd     = games.map(g => fmtDate(g.date));
-    return buildSkillTraces(xs, center, upper, lower, cd,
-      'Game %{x} · %{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);
-  }
-
-  function tracesSkillDays(games, color) {
-    const daily = {};
-    games.forEach(g => { daily[g.date] = { center: g.center, upper: g.upper, lower: g.lower }; });
-    const dates  = Object.keys(daily).sort();
-    const center = dates.map(d => daily[d].center);
-    const upper  = dates.map(d => daily[d].upper);
-    const lower  = dates.map(d => daily[d].lower);
-    const cd     = dates.map(fmtDate);
-    return buildSkillTraces(dates, center, upper, lower, cd,
-      '%{customdata}<br>Rating: %{y:.0f}<extra></extra>', color);
-  }
-
-  // ── Layouts ────────────────────────────────────────────────────────────────
-  const ratingAnnotation = [{
-    xref: 'paper', x: 0.99, yref: 'y', y: {{ default_rating }},
-    text: 'Starting Rating ({{ default_rating }})',
-    showarrow: false, xanchor: 'right', yanchor: 'bottom',
-    font: { color: '#5a7296', size: 10, family: 'Figtree, sans-serif' },
-  }];
-
-  function layoutDays()      { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }), annotations: ratingAnnotation }); }
-  function layoutGames()     { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }), annotations: ratingAnnotation }); }
-  function layoutSkillDays() { return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { type: 'date' }) }); }
-  function layoutSkillGames(){ return Object.assign({}, DARK, { xaxis: Object.assign({}, DARK.xaxis, { title: 'Game #', type: 'linear', tickformat: 'd' }) }); }
-
-  // ── State + render ─────────────────────────────────────────────────────────
-  let chartView   = 'games';
-  let chartMetric = 'rating';
-
-  function getTraces(data, color) {
-    if (chartMetric === 'skill') {
-      return chartView === 'days' ? tracesSkillDays(data, color) : tracesSkillGames(data, color);
-    }
-    return chartView === 'days' ? tracesDays(data, color) : tracesGames(data, color);
-  }
-
-  function getLayout() {
-    if (chartMetric === 'skill') {
-      return chartView === 'days' ? layoutSkillDays() : layoutSkillGames();
-    }
-    return chartView === 'days' ? layoutDays() : layoutGames();
-  }
-
-  const cfg = { responsive: true, displayModeBar: false };
-
-  function renderCharts() {
-    {% if singles_chart != "null" %}
-      Plotly.react('plot-singles', getTraces(singlesData, '#60a5fa'), getLayout());
-    {% endif %}
-    {% if doubles_chart != "null" %}
-      Plotly.react('plot-doubles', getTraces(doublesData, '#4ade80'), getLayout());
-    {% endif %}
-  }
-
-  {% if singles_chart != "null" %}
-    Plotly.newPlot('plot-singles', getTraces(singlesData, '#60a5fa'), getLayout(), cfg);
-  {% endif %}
-  {% if doubles_chart != "null" %}
-    Plotly.newPlot('plot-doubles', getTraces(doublesData, '#4ade80'), getLayout(), cfg);
-  {% endif %}
 
   // ── Toggle wiring ──────────────────────────────────────────────────────────
   function initSlider(toggleId) {
@@ -1079,50 +824,17 @@
     return { slider, btns, move };
   }
 
-  const metricPill = initSlider('toggle-metric');
-  metricPill.btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      chartMetric = btn.dataset.metric;
-      metricPill.btns.forEach(b => b.classList.toggle('active', b === btn));
-      metricPill.move(btn);
-      renderCharts();
-    });
-  });
-
-  const viewPill = initSlider('toggle-view');
-  viewPill.btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      chartView = btn.dataset.view;
-      viewPill.btns.forEach(b => b.classList.toggle('active', b === btn));
-      viewPill.move(btn);
-      renderCharts();
-    });
-  });
-
-  const tabPill = initSlider('toggle-tab');
-  tabPill.btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-      tabPill.btns.forEach(b => b.classList.toggle('active', b === btn));
-      tabPill.move(btn);
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      document.getElementById(target).classList.add('active');
-      const plot = document.querySelector('#' + target + ' .js-plotly-plot');
-      if (plot) Plotly.Plots.resize(plot);
-    });
-  });
-
   // ── Activity heatmap ──────────────────────────────────────────────────────
   (function () {
     const CELL = 9, GAP = 2, S = CELL + GAP;
-    const WEEKS = 20;
+    const WEEKS = window.innerWidth <= 700 ? 8 : 20;
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const counts = {{ heatmap_json|safe }};
 
     const today = new Date();
     const start = new Date(today);
     start.setDate(start.getDate() - WEEKS * 7 + 1);
-    start.setDate(start.getDate() - start.getDay()); // back to Sunday
+    start.setDate(start.getDate() - start.getDay());
 
     const weeks = [];
     const cur = new Date(start);
@@ -1136,7 +848,6 @@
       weeks.push(week);
     }
 
-    // Month labels
     const monthsEl = document.getElementById('hm-months');
     monthsEl.style.width = `${weeks.length * S - GAP}px`;
     weeks.forEach((week, wi) => {
@@ -1150,7 +861,6 @@
       }
     });
 
-    // Cells
     const gridEl = document.getElementById('hm-grid');
     weeks.forEach(week => {
       week.forEach(day => {
@@ -1186,18 +896,16 @@
     return ys[i - 1] + t * (ys[i] - ys[i - 1]);
   }
 
-function renderDistChart(data, playerColor, playerFill) {
+  function renderDistChart(data, playerColor, playerFill) {
     const fx = data.field.x, fy = data.field.y;
     const pOrd = data.player.ordinal;
 
-    // Split KDE at player ordinal for left fill
     const splitI = fx.findIndex(x => x >= pOrd);
     const yAtSplit = interpY(fx, fy, pOrd);
     const leftX = splitI > 0 ? [...fx.slice(0, splitI), pOrd] : [pOrd, pOrd];
     const leftY = splitI > 0 ? [...fy.slice(0, splitI), yAtSplit] : [0, 0];
 
     const traces = [
-      // Rug plot — one tick mark per player along the baseline
       {
         x: data.field.raw,
         y: new Array(data.field.raw.length).fill(0),
@@ -1205,14 +913,12 @@ function renderDistChart(data, playerColor, playerFill) {
         marker: { symbol: 'line-ns', size: 10, color: 'rgba(90,114,150,0.7)', line: { color: 'rgba(90,114,150,0.7)', width: 1.5 } },
         hoverinfo: 'skip', showlegend: false,
       },
-      // Filled area to the left of the player's ordinal
       {
         x: leftX, y: leftY,
         mode: 'lines', fill: 'tozeroy', fillcolor: playerFill,
         line: { color: 'transparent', width: 0 },
         hoverinfo: 'skip', showlegend: false,
       },
-      // Full field KDE outline
       {
         x: fx, y: fy,
         mode: 'lines',
@@ -1242,16 +948,10 @@ function renderDistChart(data, playerColor, playerFill) {
       showlegend: false,
       hovermode: 'x',
       shapes: [
-        {
-          type: 'line',
-          x0: pOrd, x1: pOrd, y0: 0, y1: 1, yref: 'paper',
-          line: { color: playerColor, width: 2.5, dash: 'dash' },
-        },
-        {
-          type: 'line',
-          x0: data.field.ordinal, x1: data.field.ordinal, y0: 0, y1: 1, yref: 'paper',
-          line: { color: FIELD_COLOR, width: 1.5, dash: 'dot' },
-        },
+        { type: 'line', x0: pOrd, x1: pOrd, y0: 0, y1: 1, yref: 'paper',
+          line: { color: playerColor, width: 2.5, dash: 'dash' } },
+        { type: 'line', x0: data.field.ordinal, x1: data.field.ordinal, y0: 0, y1: 1, yref: 'paper',
+          line: { color: FIELD_COLOR, width: 1.5, dash: 'dot' } },
       ],
       annotations,
     });
@@ -1312,9 +1012,9 @@ function renderDistChart(data, playerColor, playerFill) {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 4);
-      el.textContent = (target * ease).toFixed(1);
+      el.textContent = Math.round(target * ease);
       if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = target.toFixed(1);
+      else el.textContent = Math.round(target);
     }
     requestAnimationFrame(tick);
   });
@@ -1381,7 +1081,6 @@ function renderDistChart(data, playerColor, playerFill) {
   }
 
   document.getElementById('hero-name').addEventListener('click', launchConfetti);
-  launchConfetti();
 })();
 </script>
 {% endif %}
