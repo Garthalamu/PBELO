@@ -139,7 +139,7 @@
   .col-last5  { padding-right: 0.35rem !important; text-align: right; }
   .col-elo    { padding-left: 0.35rem !important; }
 
-  .player-link { color: var(--txt); font-weight: 600; text-decoration: none; transition: color 0.12s; }
+  .player-link { color: var(--txt); font-weight: 600; font-size: 0.78rem; text-decoration: none; transition: color 0.12s; }
   .player-link:hover { color: var(--accent); opacity: 1; }
   .name-short { display: none; }
   .elo-val { font-size: 0.9rem; font-weight: 600; color: var(--txt); }
@@ -219,7 +219,7 @@
             <span class="pod-name">{{ singles_board.1.display_name }}</span>
             <div class="pod-rating" data-count="{{ singles_board.1.singles_ordinal }}">{{ singles_board.1.singles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in singles_board.1.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ singles_board.1.singles_wins }}</span> / <span class="loss-color">{{ singles_board.1.singles_games_count|subtract:singles_board.1.singles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.1.singles_wins }}</span>/<span class="loss-color">{{ singles_board.1.singles_games_count|subtract:singles_board.1.singles_wins }}</span></div>
           </div>
           <div class="pod-step">2</div>
         </a>
@@ -232,7 +232,7 @@
             <span class="pod-name">{{ singles_board.0.display_name }}</span>
             <div class="pod-rating" data-count="{{ singles_board.0.singles_ordinal }}">{{ singles_board.0.singles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in singles_board.0.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ singles_board.0.singles_wins }}</span> / <span class="loss-color">{{ singles_board.0.singles_games_count|subtract:singles_board.0.singles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.0.singles_wins }}</span>/<span class="loss-color">{{ singles_board.0.singles_games_count|subtract:singles_board.0.singles_wins }}</span></div>
           </div>
           <div class="pod-step">1</div>
         </a>
@@ -245,7 +245,7 @@
             <span class="pod-name">{{ singles_board.2.display_name }}</span>
             <div class="pod-rating" data-count="{{ singles_board.2.singles_ordinal }}">{{ singles_board.2.singles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in singles_board.2.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ singles_board.2.singles_wins }}</span> / <span class="loss-color">{{ singles_board.2.singles_games_count|subtract:singles_board.2.singles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.2.singles_wins }}</span>/<span class="loss-color">{{ singles_board.2.singles_games_count|subtract:singles_board.2.singles_wins }}</span></div>
           </div>
           <div class="pod-step">3</div>
         </a>
@@ -260,7 +260,7 @@
           <tbody>
             {% for player in singles_board %}{% if forloop.counter > 3 %}
             <tr class="board-row">
-              <td style="width:42px; padding-left:1.25rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
+              <td style="width:28px; padding-left:0.75rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
               <td class="col-player">
                 <span class="row-avatar" data-name="{{ player.display_name }}"></span>
                 <a href="{% url 'player_detail' player.pk %}" class="player-link">
@@ -271,7 +271,7 @@
               </td>
               <td class="text-right col-last5"><span class="last5">{% for won in player.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</span></td>
               <td class="col-elo"><span class="elo-val mono" data-count="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span></td>
-              <td class="text-right" style="padding-right:1.25rem;"><span class="wl-stat mono"><span class="win-color">{{ player.singles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.singles_games_count|subtract:player.singles_wins }}</span></span></td>
+              <td class="text-right" style="padding-right:0.75rem;"><span class="wl-stat mono"><span class="win-color">{{ player.singles_wins }}</span><span class="wl-sep">/</span><span class="loss-color">{{ player.singles_games_count|subtract:player.singles_wins }}</span></span></td>
             </tr>
             {% endif %}{% endfor %}
           </tbody>
@@ -296,7 +296,7 @@
             <span class="pod-name">{{ doubles_board.1.display_name }}</span>
             <div class="pod-rating" data-count="{{ doubles_board.1.doubles_ordinal }}">{{ doubles_board.1.doubles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in doubles_board.1.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ doubles_board.1.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.1.doubles_games_count|subtract:doubles_board.1.doubles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.1.doubles_wins }}</span>/<span class="loss-color">{{ doubles_board.1.doubles_games_count|subtract:doubles_board.1.doubles_wins }}</span></div>
           </div>
           <div class="pod-step">2</div>
         </a>
@@ -309,7 +309,7 @@
             <span class="pod-name">{{ doubles_board.0.display_name }}</span>
             <div class="pod-rating" data-count="{{ doubles_board.0.doubles_ordinal }}">{{ doubles_board.0.doubles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in doubles_board.0.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ doubles_board.0.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.0.doubles_games_count|subtract:doubles_board.0.doubles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.0.doubles_wins }}</span>/<span class="loss-color">{{ doubles_board.0.doubles_games_count|subtract:doubles_board.0.doubles_wins }}</span></div>
           </div>
           <div class="pod-step">1</div>
         </a>
@@ -322,7 +322,7 @@
             <span class="pod-name">{{ doubles_board.2.display_name }}</span>
             <div class="pod-rating" data-count="{{ doubles_board.2.doubles_ordinal }}">{{ doubles_board.2.doubles_ordinal|floatformat:0 }}</div>
             <div class="pod-dots">{% for won in doubles_board.2.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
-            <div class="pod-wl"><span class="win-color">{{ doubles_board.2.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.2.doubles_games_count|subtract:doubles_board.2.doubles_wins }}</span></div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.2.doubles_wins }}</span>/<span class="loss-color">{{ doubles_board.2.doubles_games_count|subtract:doubles_board.2.doubles_wins }}</span></div>
           </div>
           <div class="pod-step">3</div>
         </a>
@@ -337,7 +337,7 @@
           <tbody>
             {% for player in doubles_board %}{% if forloop.counter > 3 %}
             <tr class="board-row">
-              <td style="width:42px; padding-left:1.25rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
+              <td style="width:28px; padding-left:0.75rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
               <td class="col-player">
                 <span class="row-avatar" data-name="{{ player.display_name }}"></span>
                 <a href="{% url 'player_detail' player.pk %}" class="player-link">
@@ -349,7 +349,7 @@
               </td>
               <td class="text-right col-last5"><span class="last5">{% for won in player.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</span></td>
               <td class="col-elo"><span class="elo-val mono" data-count="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span></td>
-              <td class="text-right" style="padding-right:1.25rem;"><span class="wl-stat mono"><span class="win-color">{{ player.doubles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.doubles_games_count|subtract:player.doubles_wins }}</span></span></td>
+              <td class="text-right" style="padding-right:0.75rem;"><span class="wl-stat mono"><span class="win-color">{{ player.doubles_wins }}</span><span class="wl-sep">/</span><span class="loss-color">{{ player.doubles_games_count|subtract:player.doubles_wins }}</span></span></td>
             </tr>
             {% endif %}{% endfor %}
           </tbody>
