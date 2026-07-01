@@ -709,8 +709,8 @@
     if (deltaEl && data10.length >= 2) {
       const delta = Math.round(data10[data10.length - 1].rating - data10[0].rating);
       const sign = delta >= 0 ? '+' : '';
-      deltaEl.textContent = `${sign}${delta}`;
-      deltaEl.style.color = delta >= 0 ? '#4ade80' : '#f87171';
+      const color = delta >= 0 ? '#4ade80' : '#f87171';
+      deltaEl.innerHTML = `<span style="color:${color}">${sign}${delta}</span><span style="color:var(--txt-3);margin-left:0.6em;font-size:0.5rem;">over ${data10.length} games</span>`;
     }
 
     const W     = container.offsetWidth  || 88;
