@@ -471,7 +471,7 @@
 <div class="stats-strip fade-up delay-1">
   <div class="stat-col right-align">
     <div class="stat-header">
-      <span class="stat-mode-lbl">{% if singles_wins or singles_losses %}<span class="stat-inline-rank {% if singles_rank == 1 %}gold{% elif singles_rank == 2 %}silver{% elif singles_rank == 3 %}bronze{% else %}other{% endif %}">#{{ singles_rank }}</span>{% if singles_streak >= 3 %}&nbsp;&nbsp;&nbsp;&nbsp;<i class="bi bi-fire" style="color:#fb923c;"></i><span style="color:#fb923c;">{{ singles_streak }}</span>{% endif %}{% if singles_rank == 1 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--gold);"></i>{% elif singles_rank == 2 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--silver);"></i>{% elif singles_rank == 3 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--bronze);"></i>{% endif %}&nbsp;&nbsp;{% endif %}Singles</span>
+      <span class="stat-mode-lbl">{% if singles_wins or singles_losses %}{% if singles_streak >= 3 %}<span style="color:#fb923c;">{{ singles_streak }}</span><i class="bi bi-fire" style="color:#fb923c;"></i>&nbsp;&nbsp;&nbsp;&nbsp;{% endif %}<span class="stat-inline-rank {% if singles_rank == 1 %}gold{% elif singles_rank == 2 %}silver{% elif singles_rank == 3 %}bronze{% else %}other{% endif %}">#{{ singles_rank }}</span>{% if singles_rank == 1 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--gold);"></i>{% elif singles_rank == 2 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--silver);"></i>{% elif singles_rank == 3 %}&nbsp;<i class="bi bi-trophy-fill" style="color:var(--bronze);"></i>{% endif %}&nbsp;&nbsp;{% endif %}Singles</span>
     </div>
     <div class="stat-body">
       <div class="stat-text">
