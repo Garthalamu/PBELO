@@ -3,188 +3,184 @@
 
 {% block extra_css %}
 <style>
+  /* ── Board header ────────────────────── */
   .board-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1.25rem 0.75rem;
+    padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--border);
     gap: 1rem;
   }
+  .board-count { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--txt-3); }
 
-  .board-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--txt-3);
-  }
-
-  /* ── Toggle ──────────────────────── */
-  .view-toggle {
-    position: relative;
-    display: inline-flex;
-    gap: 2px;
-    background: var(--surface-hi);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 3px;
-  }
-  .view-btn {
-    position: relative;
-    z-index: 1;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    border: none;
-    background: none;
-    color: var(--txt-2);
-    cursor: pointer;
-    border-radius: 6px;
-    font-family: 'Figtree', sans-serif;
-    transition: color 0.22s;
-    white-space: nowrap;
-  }
+  /* ── Toggle ──────────────────────────── */
+  .view-toggle { position: relative; display: inline-flex; gap: 2px; background: var(--surface-hi); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+  .view-btn { position: relative; z-index: 1; padding: 0.25rem 0.75rem; font-size: 0.78rem; font-weight: 700; border: none; background: none; color: var(--txt-2); cursor: pointer; border-radius: 6px; font-family: 'Figtree', sans-serif; transition: color 0.22s; white-space: nowrap; }
   .view-btn.active { color: var(--accent); }
-  .view-slider {
-    position: absolute;
-    top: 3px;
-    height: calc(100% - 6px);
-    border-radius: 6px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    pointer-events: none;
-    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
-                width 0.22s cubic-bezier(0.4,0,0.2,1);
+  .view-slider { position: absolute; top: 3px; height: calc(100% - 6px); border-radius: 6px; background: var(--accent-dim); border: 1px solid var(--accent); pointer-events: none; transition: left 0.22s cubic-bezier(0.4,0,0.2,1), width 0.22s cubic-bezier(0.4,0,0.2,1); }
+
+  /* ── Podium stage ────────────────────── */
+  .podium-stage {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: end;
+    padding: 1.75rem 1.25rem 0;
+    gap: 3px;
   }
 
-  /* ── Table ───────────────────────── */
-  .board-row td:first-child { width: 48px; padding-left: 1.25rem; text-align: center; }
-  .board-row td:last-child  { padding-right: 1.25rem; }
-  .col-award { width: 1px; padding-left: 0 !important; padding-right: 0 !important; }
-  .col-player { padding-left: 0.2rem !important; }
-
-  .player-link {
-    color: var(--txt);
-    font-weight: 600;
+  .podium-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
-    transition: color 0.12s;
-  }
-  .player-link:hover { color: var(--accent); opacity: 1; }
-  .name-short { display: none; }
-
-  .elo-val {
-    font-size: 0.9rem;
-    font-weight: 600;
     color: var(--txt);
+    min-width: 0;
+    transition: opacity 0.15s;
+  }
+  .podium-col:hover { opacity: 0.82; }
+
+  /* player info floating above the step */
+  .pod-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12rem;
+    padding: 0 0.4rem 0.85rem;
+    width: 100%;
+    text-align: center;
   }
 
-  .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
-  .wl-sep  { color: var(--txt-3); margin: 0 1px; }
-  .col-elo { padding-right: 4px !important; }
-
-  .last5 { display: inline-flex; gap: 3px; align-items: center; }
-  .l5-dot {
-    width: 6px; height: 6px;
+  /* avatar */
+  .pod-avatar {
     border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
     flex-shrink: 0;
   }
-  .l5-dot.win  { background: var(--win); }
-  .l5-dot.loss { background: var(--loss); }
+  .pod-first  .pod-avatar { width: 70px; height: 70px; font-size: 1.8rem; }
+  .pod-second .pod-avatar { width: 56px; height: 56px; font-size: 1.4rem; }
+  .pod-third  .pod-avatar { width: 56px; height: 56px; font-size: 1.4rem; }
+
+  /* name */
+  .pod-name {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    color: var(--txt);
+  }
+  .pod-first  .pod-name { font-size: 0.95rem; }
+  .pod-second .pod-name { font-size: 0.84rem; }
+  .pod-third  .pod-name { font-size: 0.84rem; }
+
+  /* rating — the hero number */
+  .pod-rating {
+    font-family: 'Bebas Neue', sans-serif;
+    line-height: 1.05;
+    margin: 0.15rem 0 0.05rem;
+  }
+  .pod-first  .pod-rating { font-size: 2.8rem; color: var(--accent); }
+  .pod-second .pod-rating { font-size: 2.2rem; color: var(--silver); }
+  .pod-third  .pod-rating { font-size: 2.2rem; color: var(--bronze); }
+
+  /* win/loss */
+  .pod-wl { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--txt-3); }
+  .pod-dots { display: inline-flex; gap: 3px; align-items: center; margin-top: 0.25rem; }
+
+  /* ── the actual step (classic podium platform) ── */
+  .pod-step {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    border-top: 2px solid;
+    flex-shrink: 0;
+  }
+  .pod-first  .pod-step {
+    height: 60px;
+    font-size: 2.2rem;
+    color: var(--accent);
+    border-top-color: rgba(201,241,53,0.5);
+    background: rgba(201,241,53,0.07);
+  }
+  .pod-second .pod-step {
+    height: 42px;
+    font-size: 1.75rem;
+    color: var(--silver);
+    border-top-color: rgba(148,163,184,0.35);
+    background: rgba(148,163,184,0.06);
+  }
+  .pod-third  .pod-step {
+    height: 27px;
+    font-size: 1.3rem;
+    color: var(--bronze);
+    border-top-color: rgba(200,121,65,0.35);
+    background: rgba(200,121,65,0.06);
+  }
+
+
+  /* ── Podium → table divider ──────────── */
+  .pod-divider { height: 1px; background: var(--border); }
+
+  /* ── Row avatar ──────────────────────── */
+  .row-avatar { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 0.65rem; letter-spacing: 0.02em; vertical-align: middle; margin-right: 0.4rem; flex-shrink: 0; }
+
+  /* ── Table rows (4th+) ───────────────── */
+  .board-row td { padding: 0.72rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; vertical-align: middle; }
+  .board-row:last-child td { border-bottom: none; }
+  .board-row:hover td { background: rgba(255,255,255,0.022); }
+  .col-player { padding-left: 0.5rem !important; }
+  .col-last5  { padding-right: 0.35rem !important; text-align: right; }
+  .col-elo    { padding-left: 0.35rem !important; }
+
+  .player-link { color: var(--txt); font-weight: 600; text-decoration: none; transition: color 0.12s; }
+  .player-link:hover { color: var(--accent); opacity: 1; }
+  .name-short { display: none; }
+  .elo-val { font-size: 0.9rem; font-weight: 600; color: var(--txt); }
+  .wl-stat { font-size: 0.82rem; letter-spacing: 0.02em; }
+  .wl-sep  { color: var(--txt-3); margin: 0 1px; }
+  .rank-num { color: var(--txt-3); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+  .last5  { display: inline-flex; gap: 3px; align-items: center; }
+  .l5-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .l5-dot.win   { background: var(--win); }
+  .l5-dot.loss  { background: var(--loss); }
   .l5-dot.empty { background: var(--border); }
-  .col-last5 { padding-right: 0.35rem !important; }
-  .col-elo   { padding-left:  0.35rem !important; }
 
-  /* streak / chemistry icons */
-  .lb-streak {
-    position: relative;
-    display: inline-flex;
-    margin-left: 0.35rem;
-    vertical-align: middle;
-  }
-  .lb-streak i { color: #fb923c; font-size: 1.04rem; line-height: 1; }
-
-  .lb-chemistry {
-    display: inline-flex;
-    margin-left: 0.35rem;
-    vertical-align: middle;
-  }
+  .lb-streak    { position: relative; display: inline-flex; margin-left: 0.35rem; vertical-align: middle; }
+  .lb-streak i  { color: #fb923c; font-size: 1.04rem; line-height: 1; }
+  .lb-chemistry   { display: inline-flex; margin-left: 0.35rem; vertical-align: middle; }
   .lb-chemistry i { color: #4ade80; font-size: 1rem; line-height: 1; }
 
-  /* glint sweep */
-  @keyframes row-glint {
-    0%   { background-position: -150% 0, 0 0; }
-    26%  { background-position: 250% 0, 0 0; }
-    100% { background-position: 250% 0, 0 0; }
-  }
-
-  .board-row.rank-1 {
-    background:
-      linear-gradient(105deg, transparent 25%, rgba(251,191,36,0.45) 50%, transparent 75%) no-repeat,
-      linear-gradient(90deg, rgba(251,191,36,0.07), rgba(251,191,36,0.16));
-    background-size: 60% 100%, 100% 100%;
-    background-position: -150% 0, 0 0;
-  }
-  .board-row.rank-2 {
-    background:
-      linear-gradient(105deg, transparent 25%, rgba(203,213,225,0.4) 50%, transparent 75%) no-repeat,
-      linear-gradient(90deg, rgba(148,163,184,0.04), rgba(148,163,184,0.12));
-    background-size: 60% 100%, 100% 100%;
-    background-position: -150% 0, 0 0;
-  }
-  .board-row.rank-3 {
-    background:
-      linear-gradient(105deg, transparent 25%, rgba(200,121,65,0.45) 50%, transparent 75%) no-repeat,
-      linear-gradient(90deg, rgba(200,121,65,0.05), rgba(200,121,65,0.13));
-    background-size: 60% 100%, 100% 100%;
-    background-position: -150% 0, 0 0;
-  }
-  .board-row.rank-1.glinting { animation: row-glint 10.8s ease-in-out; }
-  .board-row.rank-2.glinting { animation: row-glint 10.8s ease-in-out 0.1s; }
-  .board-row.rank-3.glinting { animation: row-glint 10.8s ease-in-out 0.2s; }
-  .board-row.rank-1 td,
-  .board-row.rank-2 td,
-  .board-row.rank-3 td { position: relative; }
-
-  .board-row.rank-1 td:first-child::before,
-  .board-row.rank-2 td:first-child::before,
-  .board-row.rank-3 td:first-child::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    border-radius: 0 2px 2px 0;
-  }
-  .board-row.rank-1 td:first-child::before { background: var(--gold); }
-  .board-row.rank-2 td:first-child::before { background: var(--silver); }
-  .board-row.rank-3 td:first-child::before { background: var(--bronze); }
-
-  .lb-scroll {
-    max-height: 70vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-hi) transparent;
-  }
+  /* ── Scrollable overflow ─────────────── */
+  .lb-scroll { max-height: 50vh; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--border-hi) transparent; }
   .lb-scroll::-webkit-scrollbar { width: 4px; }
   .lb-scroll::-webkit-scrollbar-track { background: transparent; }
   .lb-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
   .lb-scroll::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
-  .lb-scroll thead th {
-    position: sticky;
-    top: 0;
-    background: var(--surface);
-    z-index: 1;
-  }
 
   @media (max-width: 640px) {
-    .board-row td:first-child { width: 32px; padding-left: 0.75rem; }
+    .pod-first  .pod-avatar { width: 54px; height: 54px; font-size: 1.4rem; }
+    .pod-second .pod-avatar,
+    .pod-third  .pod-avatar { width: 42px; height: 42px; font-size: 1.1rem; }
+    .pod-first  .pod-rating { font-size: 2.2rem; }
+    .pod-second .pod-rating,
+    .pod-third  .pod-rating { font-size: 1.75rem; }
+    .pod-first  .pod-name { font-size: 0.82rem; }
+    .pod-second .pod-name,
+    .pod-third  .pod-name { font-size: 0.74rem; }
+    .podium-stage { padding: 1.25rem 0.75rem 0; }
+    .pod-first  .pod-step { height: 46px; font-size: 1.75rem; }
+    .pod-second .pod-step { height: 32px; font-size: 1.4rem; }
+    .pod-third  .pod-step { height: 20px; font-size: 1rem; }
+    .board-row td { padding: 0.45rem 0.6rem; }
+    .board-row td:first-child { padding-left: 0.75rem; }
     .board-row td:last-child  { padding-right: 0.75rem; }
-    .data-table td { padding: 0.45rem 0.6rem; font-size: 0.875rem; }
-    .data-table th { padding: 0.4rem 0.6rem; }
-    .elo-val   { font-size: 0.875rem; }
-    .wl-stat   { font-size: 0.82rem; }
-    .player-link { font-size: 0.875rem; }
-    .rank { width: 22px; height: 22px; font-size: 0.72rem; }
-    .rank-num { font-size: 0.78rem; }
     .name-full  { display: none; }
     .name-short { display: inline; }
   }
@@ -195,7 +191,7 @@
 {% load leaderboard_tags %}
 
 <div class="page-header fade-up">
-  <h1 class="page-title" id="page-title" style="cursor:pointer;">Leaderboard</h1>
+  <h1 class="page-title">Leaderboard</h1>
   <a href="{% url 'record_game' %}" class="btn btn-primary">+ Record Game</a>
 </div>
 
@@ -209,118 +205,156 @@
     </div>
   </div>
 
-  <!-- Singles board -->
+  <!-- ── Singles board ──────────────────── -->
   <div id="singles-board" style="display:none;">
     {% if singles_board %}
-      <div {% if singles_board|length > 12 %}class="lb-scroll"{% endif %}>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th></th><th></th>
-            <th>Player</th>
-            <th class="text-right"></th>
-            <th>Rating</th>
-            <th class="text-right">W / L</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for player in singles_board %}
-          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% endif %}">
-            <td>
-              {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
-              {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
-              {% elif forloop.counter == 3 %}<span class="rank rank-bronze">3</span>
-              {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
-            </td>
-            <td class="col-award">
-              {% if forloop.counter == 1 %}<i class="bi bi-award-fill medal-gold" style="font-size:0.9rem;"></i>
-              {% elif forloop.counter == 2 %}<i class="bi bi-award-fill medal-silver" style="font-size:0.9rem;"></i>
-              {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
-            </td>
-            <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link">
-                <span class="name-full">{{ player.display_name }}</span>
-                <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
-              </a>
-              {% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
-            </td>
-            <td class="text-right col-last5">
-              <span class="last5">
-                {% for won in player.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}
-              </span>
-            </td>
-            <td class="col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span>
-            </td>
-            <td class="text-right">
-              <span class="wl-stat mono">
-                <span class="win-color">{{ player.singles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.singles_games_count|subtract:player.singles_wins }}</span>
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="podium-stage">
+
+        <!-- 2nd (left) -->
+        {% if singles_board|length >= 2 %}
+        <a href="{% url 'player_detail' singles_board.1.pk %}" class="podium-col pod-second">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ singles_board.1.display_name }}"></div>
+            <span class="pod-name">{{ singles_board.1.display_name }}</span>
+            <div class="pod-rating" data-count="{{ singles_board.1.singles_ordinal }}">{{ singles_board.1.singles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in singles_board.1.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.1.singles_wins }}</span> / <span class="loss-color">{{ singles_board.1.singles_games_count|subtract:singles_board.1.singles_wins }}</span></div>
+          </div>
+          <div class="pod-step">2</div>
+        </a>
+        {% else %}<div class="podium-col pod-second"><div class="pod-info"></div><div class="pod-step"></div></div>{% endif %}
+
+        <!-- 1st (center) -->
+        <a href="{% url 'player_detail' singles_board.0.pk %}" class="podium-col pod-first">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ singles_board.0.display_name }}"></div>
+            <span class="pod-name">{{ singles_board.0.display_name }}</span>
+            <div class="pod-rating" data-count="{{ singles_board.0.singles_ordinal }}">{{ singles_board.0.singles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in singles_board.0.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.0.singles_wins }}</span> / <span class="loss-color">{{ singles_board.0.singles_games_count|subtract:singles_board.0.singles_wins }}</span></div>
+          </div>
+          <div class="pod-step">1</div>
+        </a>
+
+        <!-- 3rd (right) -->
+        {% if singles_board|length >= 3 %}
+        <a href="{% url 'player_detail' singles_board.2.pk %}" class="podium-col pod-third">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ singles_board.2.display_name }}"></div>
+            <span class="pod-name">{{ singles_board.2.display_name }}</span>
+            <div class="pod-rating" data-count="{{ singles_board.2.singles_ordinal }}">{{ singles_board.2.singles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in singles_board.2.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ singles_board.2.singles_wins }}</span> / <span class="loss-color">{{ singles_board.2.singles_games_count|subtract:singles_board.2.singles_wins }}</span></div>
+          </div>
+          <div class="pod-step">3</div>
+        </a>
+        {% else %}<div class="podium-col pod-third"><div class="pod-info"></div><div class="pod-step"></div></div>{% endif %}
+
       </div>
+
+      {% if singles_board|length > 3 %}
+      <div class="pod-divider"></div>
+      <div {% if singles_board|length > 15 %}class="lb-scroll"{% endif %}>
+        <table class="data-table">
+          <tbody>
+            {% for player in singles_board %}{% if forloop.counter > 3 %}
+            <tr class="board-row">
+              <td style="width:42px; padding-left:1.25rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
+              <td class="col-player">
+                <span class="row-avatar" data-name="{{ player.display_name }}"></span>
+                <a href="{% url 'player_detail' player.pk %}" class="player-link">
+                  <span class="name-full">{{ player.display_name }}</span>
+                  <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
+                </a>
+                {% if player.singles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
+              </td>
+              <td class="text-right col-last5"><span class="last5">{% for won in player.singles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</span></td>
+              <td class="col-elo"><span class="elo-val mono" data-count="{{ player.singles_ordinal }}">{{ player.singles_ordinal|floatformat:0 }}</span></td>
+              <td class="text-right" style="padding-right:1.25rem;"><span class="wl-stat mono"><span class="win-color">{{ player.singles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.singles_games_count|subtract:player.singles_wins }}</span></span></td>
+            </tr>
+            {% endif %}{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
     {% else %}
       <div class="empty-state">No singles games recorded yet.</div>
     {% endif %}
   </div>
 
-  <!-- Doubles board -->
+  <!-- ── Doubles board ──────────────────── -->
   <div id="doubles-board">
     {% if doubles_board %}
-      <div {% if doubles_board|length > 12 %}class="lb-scroll"{% endif %}>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th></th><th></th>
-            <th>Player</th>
-            <th class="text-right"></th>
-            <th>Rating</th>
-            <th class="text-right">W / L</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for player in doubles_board %}
-          <tr class="board-row {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% endif %}">
-            <td>
-              {% if forloop.counter == 1 %}<span class="rank rank-gold">1</span>
-              {% elif forloop.counter == 2 %}<span class="rank rank-silver">2</span>
-              {% elif forloop.counter == 3 %}<span class="rank rank-bronze">3</span>
-              {% else %}<span class="rank-num">{{ forloop.counter }}</span>{% endif %}
-            </td>
-            <td class="col-award">
-              {% if forloop.counter == 1 %}<i class="bi bi-award-fill medal-gold" style="font-size:0.9rem;"></i>
-              {% elif forloop.counter == 2 %}<i class="bi bi-award-fill medal-silver" style="font-size:0.9rem;"></i>
-              {% elif forloop.counter == 3 %}<i class="bi bi-award-fill medal-bronze" style="font-size:0.9rem;"></i>{% endif %}
-            </td>
-            <td class="col-player">
-              <a href="{% url 'player_detail' player.pk %}" class="player-link">
-                <span class="name-full">{{ player.display_name }}</span>
-                <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
-              </a>
-              {% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
-              {% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
-            </td>
-            <td class="text-right col-last5">
-              <span class="last5">
-                {% for won in player.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}
-              </span>
-            </td>
-            <td class="col-elo">
-              <span class="elo-val mono elo-countup" data-target="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span>
-            </td>
-            <td class="text-right">
-              <span class="wl-stat mono">
-                <span class="win-color">{{ player.doubles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.doubles_games_count|subtract:player.doubles_wins }}</span>
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="podium-stage">
+
+        <!-- 2nd (left) -->
+        {% if doubles_board|length >= 2 %}
+        <a href="{% url 'player_detail' doubles_board.1.pk %}" class="podium-col pod-second">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ doubles_board.1.display_name }}"></div>
+            <span class="pod-name">{{ doubles_board.1.display_name }}</span>
+            <div class="pod-rating" data-count="{{ doubles_board.1.doubles_ordinal }}">{{ doubles_board.1.doubles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in doubles_board.1.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.1.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.1.doubles_games_count|subtract:doubles_board.1.doubles_wins }}</span></div>
+          </div>
+          <div class="pod-step">2</div>
+        </a>
+        {% else %}<div class="podium-col pod-second"><div class="pod-info"></div><div class="pod-step"></div></div>{% endif %}
+
+        <!-- 1st (center) -->
+        <a href="{% url 'player_detail' doubles_board.0.pk %}" class="podium-col pod-first">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ doubles_board.0.display_name }}"></div>
+            <span class="pod-name">{{ doubles_board.0.display_name }}</span>
+            <div class="pod-rating" data-count="{{ doubles_board.0.doubles_ordinal }}">{{ doubles_board.0.doubles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in doubles_board.0.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.0.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.0.doubles_games_count|subtract:doubles_board.0.doubles_wins }}</span></div>
+          </div>
+          <div class="pod-step">1</div>
+        </a>
+
+        <!-- 3rd (right) -->
+        {% if doubles_board|length >= 3 %}
+        <a href="{% url 'player_detail' doubles_board.2.pk %}" class="podium-col pod-third">
+          <div class="pod-info">
+            <div class="pod-avatar" data-name="{{ doubles_board.2.display_name }}"></div>
+            <span class="pod-name">{{ doubles_board.2.display_name }}</span>
+            <div class="pod-rating" data-count="{{ doubles_board.2.doubles_ordinal }}">{{ doubles_board.2.doubles_ordinal|floatformat:0 }}</div>
+            <div class="pod-dots">{% for won in doubles_board.2.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</div>
+            <div class="pod-wl"><span class="win-color">{{ doubles_board.2.doubles_wins }}</span> / <span class="loss-color">{{ doubles_board.2.doubles_games_count|subtract:doubles_board.2.doubles_wins }}</span></div>
+          </div>
+          <div class="pod-step">3</div>
+        </a>
+        {% else %}<div class="podium-col pod-third"><div class="pod-info"></div><div class="pod-step"></div></div>{% endif %}
+
       </div>
+
+      {% if doubles_board|length > 3 %}
+      <div class="pod-divider"></div>
+      <div {% if doubles_board|length > 15 %}class="lb-scroll"{% endif %}>
+        <table class="data-table">
+          <tbody>
+            {% for player in doubles_board %}{% if forloop.counter > 3 %}
+            <tr class="board-row">
+              <td style="width:42px; padding-left:1.25rem; text-align:center;"><span class="rank-num">{{ forloop.counter }}</span></td>
+              <td class="col-player">
+                <span class="row-avatar" data-name="{{ player.display_name }}"></span>
+                <a href="{% url 'player_detail' player.pk %}" class="player-link">
+                  <span class="name-full">{{ player.display_name }}</span>
+                  <span class="name-short">{{ player.display_name|abbreviate_name }}</span>
+                </a>
+                {% if player.doubles_streak >= 3 %}<span class="lb-streak"><i class="bi bi-fire"></i></span>{% endif %}
+                {% if player.has_chemistry %}<span class="lb-chemistry"><i class="bi bi-people-fill"></i></span>{% endif %}
+              </td>
+              <td class="text-right col-last5"><span class="last5">{% for won in player.doubles_last5 %}<span class="l5-dot {% if won %}win{% else %}loss{% endif %}"></span>{% endfor %}</span></td>
+              <td class="col-elo"><span class="elo-val mono" data-count="{{ player.doubles_ordinal }}">{{ player.doubles_ordinal|floatformat:0 }}</span></td>
+              <td class="text-right" style="padding-right:1.25rem;"><span class="wl-stat mono"><span class="win-color">{{ player.doubles_wins }}</span><span class="wl-sep"> / </span><span class="loss-color">{{ player.doubles_games_count|subtract:player.doubles_wins }}</span></span></td>
+            </tr>
+            {% endif %}{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
     {% else %}
       <div class="empty-state">No doubles games recorded yet.</div>
     {% endif %}
@@ -331,22 +365,74 @@
 {% block extra_js %}
 <script>
 (function () {
-  const counts = {
-    singles: {{ singles_board|length }},
-    doubles: {{ doubles_board|length }},
-  };
+  /* ── Avatar helpers ─────────────────── */
+  const PALETTE = [
+    ['rgba(96,165,250,0.2)',  '#60a5fa'],
+    ['rgba(167,139,250,0.2)', '#a78bfa'],
+    ['rgba(74,222,128,0.2)',  '#4ade80'],
+    ['rgba(244,114,182,0.2)', '#f472b6'],
+    ['rgba(251,191,36,0.2)',  '#fbbf24'],
+    ['rgba(56,189,248,0.2)',  '#38bdf8'],
+    ['rgba(251,146,60,0.2)',  '#fb923c'],
+    ['rgba(192,132,252,0.2)', '#c084fc'],
+  ];
 
+  function nameHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+  }
+
+  function applyAvatars(root) {
+    root.querySelectorAll('[data-name]').forEach(el => {
+      const name = el.dataset.name;
+      const [bg, fg] = PALETTE[nameHash(name) % PALETTE.length];
+      el.style.background = bg;
+      el.style.color = fg;
+      el.textContent = initials(name);
+    });
+  }
+
+  /* ── Count-up ───────────────────────── */
+  const animated = new WeakSet();
+  function countUp(container) {
+    container.querySelectorAll('[data-count]').forEach(el => {
+      if (animated.has(el)) return;
+      animated.add(el);
+      const target = parseFloat(el.dataset.count);
+      const dur = 1800;
+      const t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 4);
+        el.textContent = Math.round(target * e);
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = Math.round(target);
+      })(t0);
+    });
+  }
+
+  /* ── Board switching ────────────────── */
+  const counts = { singles: {{ singles_board|length }}, doubles: {{ doubles_board|length }} };
   const singleDiv = document.getElementById('singles-board');
   const doubleDiv = document.getElementById('doubles-board');
   const countEl   = document.getElementById('board-count');
 
   function showBoard(type) {
-    singleDiv.style.display = type === 'singles' ? '' : 'none';
-    doubleDiv.style.display = type === 'doubles' ? '' : 'none';
+    const active   = type === 'singles' ? singleDiv : doubleDiv;
+    const inactive = type === 'singles' ? doubleDiv : singleDiv;
+    inactive.style.display = 'none';
+    active.style.display   = '';
     countEl.textContent = counts[type] + ' player' + (counts[type] !== 1 ? 's' : '');
+    applyAvatars(active);
+    countUp(active);
   }
 
-  // Toggle — same initSlider pattern as player detail page
+  /* ── Toggle slider ──────────────────── */
   const toggle = document.getElementById('type-toggle');
   const slider = toggle.querySelector('.view-slider');
   const btns   = toggle.querySelectorAll('.view-btn');
@@ -369,29 +455,6 @@
 
   showBoard('doubles');
 
-  // ELO count-up (only for visible board on load)
-  document.querySelectorAll('#doubles-board .elo-countup').forEach(el => {
-    const target = parseFloat(el.dataset.target);
-    const duration = 2400;
-    const start = performance.now();
-    function tick(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 4);
-      el.textContent = Math.round(target * ease);
-      if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = Math.round(target);
-    }
-    requestAnimationFrame(tick);
-  });
-
-  // Glint on title click
-  document.getElementById('page-title').addEventListener('click', () => {
-    const rows = document.querySelectorAll('.board-row.rank-1, .board-row.rank-2, .board-row.rank-3');
-    rows.forEach(r => r.classList.remove('glinting'));
-    document.body.getBoundingClientRect();
-    rows.forEach(r => r.classList.add('glinting'));
-  });
 })();
 </script>
 {% endblock %}
